@@ -1,0 +1,44 @@
+Please read the COPYING file first.
+If building from source, also read the INSTALL file (at least through the
+"SUPER-SHORT VERSION") before going further.
+
+Requirements
+--------------------------------
+The following packages *MUST* be installed in order for Gramps to work:
+   Python 2.5 or greater
+   PyGTK2 2.10 or greater
+   Python Glade bindings 
+   librsvg2 (svg icon view)
+
+The following packages are *STRONGLY RECOMMENDED* to be installed:
+   GraphViz         Enable creation of graphs using GraphViz engine
+                    http://www.graphviz.org
+   xdg              Freedesktop utilities, eg xdg-open
+
+The following packages are optional
+   gtkspell         Enable spell checking in the notes
+   ttf-freefont     More font support in the reports
+
+No longer needed in 3.0:
+   yelp             Gnome help browser. At the moment no help is shipped
+                    with version 3.0.
+
+
+Documentation
+---------------------------------
+The User Manual is now maintained on the gramps website,
+http://www.gramps-project.org/wiki/index.php?title=User_manual
+We might in the future distribute again a manual via gnome-doc-utils, this has not
+been decided yet though.
+
+
+Building on non-Linux systems: i18n support and GNU make
+--------------------------------------------------------
+If make fails, use gmake (the name FreeBSD gives to GNU make) instead.
+You might need a patch also. FreeBSD has in ports a patch (  /usr/ports/science/gramps/files)
+you need to apply to po/Makefile.in.in 
+
+
+--------------------------------
+Donald Allingham
+dallingham@users.sourceforge.net

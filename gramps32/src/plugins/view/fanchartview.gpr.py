@@ -1,0 +1,13 @@
+register(VIEW, 
+         id    = 'fanchartview',
+         name  = _("Fan Chart View"),
+         category = ("Ancestry", _("Ancestry")),
+         description =  _("The view showing relations through a fanchart"),
+         version = '1.0',
+         gramps_target_version = '3.2',
+         status = STABLE,
+         fname = 'fanchartview.py',
+         authors = [u"Douglas S. Blank"],
+         authors_email = ["doug.blank@gmail.com"],
+         viewclass = 'FanChartView',
+  )

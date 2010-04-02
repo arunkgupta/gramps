@@ -1,0 +1,9 @@
+Makefile
+Makefile.in
+*.pyc
+*.pyo
+const.py
+gramps.strings
+glade.c
+.xvpics
+*.gladep

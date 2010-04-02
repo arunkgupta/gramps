@@ -1,0 +1,194 @@
+dnl $Id$
+
+dnl Process this file with autoconf to produce a configure script.
+dnl May need to run automake && aclocal first
+
+AC_PREREQ(2.57)
+dnl NOTE: 1st arg to macro below becomes the "VERSION"
+AC_INIT(gramps, 3.0.5, [gramps-bugs@lists.sourceforge.net])
+AC_CONFIG_SRCDIR(configure.in)
+AM_INIT_AUTOMAKE([1.6.3 foreign])
+
+AC_CONFIG_MACRO_DIR([m4])
+
+RELEASE=0.SVN$(svnversion -n .)
+dnl RELEASE=0beta
+dnl RELEASE=0rc1
+dnl RELEASE=1
+
+VERSIONSTRING=$VERSION
+if test x"$RELEASE" != "x"
+then
+  VERSIONSTRING="$VERSION-$RELEASE"
+fi
+
+dnl put the ACLOCAL flags in the Makefile
+ACLOCAL="$ACLOCAL $ACLOCAL_FLAGS"
+
+AC_PROG_INTLTOOL
+
+AM_SHARED_MIME
+AM_PACKAGER
+AC_SUBST(RELEASE)
+AC_SUBST(VERSIONSTRING)
+
+dnl Add the languages which your application supports here.
+ALL_LINGUAS="hu zh_CN cs da de es fr it nb nl nn pl pt_BR ro ru sv eo fi lt sk tr bg hr sl ca"
+GETTEXT_PACKAGE=gramps
+AC_SUBST(GETTEXT_PACKAGE)
+AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE", [Define to the Gettext package name.])
+AM_GLIB_GNU_GETTEXT
+
+dnl Checks for programs.  
+dnl We first only check for python >= 2.5
+
+AM_PATH_PYTHON(2.5)
+AC_PATH_PROG(BINSH, sh)
+
+pygtk_require="
+try:
+    import pygtk
+    pygtk.require('2.0')
+except ImportError:
+    pass
+
+def out(line):
+    f = open('conftest.out', 'w')
+    f.write(line)
+    f.close()
+"
+
+AC_MSG_CHECKING(Python bindings for gtk2.10 (pygtk2>=2.10.0))
+cat > conftest.py <<EOF
+$pygtk_require
+try:
+    import gobject
+    version = gobject.pygtk_version
+    if version >= (2,10,0):
+        print_version = '.'.join([[str(i) for i in version]])
+        out(print_version)
+    else:
+        out("NO")
+except ImportError:
+    out("NO")
+except AttributeError:
+    out("NO")
+EOF
+$PYTHON conftest.py
+has_pygtk=`cat conftest.out`
+rm -f conftest.out conftest.py
+if test NO = "$has_pygtk"
+then
+   AC_MSG_ERROR([
+
+**** The python bindings for gtk 2.4 (pygtk2>=2.10.0) could not be found.])
+fi
+AC_MSG_RESULT($has_pygtk)
+
+AC_MSG_CHECKING(Python bindings for gnome)
+cat > conftest.py <<EOF
+$pygtk_require
+try:
+    import gnome
+    # Do not import gnome.ui, this can kill python if the
+    # display cannot be opened.  Just search it.
+    import imp
+    imp.find_module('gnome/ui')
+    out("gnome.ui")
+except ImportError:
+    out("NO")
+EOF
+$PYTHON conftest.py
+has_pygnome=`cat conftest.out`
+rm -f conftest.out conftest.py
+if test NO = "$has_pygnome"
+then
+   AC_MSG_ERROR([
+**** The python bindings for gnome2 (gnome2-python) could not be found.])
+fi
+AC_MSG_RESULT($has_pygnome)
+
+AC_MSG_CHECKING(Python bindings for glade)
+cat > conftest.py <<EOF
+$pygtk_require
+try:
+    # Do not import gtk.glade, this can raise a RuntimeError if the
+    # display cannot be opened.  Just search it.
+    import imp
+    imp.find_module('gtk/glade')
+    out("gtk.glade")
+except ImportError:
+    out("NO")
+EOF
+$PYTHON conftest.py
+has_pyglade=`cat conftest.out`
+rm -f conftest.out conftest.py
+if test NO = "$has_pyglade"
+then
+   AC_MSG_ERROR([
+
+**** The python bindings for glade (pygtk2-libglade) could not be found.])
+fi
+AC_MSG_RESULT($has_pyglade)
+
+AC_CONFIG_FILES([
+po/Makefile.in
+m4/Makefile
+Makefile
+gramps.sh
+src/const.py
+src/Makefile
+src/Config/Makefile
+src/FilterEditor/Makefile
+src/Mime/Makefile
+src/DisplayTabs/Makefile
+src/DisplayModels/Makefile
+src/Selectors/Makefile
+src/GrampsLogger/Makefile
+src/Merge/Makefile
+src/docgen/Makefile
+src/Editors/Makefile
+src/Filters/Makefile
+src/Filters/Rules/Makefile
+src/Filters/Rules/Person/Makefile
+src/Filters/Rules/Family/Makefile
+src/Filters/Rules/Event/Makefile
+src/Filters/Rules/Source/Makefile
+src/Filters/Rules/Place/Makefile
+src/Filters/Rules/MediaObject/Makefile
+src/Filters/Rules/Repository/Makefile
+src/Filters/Rules/Note/Makefile
+src/Filters/SideBar/Makefile
+src/DataViews/Makefile
+src/BasicUtils/Makefile
+src/Simple/Makefile
+src/GrampsDbUtils/Makefile
+src/GrampsLocale/Makefile
+src/PluginUtils/Makefile
+src/ReportBase/Makefile
+src/plugins/Makefile
+src/DateHandler/Makefile
+src/gen/Makefile
+src/gen/proxy/Makefile
+src/gen/db/Makefile
+src/gen/lib/Makefile
+src/gen/utils/Makefile
+src/data/Makefile
+src/data/templates/Makefile
+src/glade/Makefile
+src/images/Makefile
+src/images/scalable/Makefile
+src/images/16x16/Makefile
+src/images/22x22/Makefile
+src/images/48x48/Makefile
+data/Makefile
+data/man/Makefile
+data/man/fr/Makefile
+data/man/nl/Makefile
+data/man/pl/Makefile
+data/man/sv/Makefile
+example/Makefile
+example/gramps/Makefile
+])
+
+AC_OUTPUT

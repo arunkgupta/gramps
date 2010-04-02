@@ -1,0 +1,56 @@
+$Id$
+
+This file contains some useful details on the installation from source code
+for GRAMPS. It does not cover installation of a pre-built binary package.
+For that use your package manager, the rest is done by the packager.
+
+
+configure vs autogen scripts
+----------------------------
+If you are building from released tarball, you should be able to just
+run "./configure && make". However, if you're building from the CVS,
+the configure is not present. You should auto-generate it by
+running ./autogen.sh and then "make" and, finally, "make install".
+
+
+Regular vs local installation
+-----------------------------
+This version of gramps requires, among others, the two things to be done:
+gconf schemas and mime types for gramps MUST be properly installed.
+The usual ./configure, make, and make install as a root should do the trick.
+But be careful if you're using the non-default options or would like
+to install without being root.
+
+The latter is possible, but you should supply additional arguments to
+autogen or configure:
+   --with-gconf-source=xml::$HOME/.gconf
+   --with-gconf-schema-file-dir=$HOME
+   --with-mime-dir=$HOME/.local/share/mime
+Most likely, such local install will also need some prefix with write
+permissions for you:
+   --prefix=$HOME/my_gramps_path
+
+Whether you're doing local install or regular install,
+YOU MUST INSTALL GCONF SCHEMAS AND MIME TYPES.
+YOU HAVE BEEN WARNED!
+
+
+Packager's issues
+------------------
+The above mentioned gconf schemas and mime types must be installed.
+However, the update-mime-database and the gconftool-2 calls to process
+the newly installed types and schemas must be done in POST-INSTALLATION.
+In packager's world, the install happens on packager's machine
+into something like /tmp/gramps-tmp. However, the postinstall
+should happen on the user's machine.
+
+To assist with that, there's an argument available in configure
+(or autogen, which will pass it to configure) which disables
+the gconf schema and mime type processing:
+   --enable-packager-mode
+This argument should disable postinstall calls made during
+make install, and print a nasty warning during configure.
+IT IS PACKAGER'S RESPONSIBILITY to follow the advice given
+by the configure output and to copy the appropriate code
+from the src/data/Makefile.am into the pos-tinstall (and post-uninstall)
+of the particular packaging system.
