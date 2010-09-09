@@ -1,0 +1,542 @@
+#
+# Gramps - a GTK+/GNOME based genealogy program
+#
+# Copyright (C) 2007-2008 Brian G. Matherly
+# Copyright (C) 2009      Gary Burton
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+
+# $Id$
+
+"""Reports/Text Reports/Marker Report"""
+
+#------------------------------------------------------------------------
+#
+# standard python modules
+#
+#------------------------------------------------------------------------
+from gettext import gettext as _
+
+#------------------------------------------------------------------------
+#
+# GRAMPS modules
+#
+#------------------------------------------------------------------------
+from gen.plug import PluginManager
+from gen.plug.menu import EnumeratedListOption
+from ReportBase import Report, ReportUtils, MenuReportOptions, CATEGORY_TEXT
+from gen.plug.docgen import (IndexMark, FontStyle, ParagraphStyle,
+                        TableStyle, TableCellStyle, FONT_SANS_SERIF, 
+                        INDEX_TYPE_TOC, PARA_ALIGN_CENTER)
+from gen.lib import MarkerType
+from Filters import GenericFilterFactory, Rules
+from BasicUtils import name_displayer
+import DateHandler
+
+#------------------------------------------------------------------------
+#
+# MarkerReport
+#
+#------------------------------------------------------------------------
+class MarkerReport(Report):
+
+    def __init__(self, database, options_class):
+        """
+        Create the MarkerReport object that produces the report.
+        
+        The arguments are:
+
+        database        - the GRAMPS database instance
+        person          - currently selected person
+        options_class   - instance of the Options class for this report
+
+        This report needs the following parameters (class variables)
+        that come in the options class.
+        
+        marker         - The marker each object must match to be included.
+        """
+        Report.__init__(self, database, options_class)
+        menu = options_class.menu
+        self.marker = menu.get_option_by_name('marker').get_value()
+        
+    def write_report(self):
+        markerstr = self.marker
+        # Use localized name if this is not a custom marker
+        if self.marker in MarkerType._E2IMAP:
+            mtype = MarkerType._E2IMAP[self.marker]
+            markerstr = MarkerType._I2SMAP[mtype]
+        
+        self.doc.start_paragraph("MR-Title")
+        title = _("Marker Report for %s Items") % markerstr
+        mark = IndexMark(title, INDEX_TYPE_TOC, 1)
+        self.doc.write_text(title, mark)
+        self.doc.end_paragraph()
+        
+        self.write_people()
+        self.write_families()
+        self.write_events()
+        self.write_notes()
+            
+    def write_people(self):
+        plist = self.database.iter_person_handles()
+        FilterClass = GenericFilterFactory('Person')
+        filter = FilterClass()
+        filter.add_rule(Rules.Person.HasMarkerOf([self.marker]))
+        ind_list = filter.apply(self.database, plist)
+        
+        if not ind_list:
+            return
+        
+        self.doc.start_paragraph("MR-Heading")
+        header = _("People")
+        mark = IndexMark(header, INDEX_TYPE_TOC, 2)
+        self.doc.write_text(header, mark)
+        self.doc.end_paragraph()
+
+        self.doc.start_table('PeopleTable','MR-Table')
+        
+        self.doc.start_row()
+        
+        self.doc.start_cell('MR-TableCell')
+        self.doc.start_paragraph('MR-Normal-Bold')
+        self.doc.write_text(_("Id"))
+        self.doc.end_paragraph()
+        self.doc.end_cell()
+
+        self.doc.start_cell('MR-TableCell')
+        self.doc.start_paragraph('MR-Normal-Bold')
+        self.doc.write_text(_("Name"))
+        self.doc.end_paragraph()
+        self.doc.end_cell()
+        
+        self.doc.start_cell('MR-TableCell')
+        self.doc.start_paragraph('MR-Normal-Bold')
+        self.doc.write_text(_("Birth"))
+        self.doc.end_paragraph()
+        self.doc.end_cell()
+        
+        self.doc.start_cell('MR-TableCell')
+        self.doc.start_paragraph('MR-Normal-Bold')
+        self.doc.write_text(_("Death"))
+        self.doc.end_paragraph()
+        self.doc.end_cell()
+        
+        self.doc.end_row()
+
+        for person_handle in ind_list:
+            person = self.database.get_person_from_handle(person_handle)
+
+            self.doc.start_row()
+            
+            self.doc.start_cell('MR-TableCell')
+            self.doc.start_paragraph('MR-Normal')
+            self.doc.write_text(person.get_gramps_id())
+            self.doc.end_paragraph()
+            self.doc.end_cell()
+
+            name = name_displayer.display(person)
+            mark = ReportUtils.get_person_mark(self.database, person)
+            self.doc.start_cell('MR-TableCell')
+            self.doc.start_paragraph('MR-Normal')
+            self.doc.write_text(name, mark)
+            self.doc.end_paragraph()
+            self.doc.end_cell()
+            
+            self.doc.start_cell('MR-TableCell')
+            self.doc.start_paragraph('MR-Normal')
+            birth_ref = person.get_birth_ref()
+            if birth_ref:
+                event = self.database.get_event_from_handle(birth_ref.ref)
+                self.doc.write_text(DateHandler.get_date( event ))
+            self.doc.end_paragraph()
+            self.doc.end_cell()
+            
+            self.doc.start_cell('MR-TableCell')
+            self.doc.start_paragraph('MR-Normal')
+            death_ref = person.get_death_ref()
+            if death_ref:
+                event = self.database.get_event_from_handle(death_ref.ref)
+                self.doc.write_text(DateHandler.get_date( event ))
+            self.doc.end_paragraph()
+            self.doc.end_cell()
+            
+            self.doc.end_row()
+            
+        self.doc.end_table()
+            
+    def write_families(self):
+        flist = self.database.iter_family_handles()
+        FilterClass = GenericFilterFactory('Family')
+        filter = FilterClass()
+        filter.add_rule(Rules.Family.HasMarkerOf([self.marker]))
+        fam_list = filter.apply(self.database, flist)
+        
+        if not fam_list:
+            return
+        
+        self.doc.start_paragraph("MR-Heading")
+        header = _("Families")
+        mark = IndexMark(header,INDEX_TYPE_TOC, 2)
+        self.doc.write_text(header, mark)
+        self.doc.end_paragraph()
+
+        self.doc.start_table('FamilyTable','MR-Table')
+        
+        self.doc.start_row()
+        
+        self.doc.start_cell('MR-TableCell')
+        self.doc.start_paragraph('MR-Normal-Bold')
+        self.doc.write_text(_("Id"))
+        self.doc.end_paragraph()
+        self.doc.end_cell()
+
+        self.doc.start_cell('MR-TableCell')
+        self.doc.start_paragraph('MR-Normal-Bold')
+        self.doc.write_text(_("Father"))
+        self.doc.end_paragraph()
+        self.doc.end_cell()
+        
+        self.doc.start_cell('MR-TableCell')
+        self.doc.start_paragraph('MR-Normal-Bold')
+        self.doc.write_text(_("Mother"))
+        self.doc.end_paragraph()
+        self.doc.end_cell()
+        
+        self.doc.start_cell('MR-TableCell')
+        self.doc.start_paragraph('MR-Normal-Bold')
+        self.doc.write_text(_("Relationship"))
+        self.doc.end_paragraph()
+        self.doc.end_cell()
+        
+        self.doc.end_row()
+
+        for family_handle in fam_list:
+            family = self.database.get_family_from_handle(family_handle)
+            
+            self.doc.start_row()
+            
+            self.doc.start_cell('MR-TableCell')
+            self.doc.start_paragraph('MR-Normal')
+            self.doc.write_text(family.get_gramps_id())
+            self.doc.end_paragraph()
+            self.doc.end_cell()
+
+            self.doc.start_cell('MR-TableCell')
+            self.doc.start_paragraph('MR-Normal')
+            father_handle = family.get_father_handle()
+            if father_handle:
+                father = self.database.get_person_from_handle(father_handle)
+                mark = ReportUtils.get_person_mark(self.database, father)
+                self.doc.write_text(name_displayer.display(father), mark)
+            self.doc.end_paragraph()
+            self.doc.end_cell()
+            
+            self.doc.start_cell('MR-TableCell')
+            self.doc.start_paragraph('MR-Normal')
+            mother_handle = family.get_mother_handle()
+            if mother_handle:
+                mother = self.database.get_person_from_handle(mother_handle)
+                mark = ReportUtils.get_person_mark(self.database, mother)
+                self.doc.write_text(name_displayer.display(mother), mark)
+            self.doc.end_paragraph()
+            self.doc.end_cell()
+            
+            self.doc.start_cell('MR-TableCell')
+            self.doc.start_paragraph('MR-Normal')
+            relation = family.get_relationship()
+            self.doc.write_text(str(relation) )
+            self.doc.end_paragraph()
+            self.doc.end_cell()
+            
+            self.doc.end_row()
+            
+        self.doc.end_table()
+
+    def write_events(self):
+        # At the time of this writing, the GRAMPS UI does not allow the setting
+        # of markers for events.
+        elist = self.database.get_event_handles()
+        FilterClass = GenericFilterFactory('Event')
+        filter = FilterClass()
+        filter.add_rule(Rules.Event.HasMarkerOf([self.marker]))
+        event_list = filter.apply(self.database, elist)
+        
+        if not event_list:
+            return
+        
+        self.doc.start_paragraph("MR-Heading")
+        header = _("Events")
+        mark = IndexMark(header, INDEX_TYPE_TOC, 2)
+        self.doc.write_text(header, mark)
+        self.doc.end_paragraph()
+
+        self.doc.start_table('EventTable','MR-Table')
+        
+        self.doc.start_row()
+        
+        self.doc.start_cell('MR-TableCell')
+        self.doc.start_paragraph('MR-Normal-Bold')
+        self.doc.write_text(_("Id"))
+        self.doc.end_paragraph()
+        self.doc.end_cell()
+
+        self.doc.start_cell('MR-TableCell')
+        self.doc.start_paragraph('MR-Normal-Bold')
+        self.doc.write_text(_("Date"))
+        self.doc.end_paragraph()
+        self.doc.end_cell()
+        
+        self.doc.start_cell('MR-TableCell')
+        self.doc.start_paragraph('MR-Normal-Bold')
+        self.doc.write_text(_("Place"))
+        self.doc.end_paragraph()
+        self.doc.end_cell()
+        
+        self.doc.start_cell('MR-TableCell')
+        self.doc.start_paragraph('MR-Normal-Bold')
+        self.doc.write_text(_("Description"))
+        self.doc.end_paragraph()
+        self.doc.end_cell()
+        
+        self.doc.end_row()
+
+        for event_handle in event_list:
+            event = self.database.get_event_from_handle(event_handle)
+            
+            self.doc.start_row()
+            
+            self.doc.start_cell('MR-TableCell')
+            self.doc.start_paragraph('MR-Normal')
+            self.doc.write_text(event.get_gramps_id())
+            self.doc.end_paragraph()
+            self.doc.end_cell()            
+            
+            self.doc.start_cell('MR-TableCell')
+            self.doc.start_paragraph('MR-Normal')
+            date = DateHandler.get_date(event)
+            if date:
+                self.doc.write_text(date)
+            self.doc.end_paragraph()
+            self.doc.end_cell()
+            
+            self.doc.start_cell('MR-TableCell')
+            self.doc.start_paragraph('MR-Normal')
+            place_handle = event.get_place_handle()
+            place = ReportUtils.place_name(self.database, place_handle)
+            if place:
+                self.doc.write_text(place)
+            self.doc.end_paragraph()
+            self.doc.end_cell()
+            
+            self.doc.start_cell('MR-TableCell')
+            self.doc.start_paragraph('MR-Normal')
+            descr = event.get_description()
+            if descr:
+                self.doc.write_text( descr )
+            self.doc.end_paragraph()
+            self.doc.end_cell()
+            
+            self.doc.end_row()
+            
+        self.doc.end_table()
+        
+    def write_notes(self):
+        nlist = self.database.get_note_handles()
+        FilterClass = GenericFilterFactory('Note')
+        filter = FilterClass()
+        filter.add_rule(Rules.Note.HasMarkerOf([self.marker]))
+        note_list = filter.apply(self.database, nlist)
+        
+        if not note_list:
+            return
+        
+        self.doc.start_paragraph("MR-Heading")
+        header = _("Notes")
+        mark = IndexMark(header, INDEX_TYPE_TOC, 2)
+        self.doc.write_text(header ,mark)
+        self.doc.end_paragraph()
+
+        self.doc.start_table('NoteTable','MR-Table')
+        
+        self.doc.start_row()
+        
+        self.doc.start_cell('MR-TableCell')
+        self.doc.start_paragraph('MR-Normal-Bold')
+        self.doc.write_text(_("Id"))
+        self.doc.end_paragraph()
+        self.doc.end_cell()
+
+        self.doc.start_cell('MR-TableCell')
+        self.doc.start_paragraph('MR-Normal-Bold')
+        self.doc.write_text(_("Type"))
+        self.doc.end_paragraph()
+        self.doc.end_cell()
+        
+        self.doc.start_cell('MR-TableCell', 2)
+        self.doc.start_paragraph('MR-Normal-Bold')
+        self.doc.write_text(_("Text"))
+        self.doc.end_paragraph()
+        self.doc.end_cell()
+        
+        self.doc.end_row()
+
+        for note_handle in note_list:
+            note = self.database.get_note_from_handle(note_handle)
+            
+            self.doc.start_row()
+            
+            self.doc.start_cell('MR-TableCell')
+            self.doc.start_paragraph('MR-Normal')
+            self.doc.write_text(note.get_gramps_id())
+            self.doc.end_paragraph()
+            self.doc.end_cell()            
+            
+            self.doc.start_cell('MR-TableCell')
+            self.doc.start_paragraph('MR-Normal')
+            type = note.get_type()
+            self.doc.write_text(str(type))
+            self.doc.end_paragraph()
+            self.doc.end_cell()
+            
+            self.doc.start_cell('MR-TableCell', 2)
+            self.doc.write_styled_note(note.get_styledtext(),
+                                       note.get_format(), 'MR-Note')
+            self.doc.end_cell()
+            
+            self.doc.end_row()
+            
+        self.doc.end_table()
+
+#------------------------------------------------------------------------
+#
+# MarkerOptions
+#
+#------------------------------------------------------------------------
+class MarkerOptions(MenuReportOptions):
+
+    def __init__(self, name, dbase):
+        self.__db = dbase
+        MenuReportOptions.__init__(self, name, dbase)
+        
+    def add_menu_options(self, menu):
+        """
+        Add options to the menu for the marker report.
+        """
+        category_name = _("Report Options")
+        
+        marker = EnumeratedListOption(_('Marker'),
+                                      MarkerType._I2EMAP[MarkerType.COMPLETE])
+        # Add built-in marker types
+        for mtype in MarkerType._I2SMAP:
+            if mtype != MarkerType.NONE and mtype != MarkerType.CUSTOM:
+                # Use translated name for built-in marker types
+                marker.add_item(MarkerType._I2EMAP[mtype],
+                                MarkerType._I2SMAP[mtype] )
+        # Add custom marker types
+        for m in self.__db.get_marker_types():
+            marker.add_item( m, m )
+        marker.set_help( _("The marker to use for the report"))
+        menu.add_option(category_name,"marker",marker)
+
+    def make_default_style(self,default_style):
+        """Make the default output style for the Marker Report."""
+        # Paragraph Styles
+        f = FontStyle()
+        f.set_size(16)
+        f.set_type_face(FONT_SANS_SERIF)
+        f.set_bold(1)
+        p = ParagraphStyle()
+        p.set_header_level(1)
+        p.set_bottom_border(1)
+        p.set_top_margin(ReportUtils.pt2cm(3))
+        p.set_bottom_margin(ReportUtils.pt2cm(3))
+        p.set_font(f)
+        p.set_alignment(PARA_ALIGN_CENTER)
+        p.set_description(_("The style used for the title of the page."))
+        default_style.add_paragraph_style("MR-Title", p)
+        
+        font = FontStyle()
+        font.set(face=FONT_SANS_SERIF, size=14, italic=1)
+        para = ParagraphStyle()
+        para.set_font(font)
+        para.set_header_level(2)
+        para.set_top_margin(0.25)
+        para.set_bottom_margin(0.25)
+        para.set_description(_('The style used for the section headers.'))
+        default_style.add_paragraph_style("MR-Heading", para)
+        
+        font = FontStyle()
+        font.set_size(12)
+        p = ParagraphStyle()
+        p.set(first_indent=-0.75, lmargin=.75)
+        p.set_font(font)
+        p.set_top_margin(ReportUtils.pt2cm(3))
+        p.set_bottom_margin(ReportUtils.pt2cm(3))
+        p.set_description(_('The basic style used for the text display.'))
+        default_style.add_paragraph_style("MR-Normal", p)
+        
+        font = FontStyle()
+        font.set_size(12)
+        font.set_bold(True)
+        p = ParagraphStyle()
+        p.set(first_indent=-0.75, lmargin=.75)
+        p.set_font(font)
+        p.set_top_margin(ReportUtils.pt2cm(3))
+        p.set_bottom_margin(ReportUtils.pt2cm(3))
+        p.set_description(_('The basic style used for table headings.'))
+        default_style.add_paragraph_style("MR-Normal-Bold", p)
+        
+        para = ParagraphStyle()
+        p.set(first_indent=-0.75, lmargin=.75)
+        para.set_top_margin(ReportUtils.pt2cm(3))
+        para.set_bottom_margin(ReportUtils.pt2cm(3))
+        para.set_description(_('The basic style used for the note display.'))
+        default_style.add_paragraph_style("MR-Note",para)
+ 
+        #Table Styles
+        cell = TableCellStyle()
+        default_style.add_cell_style('MR-TableCell', cell)
+
+        table = TableStyle()
+        table.set_width(100)
+        table.set_columns(4)
+        table.set_column_width(0, 10)
+        table.set_column_width(1, 30)
+        table.set_column_width(2, 30)
+        table.set_column_width(3, 30)
+        default_style.add_table_style('MR-Table',table)
+
+#------------------------------------------------------------------------
+#
+# 
+#
+#------------------------------------------------------------------------
+pmgr = PluginManager.get_instance()
+pmgr.register_report(
+    name = 'marker_report',
+    category = CATEGORY_TEXT,
+    report_class = MarkerReport,
+    options_class = MarkerOptions,
+    modes = PluginManager.REPORT_MODE_GUI | \
+            PluginManager.REPORT_MODE_BKI | \
+            PluginManager.REPORT_MODE_CLI,
+    translated_name = _("Marker Report"),
+    status = _("Stable"),
+    description = _("Produces a list of people with a specified marker"),
+    author_name = "Brian G. Matherly",
+    author_email = "brian@gramps-project.org",
+    require_active = False
+    )
