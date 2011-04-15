@@ -1,0 +1,344 @@
+# -*- python -*-
+# -*- coding: utf-8 -*-
+#
+# Gramps - a GTK+/GNOME based genealogy program
+#
+# Copyright (C) 2011  Serge Noiraud
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+
+# $Id: geoview.py 15649 2010-07-23 07:27:32Z ldnp $
+
+"""
+Geography for events
+"""
+#-------------------------------------------------------------------------
+#
+# Python modules
+#
+#-------------------------------------------------------------------------
+from gen.ggettext import gettext as _
+import os
+import sys
+import urlparse
+import const
+import operator
+import locale
+from gtk.keysyms import Tab as KEY_TAB
+import socket
+import gtk
+
+#-------------------------------------------------------------------------
+#
+# set up logging
+#
+#-------------------------------------------------------------------------
+import logging
+_LOG = logging.getLogger("GeoGraphy.geoevents")
+
+#-------------------------------------------------------------------------
+#
+# Gramps Modules
+#
+#-------------------------------------------------------------------------
+import gen.lib
+import Utils
+import config
+import Errors
+from gen.display.name import displayer as _nd
+from PlaceUtils import conv_lat_lon
+from gui.views.pageview import PageView
+from gui.editors import EditPlace
+from gui.selectors.selectplace import SelectPlace
+from Filters.SideBar import EventSidebarFilter
+from gui.views.navigationview import NavigationView
+import Bookmarks
+from Utils import navigation_label
+from maps.constants import EVENTS
+from maps.geography import GeoGraphyView
+
+#-------------------------------------------------------------------------
+#
+# Constants
+#
+#-------------------------------------------------------------------------
+
+_UI_DEF = '''\
+<ui>
+<menubar name="MenuBar">
+<menu action="GoMenu">
+  <placeholder name="CommonGo">
+    <menuitem action="Back"/>
+    <menuitem action="Forward"/>
+  </placeholder>
+</menu>
+</menubar>
+<toolbar name="ToolBar">
+<placeholder name="CommonNavigation">
+  <toolitem action="Back"/>  
+  <toolitem action="Forward"/>  
+  <toolitem action="HomePerson"/>
+</placeholder>
+</toolbar>
+</ui>
+'''
+
+#-------------------------------------------------------------------------
+#
+# GeoView
+#
+#-------------------------------------------------------------------------
+class GeoEvents(GeoGraphyView):
+    """
+    The view used to render events map.
+    """
+
+    def __init__(self, pdata, dbstate, uistate, nav_group=0):
+        _LOG.debug("GeoEvents : __init__")
+        GeoGraphyView.__init__(self, pdata, dbstate, uistate, nav_group,
+                               _("Events places map"), EVENTS)
+        self.dbstate = dbstate
+        self.uistate = uistate
+        self.place_list = []
+        self.place_without_coordinates = []
+        self.minlat = self.maxlat = self.minlon = self.maxlon = 0.0
+        self.minyear = 9999
+        self.maxyear = 0
+        self.center = True
+        self.nbplaces = 0
+        self.nbmarkers = 0
+        self.sort = []
+        self.additional_uis.append(self.additional_ui())
+
+    def get_title(self):
+        """
+        Used to set the titlebar in the configuration window.
+        """
+        _LOG.debug("get_title")
+        return _('GeoEvents')
+
+    def get_stock(self):
+        """
+        Returns the name of the stock icon to use for the display.
+        This assumes that this icon has already been registered 
+        as a stock icon.
+        """
+        _LOG.debug("get_stock")
+        return 'geo-show-events'
+    
+    def get_viewtype_stock(self):
+        """Type of view in category
+        """
+        _LOG.debug("get_viewtype_stock")
+        return 'geo-show-events'
+
+    def build_wiget(self):
+        """
+        Specifies the UIManager XML code that defines the menus and buttons
+        associated with the interface.
+        """
+        _LOG.debug("build_wiget")
+        return GeoGraphyView.build_wiget(self)
+
+    def additional_ui(self):
+        """
+        Specifies the UIManager XML code that defines the menus and buttons
+        associated with the interface.
+        """
+        _LOG.debug("additional_ui")
+        return _UI_DEF
+
+    def define_actions(self):
+        """
+        Required define_actions function for NavigationView. Builds the action
+        group information required. 
+        """
+        GeoGraphyView.define_actions(self)
+
+    def navigation_group(self):
+        """
+        Return the navigation group.
+        """
+        return self.nav_group
+
+    def navigation_type(self):
+        """
+        Indicates the navigation type. Navigation type can be the string
+        name of any of the primary objects.
+        """
+        _LOG.debug("navigation_type")
+        return 'Event'
+
+    def set_active(self):
+        """
+        Set view active when we enter into this view.
+        """
+        _LOG.debug("set_active")
+        self.key_active_changed = self.dbstate.connect(
+            'active-changed', self._goto_active_events)
+        hobj = self.get_history()
+        self.active_signal = hobj.connect(
+            'active-changed', self._goto_active_events)
+        self._goto_active_events()
+        GeoGraphyView.set_active(self)
+
+    def set_inactive(self):
+        """
+        Set view inactive when switching to another view.
+        """
+        _LOG.debug("set_inactive")
+        self.dbstate.disconnect(self.key_active_changed)
+
+    def on_delete(self):
+        """
+        Save all modified environment
+        """
+        _LOG.debug("on_delete")
+        GeoGraphyView.on_delete(self)
+        self._config.save()
+
+    def goto_handle(self, handle=None):
+        """
+        Rebuild the tree with the given events handle as the root.
+        """
+        _LOG.debug("goto_handle")
+        self.dirty = True
+        if handle:
+            events = self.dbstate.db.get_events_from_handle(handle)
+            self._createmap(handle)
+        self.uistate.modify_statusbar(self.dbstate)
+
+    def build_tree(self):
+        """
+        This is called by the parent class when the view becomes visible. Since
+        all handling of visibility is now in rebuild_trees, see that for more
+        information.
+        """
+        _LOG.debug("build_tree")
+        self._createmap(self)
+
+    def _goto_active_events(self, handle=None):
+        """
+        Here when the Geography page is loaded
+        """
+        _LOG.debug("_goto_active_events")
+        if not self.uistate.get_active('Event'):
+            return
+        self._createmap(self)
+
+    def _createmap(self,obj):
+        """
+        Create all markers for each people's event in the database which has 
+        a lat/lon.
+        """
+        _LOG.debug("_createmap")
+        dbstate = self.dbstate
+        self.place_list = []
+        self.place_without_coordinates = []
+        self.minlat = self.maxlat = self.minlon = self.maxlon = 0.0
+        self.minyear = 9999
+        self.maxyear = 0
+        latitude = ""
+        longitude = ""
+        self.without = 0
+        self.center = True
+        self.cal = config.get('preferences.calendar-format-report')
+
+        events_handle = dbstate.db.iter_event_handles()
+        for event_hdl in events_handle:
+            event = dbstate.db.get_event_from_handle(event_hdl)
+            place_handle = event.get_place_handle()
+            eventyear = event.get_date_object().to_calendar(self.cal).get_year()
+            if place_handle:
+                place = dbstate.db.get_place_from_handle(place_handle)
+                if place:
+                    descr1 = place.get_title()
+                    longitude = place.get_longitude()
+                    latitude = place.get_latitude()
+                    latitude, longitude = conv_lat_lon(latitude, longitude,
+                                                       "D.D8")
+                    # place.get_longitude and place.get_latitude return
+                    # one string. We have coordinates when the two values
+                    # contains non null string.
+                    if ( longitude and latitude ):
+                        person_list = [
+                            dbstate.db.get_person_from_handle(ref_handle)
+                            for (ref_type, ref_handle) in
+                                dbstate.db.find_backlink_handles(event.handle)
+                                    if ref_type == 'Person'
+                                      ]
+                        #descr2 = "%s" % event.get_type()
+                        if person_list:
+                            for person in person_list:
+                                #descr2 = ("%(description)s - %(name)s") % {
+                                #            'description' : descr2,
+                                #            'name' : _nd.display(person)}
+                                descr2 = ("%s") % _nd.display(person)
+                            #descr = ("%(eventtype)s;"+
+                            descr = (
+                                     " s%(description)s"
+                                     #) % { 'eventtype': gen.lib.EventType(
+                                     #                       event.get_type()
+                                     #                       ),
+                                     ) % { 
+                                           #'place': place.get_title(),
+                                           'description': descr2}
+                        else:
+                            descr = ("%(eventtype)s; %(place)s") % {
+                                           'eventtype': gen.lib.EventType(
+                                                            event.get_type()
+                                                            ),
+                                           'place': place.get_title()}
+                        self._append_to_places_list(descr1, descr,
+                                                    descr,
+                                                    latitude, longitude,
+                                                    descr2, self.center,
+                                                    eventyear,
+                                                    event.get_type(),
+                                                    None, # person.gramps_id
+                                                    place.gramps_id,
+                                                    event.gramps_id
+                                                    )
+                        self.center = False
+                    else:
+                        descr = place.get_title()
+                        self._append_to_places_without_coord(
+                             place.gramps_id, descr)
+        self.sort = sorted(self.place_list,
+                           key=operator.itemgetter(7)
+                          )
+        self._create_markers()
+
+    def bubble_message(self, event, lat, lon, marks):
+        _LOG.debug("bubble_message")
+        menu = gtk.Menu()
+        menu.set_title("events")
+        message = ""
+        oldplace = ""
+        for mark in marks:
+            if mark[0] != oldplace:
+                message = message + "%s :\n" % mark[0]
+                oldplace = mark[0]
+            if ( gen.lib.EventType( mark[8] ) == gen.lib.EventType( gen.lib.EventType.MARRIAGE ) ):
+                message = message + "%s : %s - " % ( mark[1], mark[5] )
+            else:
+                message = message + "%s\n" % mark[5]
+        add_item = gtk.MenuItem(message)
+        add_item.show()
+        menu.append(add_item)
+        menu.popup(None, None, None, 0, event.time)
+        return 1
+
