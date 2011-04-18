@@ -63,14 +63,10 @@ import Bookmarks
 import const
 import constfunc
 from grampsmaps import *
-import constants # import FAMILY, PERSON, EVENTS, PLACES
+import constants
 from config import config
 from gui.editors import EditPlace
 from gui.selectors.selectplace import SelectPlace
-from Filters.SideBar import (PersonSidebarFilter, FamilySidebarFilter,
-                             EventSidebarFilter, SourceSidebarFilter,
-                             PlaceSidebarFilter, MediaSidebarFilter,
-                             RepoSidebarFilter, NoteSidebarFilter)
 
 #-------------------------------------------------------------------------
 #
@@ -120,7 +116,7 @@ def _get_zoom_long(value):
 # GeoGraphyView
 #
 #-------------------------------------------------------------------------
-class GeoGraphyView(NavigationView,osmGpsMap):
+class GeoGraphyView(osmGpsMap, NavigationView):
     """
     View for pedigree tree.
     Displays the ancestors of a selected individual.
@@ -143,32 +139,11 @@ class GeoGraphyView(NavigationView,osmGpsMap):
         ('geography.map_service', constants.OPENSTREETMAP),
         )
 
-    def __init__(self, pdata, dbstate, uistate, nav_group=0, title="missing title", view_type=None, filter_class=None):
+    def __init__(self, title, pdata, dbstate, uistate,
+                 get_bookmarks, bm_type, nav_group):
         _LOG.debug("__init__ GeoGraphyView")
-        if view_type == constants.PERSON:
-            bookmark = Bookmarks.PersonBookmarks
-            NavigationView.__init__(self, _('GeoPerson'), pdata, dbstate, uistate,
-                                      dbstate.db.get_bookmarks(),
-                                      Bookmarks.PersonBookmarks,
-                                      nav_group)
-        elif view_type == constants.FAMILY:
-            bookmark = Bookmarks.FamilyBookmarks
-            NavigationView.__init__(self, _('GeoFamily'), pdata, dbstate, uistate,
-                                    dbstate.db.get_bookmarks,
-                                    Bookmarks.FamilyBookmarks,
-                                    nav_group)
-        elif view_type == constants.EVENTS:
-            bookmark = Bookmarks.EventBookmarks
-            NavigationView.__init__(self, _('GeoEvents'), pdata, dbstate, uistate,
-                                    dbstate.db.get_bookmarks,
-                                    Bookmarks.EventBookmarks,
-                                    nav_group)
-        else: # view_type == constants.PLACES assumed
-            bookmark = Bookmarks.PlaceBookmarks
-            NavigationView.__init__(self, _('GeoPlaces'), pdata, dbstate, uistate,
-                                    dbstate.db.get_bookmarks,
-                                    Bookmarks.PlaceBookmarks,
-                                    nav_group)
+        NavigationView.__init__(self, title, pdata, dbstate, uistate, 
+                              get_bookmarks, bm_type, nav_group)
 
         self.dbstate = dbstate
         self.dbstate.connect('database-changed', self.change_db)
@@ -184,6 +159,7 @@ class GeoGraphyView(NavigationView,osmGpsMap):
         self.format_helper = FormattingHelper(self.dbstate)
         self.centerlat = self.centerlon = 0.0
         self.cross_map = None
+        self.without = 0
         
     def change_page(self):
         """Called when the page changes."""
@@ -191,44 +167,13 @@ class GeoGraphyView(NavigationView,osmGpsMap):
         NavigationView.change_page(self)
         self.uistate.clear_filter_results()
 
-    def set_active(self):
+    def on_delete(self):
         """
-        Set view active when we enter into this view.
+        Save all modified environment
         """
-        NavigationView.set_active(self)
-        #self.change_map(None, config.get("geography.map_service"))
+        NavigationView.on_delete(self)
+        self._config.save()
 
-    def set_inactive(self):
-        """
-        Set view inactive when switching to another view.
-        """
-        pass
-
-    def build_widget(self):
-        """
-        Builds the preferences and returns a gtk.Container type that
-        contains the preferences. This containter will be inserted into
-        a gtk.ScrolledWindow page.
-        """
-        _LOG.debug("build_widget")
-        return osmGpsMap.build_widget(self)
-
-    def define_actions(self):
-        """
-        Required define_actions function for PageView. Builds the action
-        group information required. We extend beyond the normal here,
-        since we want to have more than one action group for the PersonView.
-        Most PageViews really won't care about this.
-
-        Special action groups for Forward and Back are created to allow the
-        handling of navigation buttons. Forward and Back allow the user to
-        advance or retreat throughout the history, and we want to have these
-        be able to toggle these when you are at the end of the history or
-        at the beginning of the history.
-        """
-        _LOG.debug("define_actions")
-        NavigationView.define_actions(self)
-        
     def change_db(self, db):
         """
         Callback associated with DbState. Whenever the database
@@ -554,9 +499,9 @@ class GeoGraphyView(NavigationView,osmGpsMap):
                 if latit == longt == 0.0:
                     latit = longt = 0.00000001
         self.mustcenter = False
+        self.latit = latit
+        self.longt = longt
         if not (latit == longt == 0.0):
-            self.latit = latit
-            self.longt = longt
             self.mustcenter = True
         if config.get("geography.lock"):
             self.osm.set_center_and_zoom(config.get("geography.center-lat"),

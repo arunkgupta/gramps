@@ -67,7 +67,6 @@ from Filters.SideBar import PlaceSidebarFilter
 from gui.views.navigationview import NavigationView
 import Bookmarks
 from Utils import navigation_label
-from maps.constants import PLACES
 from maps.geography import GeoGraphyView
 
 #-------------------------------------------------------------------------
@@ -83,6 +82,13 @@ _UI_DEF = '''\
   <placeholder name="CommonGo">
     <menuitem action="Back"/>
     <menuitem action="Forward"/>
+    <separator/>
+  </placeholder>
+</menu>
+<menu action="BookMenu">
+  <placeholder name="AddEditBook">
+    <menuitem action="AddBook"/>
+    <menuitem action="EditBook"/>
   </placeholder>
 </menu>
 </menubar>
@@ -107,8 +113,11 @@ class GeoPlaces(GeoGraphyView):
 
     def __init__(self, pdata, dbstate, uistate, nav_group=0):
         _LOG.debug("GeoPlaces : __init__")
-        GeoGraphyView.__init__(self, pdata, dbstate, uistate, nav_group,
-                               _("Places places map"), PLACES)
+        GeoGraphyView.__init__(self, _('Places places map'),
+                                      pdata, dbstate, uistate, 
+                                      dbstate.db.get_place_bookmarks(), 
+                                      Bookmarks.PlaceBookmarks,
+                                      nav_group)
         self.dbstate = dbstate
         self.uistate = uistate
         self.place_list = []
@@ -144,14 +153,6 @@ class GeoPlaces(GeoGraphyView):
         _LOG.debug("get_viewtype_stock")
         return 'geo-show-place'
 
-    def build_wiget(self):
-        """
-        Specifies the UIManager XML code that defines the menus and buttons
-        associated with the interface.
-        """
-        _LOG.debug("build_wiget")
-        return GeoGraphyView.build_wiget(self)
-
     def additional_ui(self):
         """
         Specifies the UIManager XML code that defines the menus and buttons
@@ -159,19 +160,6 @@ class GeoPlaces(GeoGraphyView):
         """
         _LOG.debug("additional_ui")
         return _UI_DEF
-
-    def define_actions(self):
-        """
-        Required define_actions function for NavigationView. Builds the action
-        group information required. 
-        """
-        GeoGraphyView.define_actions(self)
-
-    def navigation_group(self):
-        """
-        Return the navigation group.
-        """
-        return self.nav_group
 
     def navigation_type(self):
         """
@@ -181,30 +169,11 @@ class GeoPlaces(GeoGraphyView):
         _LOG.debug("navigation_type")
         return 'Place'
 
-    def set_active(self):
+    def get_bookmarks(self):
         """
-        Set view active when we enter into this view.
+        Return the bookmark object
         """
-        self.key_active_changed = self.dbstate.connect(
-            'active-changed', self._goto_active_places)
-        hobj = self.get_history()
-        self.active_signal = hobj.connect(
-            'active-changed', self._goto_active_places)
-        self._goto_active_places()
-        GeoGraphyView.set_active(self)
-
-    def set_inactive(self):
-        """
-        Set view inactive when switching to another view.
-        """
-        self.dbstate.disconnect(self.key_active_changed)
-
-    def on_delete(self):
-        """
-        Save all modified environment
-        """
-        GeoGraphyView.on_delete(self)
-        self._config.save()
+        return self.dbstate.db.get_place_bookmarks()
 
     def goto_handle(self, handle=None):
         """
@@ -212,6 +181,7 @@ class GeoPlaces(GeoGraphyView):
         """
         _LOG.debug("goto_handle")
         if handle:
+            self.change_active(handle)
             self._createmap(handle)
         self.uistate.modify_statusbar(self.dbstate)
 
@@ -228,14 +198,6 @@ class GeoPlaces(GeoGraphyView):
                 self._createmap(active)
         except AttributeError, msg:
             _LOG.debug("build_tree error")
-
-    def _goto_active_places(self, handle=None):
-        """
-        Here when the Geography page is loaded
-        """
-        if not self.uistate.get_active('Place'):
-            return
-        self._createmap(self.uistate.get_active('Place'))
 
     def _create_one_place(self,place):
         """

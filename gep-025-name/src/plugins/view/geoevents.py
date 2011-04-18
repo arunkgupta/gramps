@@ -67,7 +67,6 @@ from Filters.SideBar import EventSidebarFilter
 from gui.views.navigationview import NavigationView
 import Bookmarks
 from Utils import navigation_label
-from maps.constants import EVENTS
 from maps.geography import GeoGraphyView
 
 #-------------------------------------------------------------------------
@@ -83,6 +82,13 @@ _UI_DEF = '''\
   <placeholder name="CommonGo">
     <menuitem action="Back"/>
     <menuitem action="Forward"/>
+    <separator/>
+  </placeholder>
+</menu>
+<menu action="BookMenu">
+  <placeholder name="AddEditBook">
+    <menuitem action="AddBook"/>
+    <menuitem action="EditBook"/>
   </placeholder>
 </menu>
 </menubar>
@@ -90,7 +96,6 @@ _UI_DEF = '''\
 <placeholder name="CommonNavigation">
   <toolitem action="Back"/>  
   <toolitem action="Forward"/>  
-  <toolitem action="HomePerson"/>
 </placeholder>
 </toolbar>
 </ui>
@@ -108,8 +113,11 @@ class GeoEvents(GeoGraphyView):
 
     def __init__(self, pdata, dbstate, uistate, nav_group=0):
         _LOG.debug("GeoEvents : __init__")
-        GeoGraphyView.__init__(self, pdata, dbstate, uistate, nav_group,
-                               _("Events places map"), EVENTS)
+        GeoGraphyView.__init__(self, _('Events places map'),
+                                      pdata, dbstate, uistate, 
+                                      dbstate.db.get_event_bookmarks(), 
+                                      Bookmarks.EventBookmarks,
+                                      nav_group)
         self.dbstate = dbstate
         self.uistate = uistate
         self.place_list = []
@@ -145,14 +153,6 @@ class GeoEvents(GeoGraphyView):
         _LOG.debug("get_viewtype_stock")
         return 'geo-show-events'
 
-    def build_wiget(self):
-        """
-        Specifies the UIManager XML code that defines the menus and buttons
-        associated with the interface.
-        """
-        _LOG.debug("build_wiget")
-        return GeoGraphyView.build_wiget(self)
-
     def additional_ui(self):
         """
         Specifies the UIManager XML code that defines the menus and buttons
@@ -160,19 +160,6 @@ class GeoEvents(GeoGraphyView):
         """
         _LOG.debug("additional_ui")
         return _UI_DEF
-
-    def define_actions(self):
-        """
-        Required define_actions function for NavigationView. Builds the action
-        group information required. 
-        """
-        GeoGraphyView.define_actions(self)
-
-    def navigation_group(self):
-        """
-        Return the navigation group.
-        """
-        return self.nav_group
 
     def navigation_type(self):
         """
@@ -182,33 +169,11 @@ class GeoEvents(GeoGraphyView):
         _LOG.debug("navigation_type")
         return 'Event'
 
-    def set_active(self):
+    def get_bookmarks(self):
         """
-        Set view active when we enter into this view.
+        Return the bookmark object
         """
-        _LOG.debug("set_active")
-        self.key_active_changed = self.dbstate.connect(
-            'active-changed', self._goto_active_events)
-        hobj = self.get_history()
-        self.active_signal = hobj.connect(
-            'active-changed', self._goto_active_events)
-        self._goto_active_events()
-        GeoGraphyView.set_active(self)
-
-    def set_inactive(self):
-        """
-        Set view inactive when switching to another view.
-        """
-        _LOG.debug("set_inactive")
-        self.dbstate.disconnect(self.key_active_changed)
-
-    def on_delete(self):
-        """
-        Save all modified environment
-        """
-        _LOG.debug("on_delete")
-        GeoGraphyView.on_delete(self)
-        self._config.save()
+        return self.dbstate.db.get_event_bookmarks()
 
     def goto_handle(self, handle=None):
         """
@@ -217,7 +182,7 @@ class GeoEvents(GeoGraphyView):
         _LOG.debug("goto_handle")
         self.dirty = True
         if handle:
-            events = self.dbstate.db.get_events_from_handle(handle)
+            self.change_active(handle)
             self._createmap(handle)
         self.uistate.modify_statusbar(self.dbstate)
 
@@ -228,15 +193,6 @@ class GeoEvents(GeoGraphyView):
         information.
         """
         _LOG.debug("build_tree")
-        self._createmap(self)
-
-    def _goto_active_events(self, handle=None):
-        """
-        Here when the Geography page is loaded
-        """
-        _LOG.debug("_goto_active_events")
-        if not self.uistate.get_active('Event'):
-            return
         self._createmap(self)
 
     def _createmap(self,obj):

@@ -67,7 +67,6 @@ from Filters.SideBar import PersonSidebarFilter
 from gui.views.navigationview import NavigationView
 import Bookmarks
 from Utils import navigation_label
-from maps.constants import PERSON
 from maps.geography import GeoGraphyView
 
 #-------------------------------------------------------------------------
@@ -83,6 +82,15 @@ _UI_DEF = '''\
   <placeholder name="CommonGo">
     <menuitem action="Back"/>
     <menuitem action="Forward"/>
+    <separator/>
+    <menuitem action="HomePerson"/>
+    <separator/>
+  </placeholder>
+</menu>
+<menu action="BookMenu">
+  <placeholder name="AddEditBook">
+    <menuitem action="AddBook"/>
+    <menuitem action="EditBook"/>
   </placeholder>
 </menu>
 </menubar>
@@ -108,8 +116,11 @@ class GeoPerson(GeoGraphyView):
 
     def __init__(self, pdata, dbstate, uistate, nav_group=0):
         _LOG.debug("GeoPerson : __init__")
-        GeoGraphyView.__init__(self, pdata, dbstate, uistate, nav_group,
-                               _("Person places map"), PERSON)
+        GeoGraphyView.__init__(self, _("Person places map"),
+                                      pdata, dbstate, uistate, 
+                                      dbstate.db.get_bookmarks(), 
+                                      Bookmarks.PersonBookmarks,
+                                      nav_group)
         self.dbstate = dbstate
         self.uistate = uistate
         self.place_list = []
@@ -145,14 +156,6 @@ class GeoPerson(GeoGraphyView):
         _LOG.debug("get_viewtype_stock")
         return 'geo-show-person'
 
-    def build_wiget(self):
-        """
-        Specifies the UIManager XML code that defines the menus and buttons
-        associated with the interface.
-        """
-        _LOG.debug("build_wiget")
-        return GeoGraphyView.build_wiget(self)
-
     def additional_ui(self):
         """
         Specifies the UIManager XML code that defines the menus and buttons
@@ -160,19 +163,6 @@ class GeoPerson(GeoGraphyView):
         """
         _LOG.debug("additional_ui")
         return _UI_DEF
-
-    def define_actions(self):
-        """
-        Required define_actions function for NavigationView. Builds the action
-        group information required. 
-        """
-        GeoGraphyView.define_actions(self)
-
-    def navigation_group(self):
-        """
-        Return the navigation group.
-        """
-        return self.nav_group
 
     def navigation_type(self):
         """
@@ -182,30 +172,11 @@ class GeoPerson(GeoGraphyView):
         _LOG.debug("navigation_type")
         return 'Person'
 
-    def set_active(self):
+    def get_bookmarks(self):
         """
-        Set view active when we enter into this view.
+        Return the bookmark object
         """
-        self.key_active_changed = self.dbstate.connect(
-            'active-changed', self._goto_active_person)
-        hobj = self.get_history()
-        self.active_signal = hobj.connect(
-            'active-changed', self._goto_active_person)
-        self._goto_active_person()
-        GeoGraphyView.set_active(self)
-
-    def set_inactive(self):
-        """
-        Set view inactive when switching to another view.
-        """
-        self.dbstate.disconnect(self.key_active_changed)
-
-    def on_delete(self):
-        """
-        Save all modified environment
-        """
-        GeoGraphyView.on_delete(self)
-        self._config.save()
+        return self.dbstate.db.get_bookmarks()
 
     def goto_handle(self, handle=None):
         """
@@ -214,7 +185,7 @@ class GeoPerson(GeoGraphyView):
         _LOG.debug("goto_handle")
         self.dirty = True
         if handle:
-            person = self.dbstate.db.get_person_from_handle(handle)
+            self.change_active(handle)
             self._createmap(handle)
         self.uistate.modify_statusbar(self.dbstate)
 
@@ -231,14 +202,6 @@ class GeoPerson(GeoGraphyView):
         except AttributeError, msg:
             _LOG.debug("build_tree error")
         pass
-
-    def _goto_active_person(self, handle=None):
-        """
-        Here when the Geography page is loaded
-        """
-        if not self.uistate.get_active('Person'):
-            return
-        self._createmap(self)
 
     def _createmap(self,obj):
         """

@@ -133,13 +133,6 @@ class osmGpsMap():
         #self.vbox.pack_start(self.osm)
         return self.vbox
 
-    def on_delete(self):
-        """
-        Save all modified environment
-        """
-        _LOG.debug("on_delete in osmgpsmap")
-        pass
-
     def change_map(self, obj, map_type):
         _LOG.debug("change_map")
         if obj is not None:
@@ -207,18 +200,18 @@ class osmGpsMap():
 
     def on_query_tooltip(self, widget, x, y, keyboard_tip, tooltip, data=None):
         _LOG.debug("on_query_tooltip")
-	if keyboard_tip:
+        if keyboard_tip:
             _LOG.debug("on_query_tooltip keyboard_tip")
-	    return False
-		
-	if self.show_tooltips:
-	    p = osmgpsmap.point_new_degrees(0.0, 0.0)
-	    self.osm.convert_screen_to_geographic(x, y, p)
-	    lat,lon = p.get_degrees()
-	    tooltip.set_markup("%+.4f, %+.4f" % p.get_degrees())
-	    return True
-	
-	return False
+            return False
+            
+        if self.show_tooltips:
+            p = osmgpsmap.point_new_degrees(0.0, 0.0)
+            self.osm.convert_screen_to_geographic(x, y, p)
+            lat,lon = p.get_degrees()
+            tooltip.set_markup("%+.4f, %+.4f" % p.get_degrees())
+            return True
+        
+        return False
 
     def save_center(self, lat, lon):
         """
