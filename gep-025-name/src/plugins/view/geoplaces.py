@@ -185,6 +185,13 @@ class GeoPlaces(GeoGraphyView):
             self._createmap(handle)
         self.uistate.modify_statusbar(self.dbstate)
 
+    def show_all_places(self, menu, event, lat, lon):
+        """
+        Ask to show all places.
+        """
+        _LOG.debug("show_all_places")
+        self._createmap(None)
+
     def build_tree(self):
         """
         This is called by the parent class when the view becomes visible. Since
@@ -192,12 +199,13 @@ class GeoPlaces(GeoGraphyView):
         information.
         """
         _LOG.debug("build_tree")
-        try:
-            active = self.get_active()
-            if active:
-                self._createmap(active)
-        except AttributeError, msg:
-            _LOG.debug("build_tree error")
+        #active = self.get_active()
+        active = self.uistate.get_active('Place')
+        print "active=",active
+        if active:
+            self._createmap(active)
+        else:
+            self._createmap(None)
 
     def _create_one_place(self,place):
         """
@@ -246,16 +254,14 @@ class GeoPlaces(GeoGraphyView):
         longitude = ""
         self.center = True
 
-        try:
-            _LOG.debug("_createmap try")
-            place = dbstate.db.get_place_from_handle(place_x)
-            self._create_one_place(place)
-        except:
-            _LOG.debug("_createmap except")
+        if place_x is None:
             places_handle = dbstate.db.iter_place_handles()
             for place_hdl in places_handle:
                 place = dbstate.db.get_place_from_handle(place_hdl)
                 self._create_one_place(place)
+        else:
+            place = dbstate.db.get_place_from_handle(place_x)
+            self._create_one_place(place)
         self.sort = sorted(self.place_list,
                            key=operator.itemgetter(7)
                           )
@@ -269,14 +275,49 @@ class GeoPlaces(GeoGraphyView):
         for mark in marks:
             if message != "":
                 add_item = gtk.MenuItem(message)
-                add_item.connect("activate", self.selected_place, event, lat , lon, mark)
                 add_item.show()
                 menu.append(add_item)
-            message = message + "%s" % mark[0]
+                itemoption = gtk.Menu()
+                itemoption.set_title(message)
+                itemoption.show()
+                add_item.set_submenu(itemoption)
+                modify = gtk.MenuItem(_("Edit place"))
+                modify.show()
+                modify.connect("activate", self.edit_place, event, lat, lon, marks)
+                itemoption.append(modify)
+                center = gtk.MenuItem(_("Center on this place"))
+                center.show()
+                center.connect("activate", self.center_here, event, lat, lon, marks)
+                itemoption.append(center)
+            message = "%s" % mark[0]
         add_item = gtk.MenuItem(message)
-        add_item.connect("activate", self.selected_place, event, lat , lon, mark)
         add_item.show()
         menu.append(add_item)
+        itemoption = gtk.Menu()
+        itemoption.set_title(message)
+        itemoption.show()
+        add_item.set_submenu(itemoption)
+        modify = gtk.MenuItem(_("Edit place"))
+        modify.show()
+        modify.connect("activate", self.edit_place, event, lat, lon, marks)
+        itemoption.append(modify)
+        center = gtk.MenuItem(_("Center on this place"))
+        center.show()
+        center.connect("activate", self.center_here, event, lat, lon, marks)
+        itemoption.append(center)
         menu.popup(None, None, None, 0, event.time)
         return 1
+
+    def add_specific_menu(self, menu, event, lat, lon): 
+        """ 
+        Add specific entry to the navigation menu.
+        """ 
+        add_item = gtk.MenuItem()
+        add_item.show()
+        menu.append(add_item)
+        add_item = gtk.MenuItem(_("Show all places"))
+        add_item.connect("activate", self.show_all_places, event, lat , lon)
+        add_item.show()
+        menu.append(add_item)
+
 

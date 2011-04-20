@@ -180,11 +180,17 @@ class GeoEvents(GeoGraphyView):
         Rebuild the tree with the given events handle as the root.
         """
         _LOG.debug("goto_handle")
-        self.dirty = True
         if handle:
             self.change_active(handle)
             self._createmap(handle)
         self.uistate.modify_statusbar(self.dbstate)
+
+    def show_all_events(self, menu, event, lat, lon):
+        """
+        Ask to show all events.
+        """
+        _LOG.debug("show_all_events")
+        self._createmap(None)
 
     def build_tree(self):
         """
@@ -193,7 +199,77 @@ class GeoEvents(GeoGraphyView):
         information.
         """
         _LOG.debug("build_tree")
-        self._createmap(self)
+        active = self.uistate.get_active('Event')
+        if active:
+            self._createmap(active)
+        else:
+            self._createmap(None)
+
+    def _createmap_for_one_event(self,event):
+        """
+        Create all markers for each people's event in the database which has 
+        a lat/lon.
+        """
+        _LOG.debug("_createmap")
+        dbstate = self.dbstate
+        descr2 = ""
+        place_handle = event.get_place_handle()
+        eventyear = event.get_date_object().to_calendar(self.cal).get_year()
+        if place_handle:
+            place = dbstate.db.get_place_from_handle(place_handle)
+            if place:
+                descr1 = place.get_title()
+                longitude = place.get_longitude()
+                latitude = place.get_latitude()
+                latitude, longitude = conv_lat_lon(latitude, longitude,
+                                                   "D.D8")
+                # place.get_longitude and place.get_latitude return
+                # one string. We have coordinates when the two values
+                # contains non null string.
+                if ( longitude and latitude ):
+                    person_list = [
+                        dbstate.db.get_person_from_handle(ref_handle)
+                        for (ref_type, ref_handle) in
+                            dbstate.db.find_backlink_handles(event.handle)
+                                if ref_type == 'Person'
+                                  ]
+                    #descr2 = "%s" % event.get_type()
+                    if person_list:
+                        for person in person_list:
+                            #descr2 = ("%(description)s - %(name)s") % {
+                            #            'description' : descr2,
+                            #            'name' : _nd.display(person)}
+                            descr2 = ("%s") % _nd.display(person)
+                        #descr = ("%(eventtype)s;"+
+                        descr = (
+                                 "%(description)s"
+                                 #) % { 'eventtype': gen.lib.EventType(
+                                 #                       event.get_type()
+                                 #                       ),
+                                 ) % { 
+                                       #'place': place.get_title(),
+                                       'description': descr2}
+                    else:
+                        descr = ("%(eventtype)s; %(place)s") % {
+                                       'eventtype': gen.lib.EventType(
+                                                        event.get_type()
+                                                        ),
+                                       'place': place.get_title()}
+                    self._append_to_places_list(descr1, descr,
+                                                descr,
+                                                latitude, longitude,
+                                                descr2, self.center,
+                                                eventyear,
+                                                event.get_type(),
+                                                None, # person.gramps_id
+                                                place.gramps_id,
+                                                event.gramps_id
+                                                )
+                    self.center = False
+                else:
+                    descr = place.get_title()
+                    self._append_to_places_without_coord(
+                         place.gramps_id, descr)
 
     def _createmap(self,obj):
         """
@@ -213,66 +289,14 @@ class GeoEvents(GeoGraphyView):
         self.center = True
         self.cal = config.get('preferences.calendar-format-report')
 
-        events_handle = dbstate.db.iter_event_handles()
-        for event_hdl in events_handle:
-            event = dbstate.db.get_event_from_handle(event_hdl)
-            place_handle = event.get_place_handle()
-            eventyear = event.get_date_object().to_calendar(self.cal).get_year()
-            if place_handle:
-                place = dbstate.db.get_place_from_handle(place_handle)
-                if place:
-                    descr1 = place.get_title()
-                    longitude = place.get_longitude()
-                    latitude = place.get_latitude()
-                    latitude, longitude = conv_lat_lon(latitude, longitude,
-                                                       "D.D8")
-                    # place.get_longitude and place.get_latitude return
-                    # one string. We have coordinates when the two values
-                    # contains non null string.
-                    if ( longitude and latitude ):
-                        person_list = [
-                            dbstate.db.get_person_from_handle(ref_handle)
-                            for (ref_type, ref_handle) in
-                                dbstate.db.find_backlink_handles(event.handle)
-                                    if ref_type == 'Person'
-                                      ]
-                        #descr2 = "%s" % event.get_type()
-                        if person_list:
-                            for person in person_list:
-                                #descr2 = ("%(description)s - %(name)s") % {
-                                #            'description' : descr2,
-                                #            'name' : _nd.display(person)}
-                                descr2 = ("%s") % _nd.display(person)
-                            #descr = ("%(eventtype)s;"+
-                            descr = (
-                                     " s%(description)s"
-                                     #) % { 'eventtype': gen.lib.EventType(
-                                     #                       event.get_type()
-                                     #                       ),
-                                     ) % { 
-                                           #'place': place.get_title(),
-                                           'description': descr2}
-                        else:
-                            descr = ("%(eventtype)s; %(place)s") % {
-                                           'eventtype': gen.lib.EventType(
-                                                            event.get_type()
-                                                            ),
-                                           'place': place.get_title()}
-                        self._append_to_places_list(descr1, descr,
-                                                    descr,
-                                                    latitude, longitude,
-                                                    descr2, self.center,
-                                                    eventyear,
-                                                    event.get_type(),
-                                                    None, # person.gramps_id
-                                                    place.gramps_id,
-                                                    event.gramps_id
-                                                    )
-                        self.center = False
-                    else:
-                        descr = place.get_title()
-                        self._append_to_places_without_coord(
-                             place.gramps_id, descr)
+        if obj is None:
+            events_handle = dbstate.db.iter_event_handles()
+            for event_hdl in events_handle:
+                event = dbstate.db.get_event_from_handle(event_hdl)
+                self._createmap_for_one_event(event)
+        else:
+            event = dbstate.db.get_event_from_handle(obj)
+            self._createmap_for_one_event(event)
         self.sort = sorted(self.place_list,
                            key=operator.itemgetter(7)
                           )
@@ -285,16 +309,91 @@ class GeoEvents(GeoGraphyView):
         message = ""
         oldplace = ""
         for mark in marks:
+            if message != "":
+                add_item = gtk.MenuItem(message)
+                add_item.show()
+                menu.append(add_item)
+                itemoption = gtk.Menu()
+                itemoption.set_title(message)
+                itemoption.show()
+                add_item.set_submenu(itemoption)
+                modify = gtk.MenuItem(_("Edit event"))
+                modify.show()
+                modify.connect("activate", self.edit_event, event, lat, lon, marks)
+                itemoption.append(modify)
+                center = gtk.MenuItem(_("Center on this place"))
+                center.show()
+                center.connect("activate", self.center_here, event, lat, lon, marks)
+                itemoption.append(center)
             if mark[0] != oldplace:
-                message = message + "%s :\n" % mark[0]
+                if message != "":
+                    add_item = gtk.MenuItem(message)
+                    add_item.show()
+                    menu.append(add_item)
+                    itemoption = gtk.Menu()
+                    itemoption.set_title(message)
+                    itemoption.show()
+                    add_item.set_submenu(itemoption)
+                    modify = gtk.MenuItem(_("Edit event"))
+                    modify.show()
+                    modify.connect("activate", self.edit_event, event, lat, lon, marks)
+                    itemoption.append(modify)
+                    center = gtk.MenuItem(_("Center on this place"))
+                    center.show()
+                    center.connect("activate", self.center_here, event, lat, lon, marks)
+                    itemoption.append(center)
+                message = "%s :" % mark[0]
+                add_item = gtk.MenuItem()
+                add_item.show()
+                menu.append(add_item)
+                add_item = gtk.MenuItem(message)
+                add_item.show()
+                menu.append(add_item)
+                itemoption = gtk.Menu()
+                itemoption.set_title(message)
+                itemoption.show()
+                add_item.set_submenu(itemoption)
+                modify = gtk.MenuItem(_("Edit place"))
+                modify.show()
+                modify.connect("activate", self.edit_place, event, lat, lon, marks)
+                itemoption.append(modify)
+                center = gtk.MenuItem(_("Center on this place"))
+                center.show()
+                center.connect("activate", self.center_here, event, lat, lon, marks)
+                itemoption.append(center)
+                add_item = gtk.MenuItem()
+                add_item.show()
+                menu.append(add_item)
                 oldplace = mark[0]
-            if ( gen.lib.EventType( mark[8] ) == gen.lib.EventType( gen.lib.EventType.MARRIAGE ) ):
-                message = message + "%s : %s - " % ( mark[1], mark[5] )
-            else:
-                message = message + "%s\n" % mark[5]
+            message = "%s : %s" % (gen.lib.EventType( mark[8] ), mark[5] )
         add_item = gtk.MenuItem(message)
         add_item.show()
         menu.append(add_item)
+        itemoption = gtk.Menu()
+        itemoption.set_title(message)
+        itemoption.show()
+        add_item.set_submenu(itemoption)
+        modify = gtk.MenuItem(_("Edit event"))
+        modify.show()
+        modify.connect("activate", self.edit_event, event, lat, lon, marks)
+        itemoption.append(modify)
+        center = gtk.MenuItem(_("Center on this place"))
+        center.show()
+        center.connect("activate", self.center_here, event, lat, lon, marks)
+        itemoption.append(center)
         menu.popup(None, None, None, 0, event.time)
         return 1
+
+    def add_specific_menu(self, menu, event, lat, lon): 
+        """ 
+        Add specific entry to the navigation menu.
+        """ 
+        _LOG.debug("add_specific_menu")
+        add_item = gtk.MenuItem()
+        add_item.show()
+        menu.append(add_item)
+        add_item = gtk.MenuItem(_("Show all events"))
+        add_item.connect("activate", self.show_all_events, event, lat , lon)
+        add_item.show()
+        menu.append(add_item)
 

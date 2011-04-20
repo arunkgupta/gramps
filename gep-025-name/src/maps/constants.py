@@ -37,12 +37,6 @@ import osmgpsmap
 #
 #-------------------------------------------------------------------------
 
-# Navigation view
-PERSON = 1
-FAMILY = 2
-EVENTS = 3
-PLACES = 4
-
 ICONS = {
     gen.lib.EventType.BIRTH                : 'gramps-geo-birth',
     gen.lib.EventType.DEATH                : 'gramps-geo-death',

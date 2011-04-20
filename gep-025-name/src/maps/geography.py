@@ -66,6 +66,7 @@ from grampsmaps import *
 import constants
 from config import config
 from gui.editors import EditPlace
+from gui.editors import EditEvent
 from gui.selectors.selectplace import SelectPlace
 
 #-------------------------------------------------------------------------
@@ -159,6 +160,7 @@ class GeoGraphyView(osmGpsMap, NavigationView):
         self.format_helper = FormattingHelper(self.dbstate)
         self.centerlat = self.centerlon = 0.0
         self.cross_map = None
+        self.current_map = None
         self.without = 0
         
     def change_page(self):
@@ -247,6 +249,8 @@ class GeoGraphyView(osmGpsMap, NavigationView):
         add_item.show()
         menu.append(add_item)
 
+        # Add specific module menu
+        self.add_specific_menu(menu, event, lat, lon)
         # Add a separator line
         add_item = gtk.MenuItem(None)
         add_item.show()
@@ -273,6 +277,12 @@ class GeoGraphyView(osmGpsMap, NavigationView):
         menu.popup(None, None, None, 0, event.time)
         return 1
 
+    def add_specific_menu(self, menu, event, lat, lon):
+        """
+        Add specific entry to the navigation menu. Must be done in the associated menu.
+        """
+        raise NotImplementedError
+
     def set_center(self, menu, event, lat, lon):
         """
         Center the at the new position then save it.
@@ -292,26 +302,32 @@ class GeoGraphyView(osmGpsMap, NavigationView):
         _LOG.debug("is_there_a_marker_here")
         found = False
         mark_selected = []
+        self.uistate.set_busy_cursor(1)
         for mark in self.sort:
             # as we are not precise with our hand, reduce the precision to 2 digits.
             # This precision is depending on zoom.
+            # need some work here to have a better selection.
             precision = {
-                          1 : '%3.0f', 2 : '%3.0f', 3 : '%3.1f', 4 : '%3.1f',
+                          1 : '%3.0f', 2 : '%3.0f', 3 : '%3.0f', 4 : '%3.0f',
                           5 : '%3.1f', 6 : '%3.1f', 7 : '%3.1f', 8 : '%3.1f',
                           9 : '%3.2f', 10 : '%3.2f', 11 : '%3.2f', 12 : '%3.2f',
                           13 : '%3.3f', 14 : '%3.3f', 15 : '%3.3f', 16 : '%3.4f',
                           17 : '%3.4f', 18 : '%3.5f' }.get(config.get("geography.zoom"), '%3.1f')
+            _LOG.debug("is_there_a_marker_here : zoom=%d, precision=%s" % (config.get("geography.zoom"), precision ))
             latp  = precision % lat
             lonp  = precision % lon
             mlatp = precision % float(mark[3])
             mlonp = precision % float(mark[4])
+            _LOG.debug(" compare latitude : %s with %s (precision = %s)" % (float(mark[3]), lat, precision))
+            _LOG.debug("compare longitude : %s with %s (precision = %s)" % (float(mark[4]), lon, precision))
             if mlatp == latp and mlonp == lonp:
-                _LOG.debug(" compare latitude : %s with %s" % (mlatp, latp))
-                _LOG.debug("compare longitude : %s with %s" % (mlonp, lonp))
+                _LOG.debug(" compare latitude : %s with %s OK" % (mlatp, latp))
+                _LOG.debug("compare longitude : %s with %s OK" % (mlonp, lonp))
                 mark_selected.append(mark)
                 found = True
         if found:
             self.bubble_message(event, lat, lon, mark_selected)
+        self.uistate.set_busy_cursor(0)
 
     def bubble_message(self, event, lat, lon, mark):
         """
@@ -364,7 +380,7 @@ class GeoGraphyView(osmGpsMap, NavigationView):
         """
         Create a list of places with coordinates.
         """
-        _LOG.debug("_append_to_places_list")
+        _LOG.debug("_append_to_places_list for %s in place %s" % (name, place))
         found = any(p[0] == place for p in self.place_list)
         if not found:
             self.nbplaces += 1
@@ -408,6 +424,9 @@ class GeoGraphyView(osmGpsMap, NavigationView):
         """
         _LOG.debug("_create_markers")
         self.osm.image_remove_all()
+        if self.current_map is not None and self.current_map != config.get("geography.map_service"):
+            _LOG.debug("We need to change the current map")
+            self.change_map(self.osm, config.get("geography.map_service"))
         last = ""
         current = ""
         differtype = False
@@ -415,6 +434,7 @@ class GeoGraphyView(osmGpsMap, NavigationView):
         lat = 0.0
         lon = 0.0
         icon = None
+        self.uistate.set_busy_cursor(True)
         for mark in self.sort:
             current = ([mark[3], mark[4]])
             if last == "":
@@ -425,7 +445,7 @@ class GeoGraphyView(osmGpsMap, NavigationView):
                 differtype = False
                 continue
             if last != current:
-                _LOG.debug("create new marker at lat=%s, lon=%s" %( lat,lon ))
+                _LOG.debug("create new marker at lat=%s, lon=%s for %s" %( lat,lon,mark[1] ))
                 self.add_marker(None, None, lat, lon, icon, differtype)
                 differtype = False
                 last = current
@@ -440,11 +460,18 @@ class GeoGraphyView(osmGpsMap, NavigationView):
                     differtype = True
         if ( lat != 0.0 and lon != 0.0 ):
             self.add_marker(None, None, lat, lon, icon, differtype)
-        self._set_center_and_zoom()
+            self._set_center_and_zoom()
+        self.uistate.set_busy_cursor(False)
 
     def _set_center_and_zoom(self):
         """
         Calculate the zoom.
+        I think the best should be an auto zoom to have all markers on the screen.
+        need some works here.
+        we start at zoom 1 until zoom y ( for this a preference )
+        If all markers are present, continue to zoom.
+        If some markers are missing : return to the zoom - 1
+        The following is too complex. In some case, all markers are not present.
         """
         _LOG.debug("_set_center_and_zoom")
         # Select the center of the map and the zoom
@@ -517,26 +544,37 @@ class GeoGraphyView(osmGpsMap, NavigationView):
     # Specific functionalities
     #
     #-------------------------------------------------------------------------
-    def selected_place(self, menu, event, lat, lon, mark):
-        """
-        One place was selected in the menu popup after clicking on a marker
-        """
-        _LOG.debug("selected_place : %s " % mark[0])
-        #try:
-        #    EditPlace(self.dbstate, self.uistate, [], place)
-        #except Errors.WindowActiveError: 
-        #    pass 
+    def center_here(self, menu, event, lat, lon, marks): 
+        """ 
+        Center the map at the marker position
+        """ 
+        _LOG.debug("center_here")
+        self.set_center(menu, event, float(marks[0][3]), float(marks[0][4]))
 
+    def edit_place(self, menu, event, lat, lon, marks): 
+        """ 
+        Edit the selected place at the marker position
+        """ 
+        _LOG.debug("edit_place : %s" % marks[0][10])
+        # need to add code here to edit the event.
+        place = self.dbstate.db.get_place_from_gramps_id(marks[0][10])
+        try:
+            EditPlace(self.dbstate, self.uistate, [], place)
+        except Errors.WindowActiveError: 
+            pass 
 
-    def selected_event(self, menu, event, lat, lon, mark):
-        """
-        One event was selected in the menu popup after clicking on a marker
-        """
-        _LOG.debug("selected_event : %s " % mark[8])
-        #try:
-        #    EditEvent(self.dbstate, self.uistate, [], event)
-        #except Errors.WindowActiveError: 
-        #    pass 
+    def edit_event(self, menu, event, lat, lon, marks): 
+        """ 
+        Edit the selected event at the marker position
+        """ 
+        _LOG.debug("edit_event : %s" % marks[0][11])
+        # need to add code here to edit the event.
+        event = self.dbstate.db.get_event_from_gramps_id(marks[0][11])
+        print event
+        try:
+            EditEvent(self.dbstate, self.uistate, [], event)
+        except Errors.WindowActiveError: 
+            pass 
 
     def _add_place(self, menu, event, lat, lon): 
         """

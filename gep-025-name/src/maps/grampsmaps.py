@@ -101,10 +101,9 @@ class DummyLayer(gobject.GObject, osmgpsmap.GpsMapLayer):
         return False
 
     def do_button_press(self, gpsmap, gdkeventbutton):
-        _LOG.debug("do_button_press in DummyLayer")
-        point = osmgpsmap.point_new_degrees(0.0, 0.0)
-        gpsmap.convert_screen_to_geographic(int(gdkeventbutton.x), int(gdkeventbutton.y), point)
-        #tooltip.set_markup("%+.4f, %+.4f" % point.get_degrees())
+        #_LOG.debug("do_button_press in DummyLayer")
+        #point = osmgpsmap.point_new_degrees(0.0, 0.0)
+        #gpsmap.convert_screen_to_geographic(int(gdkeventbutton.x), int(gdkeventbutton.y), point)
         return False
 gobject.type_register(DummyLayer)
 
@@ -128,9 +127,6 @@ class osmGpsMap():
             return
 
         self.change_map(None,config.get("geography.map_service"))
-        #if self.vbox.get_children():
-        #    print "get child : ", self.vbox.get_children().widget
-        #self.vbox.pack_start(self.osm)
         return self.vbox
 
     def change_map(self, obj, map_type):
@@ -142,13 +138,14 @@ class osmGpsMap():
             self.osm.destroy()
         tiles_path=os.path.join(GEOGRAPHY_PATH, constants.tiles_path[map_type])
         config.set("geography.map_service", map_type)
+        self.current_map = map_type
         if 0:
             self.osm = DummyMapNoGpsPoint()
         else:
             self.osm = osmgpsmap.GpsMap(tile_cache=tiles_path,
                                         map_source=constants.map_type[map_type])
-        self.current_map = osmgpsmap.GpsMapOsd( show_dpad=False, show_zoom=True)
-        self.osm.layer_add(self.current_map)
+        current_map = osmgpsmap.GpsMapOsd( show_dpad=False, show_zoom=True)
+        self.osm.layer_add(current_map)
         self.osm.layer_add( DummyLayer())
         self.cross_map = osmgpsmap.GpsMapOsd( show_crosshair=False)
         self.set_crosshair(config.get("geography.show_cross"))
@@ -163,27 +160,6 @@ class osmGpsMap():
         if obj is not None:
             self._createmap(obj)
 
-    def load_map_clicked(self, button):
-        _LOG.debug("load_map_clicked")
-        uri = self.repouri_entry.get_text()
-        format = self.image_format_entry.get_text()
-        if uri and format:
-            if self.osm:
-                #remove old map
-                self.vbox.remove(self.osm)
-            try:
-                self.osm = osmgpsmap.GpsMap(
-                    repo_uri=uri,
-                    image_format=format
-                )
-            except Exception, e:
-                print "ERROR:", e
-                self.osm = osm.GpsMap()
-
-            self.vbox.pack_start(self.osm, True)
-            self.osm.connect('button_release_event', self.map_clicked)
-            self.osm.show()
-
     def zoom_changed(self, zoom):
         _LOG.debug("zoom_changed")
         config.set("geography.zoom",self.osm.props.zoom)
@@ -197,21 +173,6 @@ class osmGpsMap():
             zoom_start=self.osm.props.zoom,
             zoom_end=self.osm.props.max_zoom
         )
-
-    def on_query_tooltip(self, widget, x, y, keyboard_tip, tooltip, data=None):
-        _LOG.debug("on_query_tooltip")
-        if keyboard_tip:
-            _LOG.debug("on_query_tooltip keyboard_tip")
-            return False
-            
-        if self.show_tooltips:
-            p = osmgpsmap.point_new_degrees(0.0, 0.0)
-            self.osm.convert_screen_to_geographic(x, y, p)
-            lat,lon = p.get_degrees()
-            tooltip.set_markup("%+.4f, %+.4f" % p.get_degrees())
-            return True
-        
-        return False
 
     def save_center(self, lat, lon):
         """
@@ -251,7 +212,6 @@ class osmGpsMap():
             # The two following are to force the map to update
             self.osm.zoom_in()
             self.osm.zoom_out()
-            #self.osm.map_scroll(0,0)
         else:
             self.osm.layer_remove(self.cross_map)
         pass

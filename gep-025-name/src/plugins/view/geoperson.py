@@ -183,7 +183,6 @@ class GeoPerson(GeoGraphyView):
         Rebuild the tree with the given person handle as the root.
         """
         _LOG.debug("goto_handle")
-        self.dirty = True
         if handle:
             self.change_active(handle)
             self._createmap(handle)
@@ -273,24 +272,82 @@ class GeoPerson(GeoGraphyView):
         for mark in marks:
             if oldplace != "":
                 add_item = gtk.MenuItem(message)
-                add_item.connect("activate", self.selected_event, event, lat , lon, mark)
                 add_item.show()
                 menu.append(add_item)
+                itemoption = gtk.Menu()
+                itemoption.set_title(message)
+                itemoption.show()
+                add_item.set_submenu(itemoption)
+                modify = gtk.MenuItem(_("Edit event"))
+                modify.show()
+                modify.connect("activate", self.edit_event, event, lat, lon, marks)
+                itemoption.append(modify)
+                center = gtk.MenuItem(_("Center on this place"))
+                center.show()
+                center.connect("activate", self.center_here, event, lat, lon, marks)
+                itemoption.append(center)
             if mark[0] != oldplace:
+                if message != "":
+                    add_item = gtk.MenuItem()
+                    add_item.show()
+                    menu.append(add_item)
+                    itemoption = gtk.Menu()
+                    itemoption.set_title(message)
+                    itemoption.show()
+                    add_item.set_submenu(itemoption)
+                    modify = gtk.MenuItem(_("Edit event"))
+                    modify.show()
+                    modify.connect("activate", self.edit_event, event, lat, lon, marks)
+                    itemoption.append(modify)
+                    center = gtk.MenuItem(_("Center on this place"))
+                    center.show()
+                    center.connect("activate", self.center_here, event, lat, lon, marks)
+                    itemoption.append(center)
                 message = "%s :" % mark[0]
-                add_item = gtk.MenuItem(message)
-                add_item.connect("activate", self.selected_place, event, lat , lon, mark)
+                add_item = gtk.MenuItem()
                 add_item.show()
                 menu.append(add_item)
+                add_item = gtk.MenuItem(message)
+                add_item.show()
+                menu.append(add_item)
+                itemoption = gtk.Menu()
+                itemoption.set_title(message)
+                itemoption.show()
+                add_item.set_submenu(itemoption)
+                modify = gtk.MenuItem(_("Edit place"))
+                modify.show()
+                modify.connect("activate", self.edit_place, event, lat, lon, marks)
+                itemoption.append(modify)
+                center = gtk.MenuItem(_("Center on this place"))
+                center.show()
+                center.connect("activate", self.center_here, event, lat, lon, marks)
+                itemoption.append(center)
                 add_item = gtk.MenuItem()
                 add_item.show()
                 menu.append(add_item)
                 oldplace = mark[0]
             message = "%s : %s" % ( mark[2], mark[1] )
         add_item = gtk.MenuItem(message)
-        add_item.connect("activate", self.selected_event, event, lat , lon, mark)
         add_item.show()
         menu.append(add_item)
+        itemoption = gtk.Menu()
+        itemoption.set_title(message)
+        itemoption.show()
+        add_item.set_submenu(itemoption)
+        modify = gtk.MenuItem(_("Edit event"))
+        modify.show()
+        modify.connect("activate", self.edit_event, event, lat, lon, marks)
+        itemoption.append(modify)
+        center = gtk.MenuItem(_("Center on this place"))
+        center.show()
+        center.connect("activate", self.center_here, event, lat, lon, marks)
+        itemoption.append(center)
         menu.popup(None, None, None, 0, event.time)
         return 1
+
+    def add_specific_menu(self, menu, event, lat, lon): 
+        """ 
+        Add specific entry to the navigation menu.
+        """ 
+        return
 

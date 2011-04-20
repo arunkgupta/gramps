@@ -180,7 +180,6 @@ class GeoFamily(GeoGraphyView):
         Rebuild the tree with the given person handle as the root.
         """
         _LOG.debug("goto_handle")
-        self.dirty = True
         if handle:
             self.change_active(handle)
             self._createmap(handle)
@@ -196,8 +195,10 @@ class GeoFamily(GeoGraphyView):
         if not self.uistate.get_active('Family') and self.uistate.get_active('Family'):
             return
         if self.uistate.get_active('Family'):
+            _LOG.debug("build_tree for active family")
             self._createmap(self.uistate.get_active('Family'))
         else:
+            _LOG.debug("build_tree for active person")
             self._createmap(self.uistate.get_active('Person'))
 
     def _createpersonmarkers(self, dbstate, person, comment):
@@ -271,7 +272,7 @@ class GeoFamily(GeoGraphyView):
                                                         int(self.center),
                                                         eventyear,
                                                         event.get_type(),
-                                                        family.gramps_id, # or person.gramps_id
+                                                        person.gramps_id,
                                                         place.gramps_id,
                                                         event.gramps_id
                                                         )
@@ -284,12 +285,16 @@ class GeoFamily(GeoGraphyView):
         """
         _LOG.debug("_createmap_for_one_family")
         dbstate = self.dbstate
-        person = dbstate.db.get_person_from_handle(family.get_father_handle())
+        try:
+            person = dbstate.db.get_person_from_handle(family.get_father_handle())
+        except:
+            _LOG.debug("_createmap_for_one_family : no family")
+            return
         if person is None: # family without father ?
             _LOG.debug("family without father. mother ?")
             person = dbstate.db.get_person_from_handle(family.get_mother_handle())
         if person is None:
-            _LOG.debug("no family bookmark. use home")
+            _LOG.debug("no family bookmark. use active person")
             person = dbstate.db.get_person_from_handle(self.uistate.get_active('Person'))
         if person is not None:
             family_list = person.get_family_handle_list()
@@ -343,12 +348,8 @@ class GeoFamily(GeoGraphyView):
         self.minyear = 9999
         self.maxyear = 0
         self.center = True
-        try:
-            _LOG.debug("_createmap try")
-            family = self.dbstate.db.get_family_from_handle(family_x)
-            self._createmap_for_one_family(family)
-        except:
-            _LOG.debug("_createmap except")
+        family = self.dbstate.db.get_family_from_handle(family_x)
+        if family is None:
             person = self.dbstate.db.get_person_from_handle(self.uistate.get_active('Person'))
             if not person:
                 return
@@ -358,6 +359,8 @@ class GeoFamily(GeoGraphyView):
                 if family is not None:
                     _LOG.debug("_createmap except family : %s" % family)
                     self._createmap_for_one_family(family)
+        else:
+            self._createmap_for_one_family(family)
         self.sort = sorted(self.place_list,
                            key=operator.itemgetter(3, 4, 7)
                           )
@@ -372,15 +375,53 @@ class GeoFamily(GeoGraphyView):
         for mark in marks:
             if message != "":
                 add_item = gtk.MenuItem(message)
-                add_item.connect("activate", self.selected_event, event, lat , lon, mark)
                 add_item.show()
                 menu.append(add_item)
+                itemoption = gtk.Menu()
+                itemoption.set_title(message)
+                itemoption.show()
+                add_item.set_submenu(itemoption)
+                modify = gtk.MenuItem(_("Edit event"))
+                modify.show()
+                modify.connect("activate", self.edit_event, event, lat, lon, marks)
+                itemoption.append(modify)
+                center = gtk.MenuItem(_("Center on this place"))
+                center.show()
+                center.connect("activate", self.center_here, event, lat, lon, marks)
+                itemoption.append(center)
             if mark[0] != oldplace:
+                if message != "":
+                    add_item = gtk.MenuItem(message)
+                    add_item.show()
+                    menu.append(add_item)
+                    itemoption = gtk.Menu()
+                    itemoption.set_title(message)
+                    itemoption.show()
+                    add_item.set_submenu(itemoption)
+                    modify = gtk.MenuItem(_("Edit event"))
+                    modify.show()
+                    modify.connect("activate", self.edit_place, event, lat, lon, marks)
+                    itemoption.append(modify)
+                    center = gtk.MenuItem(_("Center on this place"))
+                    center.show()
+                    center.connect("activate", self.center_here, event, lat, lon, marks)
+                    itemoption.append(center)
                 message = "%s :" % mark[0]
                 add_item = gtk.MenuItem(message)
-                add_item.connect("activate", self.selected_place, event, lat , lon, mark)
                 add_item.show()
                 menu.append(add_item)
+                itemoption = gtk.Menu()
+                itemoption.set_title(message)
+                itemoption.show()
+                add_item.set_submenu(itemoption)
+                modify = gtk.MenuItem(_("Edit place"))
+                modify.show()
+                modify.connect("activate", self.edit_place, event, lat, lon, marks)
+                itemoption.append(modify)
+                center = gtk.MenuItem(_("Center on this place"))
+                center.show()
+                center.connect("activate", self.center_here, event, lat, lon, marks)
+                itemoption.append(center)
                 add_item = gtk.MenuItem()
                 add_item.show()
                 menu.append(add_item)
@@ -388,8 +429,25 @@ class GeoFamily(GeoGraphyView):
             message = "%s" % mark[5]
         add_item = gtk.MenuItem(message)
         add_item.show()
-        add_item.connect("activate", self.selected_event, event, lat , lon, mark)
         menu.append(add_item)
+        itemoption = gtk.Menu()
+        itemoption.set_title(message)
+        itemoption.show()
+        add_item.set_submenu(itemoption)
+        modify = gtk.MenuItem(_("Edit event"))
+        modify.show()
+        modify.connect("activate", self.edit_event, event, lat, lon, marks)
+        itemoption.append(modify)
+        center = gtk.MenuItem(_("Center on this place"))
+        center.show()
+        center.connect("activate", self.center_here, event, lat, lon, marks)
+        itemoption.append(center)
         menu.popup(None, None, None, 0, event.time)
         return 1
+
+    def add_specific_menu(self, menu, event, lat, lon): 
+        """ 
+        Add specific entry to the navigation menu.
+        """ 
+        return
 
