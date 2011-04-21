@@ -129,6 +129,7 @@ class GeoEvents(GeoGraphyView):
         self.nbplaces = 0
         self.nbmarkers = 0
         self.sort = []
+        self.generic_filter = None
         self.additional_uis.append(self.additional_ui())
 
     def get_title(self):
@@ -290,14 +291,20 @@ class GeoEvents(GeoGraphyView):
         self.center = True
         self.cal = config.get('preferences.calendar-format-report')
 
-        if obj is None:
-            events_handle = dbstate.db.iter_event_handles()
-            for event_hdl in events_handle:
-                event = dbstate.db.get_event_from_handle(event_hdl)
+        if self.generic_filter:
+            events_list = self.generic_filter.apply(dbstate.db)
+            for event_handle in events_list:
+                event = dbstate.db.get_event_from_handle(event_handle)
                 self._createmap_for_one_event(event)
         else:
-            event = dbstate.db.get_event_from_handle(obj)
-            self._createmap_for_one_event(event)
+            if obj is None:
+                events_handle = dbstate.db.iter_event_handles()
+                for event_hdl in events_handle:
+                    event = dbstate.db.get_event_from_handle(event_hdl)
+                    self._createmap_for_one_event(event)
+            else:
+                event = dbstate.db.get_event_from_handle(obj)
+                self._createmap_for_one_event(event)
         self.sort = sorted(self.place_list,
                            key=operator.itemgetter(7)
                           )
