@@ -129,6 +129,7 @@ class GeoPlaces(GeoGraphyView):
         self.nbplaces = 0
         self.nbmarkers = 0
         self.sort = []
+        self.generic_filter = None
         self.additional_uis.append(self.additional_ui())
 
     def get_title(self):
@@ -254,14 +255,20 @@ class GeoPlaces(GeoGraphyView):
         longitude = ""
         self.center = True
 
-        if place_x is None:
-            places_handle = dbstate.db.iter_place_handles()
-            for place_hdl in places_handle:
-                place = dbstate.db.get_place_from_handle(place_hdl)
+        if self.generic_filter:
+            place_list = self.generic_filter.apply(dbstate.db)
+            for place_handle in place_list:
+                place = dbstate.db.get_place_from_handle(place_handle)
                 self._create_one_place(place)
         else:
-            place = dbstate.db.get_place_from_handle(place_x)
-            self._create_one_place(place)
+            if place_x is None:
+                places_handle = dbstate.db.iter_place_handles()
+                for place_hdl in places_handle:
+                    place = dbstate.db.get_place_from_handle(place_hdl)
+                    self._create_one_place(place)
+            else:
+                place = dbstate.db.get_place_from_handle(place_x)
+                self._create_one_place(place)
         self.sort = sorted(self.place_list,
                            key=operator.itemgetter(7)
                           )
