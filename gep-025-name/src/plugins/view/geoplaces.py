@@ -201,7 +201,6 @@ class GeoPlaces(GeoGraphyView):
         _LOG.debug("build_tree")
         #active = self.get_active()
         active = self.uistate.get_active('Place')
-        print "active=",active
         if active:
             self._createmap(active)
         else:
@@ -227,7 +226,8 @@ class GeoPlaces(GeoGraphyView):
                                         gen.lib.EventType.UNKNOWN,
                                         None, # person.gramps_id
                                         place.gramps_id,
-                                        None # event.gramps_id
+                                        None, # event.gramps_id
+                                        None # family.gramps_id
                                        )
             self.center = False
         else:
@@ -272,6 +272,7 @@ class GeoPlaces(GeoGraphyView):
         menu = gtk.Menu()
         menu.set_title("places")
         message = ""
+        prevmark = None
         for mark in marks:
             if message != "":
                 add_item = gtk.MenuItem(message)
@@ -283,13 +284,14 @@ class GeoPlaces(GeoGraphyView):
                 add_item.set_submenu(itemoption)
                 modify = gtk.MenuItem(_("Edit place"))
                 modify.show()
-                modify.connect("activate", self.edit_place, event, lat, lon, marks)
+                modify.connect("activate", self.edit_place, event, lat, lon, prevmark)
                 itemoption.append(modify)
                 center = gtk.MenuItem(_("Center on this place"))
                 center.show()
-                center.connect("activate", self.center_here, event, lat, lon, marks)
+                center.connect("activate", self.center_here, event, lat, lon, prevmark)
                 itemoption.append(center)
             message = "%s" % mark[0]
+            prevmark = mark
         add_item = gtk.MenuItem(message)
         add_item.show()
         menu.append(add_item)
@@ -299,11 +301,11 @@ class GeoPlaces(GeoGraphyView):
         add_item.set_submenu(itemoption)
         modify = gtk.MenuItem(_("Edit place"))
         modify.show()
-        modify.connect("activate", self.edit_place, event, lat, lon, marks)
+        modify.connect("activate", self.edit_place, event, lat, lon, prevmark)
         itemoption.append(modify)
         center = gtk.MenuItem(_("Center on this place"))
         center.show()
-        center.connect("activate", self.center_here, event, lat, lon, marks)
+        center.connect("activate", self.center_here, event, lat, lon, prevmark)
         itemoption.append(center)
         menu.popup(None, None, None, 0, event.time)
         return 1

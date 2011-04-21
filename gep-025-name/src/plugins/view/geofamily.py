@@ -201,15 +201,17 @@ class GeoFamily(GeoGraphyView):
             _LOG.debug("build_tree for active person")
             self._createmap(self.uistate.get_active('Person'))
 
-    def _createpersonmarkers(self, dbstate, person, comment):
+    def _createpersonmarkers(self, dbstate, person, comment, fam_id):
         """
         Create all markers for the specified person.
         """
         self.cal = config.get('preferences.calendar-format-report')
         latitude = longitude = ""
         if person:
-            event_ref = person.get_birth_ref()
-            if event_ref:
+            # For each event, if we have a place, set a marker.
+            for event_ref in person.get_event_ref_list():
+                if not event_ref:
+                    continue
                 event = dbstate.db.get_event_from_handle(event_ref.ref)
                 eventyear = event.get_date_object().to_calendar(self.cal).get_year()
                 place_handle = event.get_place_handle()
@@ -220,64 +222,29 @@ class GeoFamily(GeoGraphyView):
                         latitude = place.get_latitude()
                         latitude, longitude = conv_lat_lon(latitude,
                                                            longitude, "D.D8")
-                        if comment:
-                            descr1 = _("%s : birth place.") % comment
-                        else:
-                            descr1 = _("birth place.")
                         descr = place.get_title()
+                        evt = gen.lib.EventType(event.get_type())
+                        descr1 = _("%(eventtype)s : %(name)s") % {
+                                        'eventtype': evt,
+                                        'name': _nd.display(person)}
                         # place.get_longitude and place.get_latitude return
                         # one string. We have coordinates when the two values
                         # contains non null string.
                         if ( longitude and latitude ):
-                            self._append_to_places_list(descr,
-                                                        gen.lib.EventType.BIRTH,
+                            self._append_to_places_list(descr, evt,
                                                         _nd.display(person),
                                                         latitude, longitude,
-                                                        descr1,
-                                                        int(self.center),
+                                                        descr1, self.center,
                                                         eventyear,
                                                         event.get_type(),
                                                         person.gramps_id,
                                                         place.gramps_id,
-                                                        event.gramps_id
+                                                        event.gramps_id,
+                                                        None
                                                         )
-                            self.center = False
                         else:
                             self._append_to_places_without_coord(
-                                 place.gramps_id, descr)
-            latitude = longitude = ""
-            event_ref = person.get_death_ref()
-            if event_ref:
-                event = dbstate.db.get_event_from_handle(event_ref.ref)
-                eventyear = event.get_date_object().to_calendar(self.cal).get_year()
-                place_handle = event.get_place_handle()
-                if place_handle:
-                    place = dbstate.db.get_place_from_handle(place_handle)
-                    if place:
-                        longitude = place.get_longitude()
-                        latitude = place.get_latitude()
-                        latitude, longitude = conv_lat_lon(latitude,
-                                                           longitude, "D.D8")
-                        descr = place.get_title()
-                        if comment:
-                            descr1 = _("%s : death place.") % comment
-                        else:
-                            descr1 = _("death place.")
-                        if ( longitude and latitude ):
-                            self._append_to_places_list(descr,
-                                                        gen.lib.EventType.DEATH,
-                                                        _nd.display(person),
-                                                        latitude, longitude,
-                                                        descr1,
-                                                        int(self.center),
-                                                        eventyear,
-                                                        event.get_type(),
-                                                        person.gramps_id,
-                                                        place.gramps_id,
-                                                        event.gramps_id
-                                                        )
-                            self.center = False
-
+                                                        place.gramps_id, descr)
 
     def _createmap_for_one_family(self, family):
         """
@@ -290,6 +257,7 @@ class GeoFamily(GeoGraphyView):
         except:
             _LOG.debug("_createmap_for_one_family : no family")
             return
+        family_id = family.gramps_id
         if person is None: # family without father ?
             _LOG.debug("family without father. mother ?")
             person = dbstate.db.get_person_from_handle(family.get_mother_handle())
@@ -307,14 +275,14 @@ class GeoFamily(GeoGraphyView):
                     comment = _("Father : %s : %s") % ( father.gramps_id,
                                                              _nd.display(father)
                                                             )
-                    self._createpersonmarkers(dbstate, father, comment)
+                    self._createpersonmarkers(dbstate, father, comment, family_id)
                 handle = fam.get_mother_handle()
                 mother = dbstate.db.get_person_from_handle(handle)
                 if mother:
                     comment = _("Mother : %s : %s") % ( mother.gramps_id,
                                                              _nd.display(mother)
                                                             )
-                    self._createpersonmarkers(dbstate, mother, comment)
+                    self._createpersonmarkers(dbstate, mother, comment, family_id)
                 index = 0
                 child_ref_list = fam.get_child_ref_list()
                 if child_ref_list:
@@ -328,13 +296,13 @@ class GeoFamily(GeoGraphyView):
                                             'index' : index,
                                             'name'  : _nd.display(child)
                                          }
-                            self._createpersonmarkers(dbstate, child, comment)
+                            self._createpersonmarkers(dbstate, child, comment, family_id)
             else:
                 comment = _("Person : %(id)s %(name)s has no family.") % {
                                 'id' : person.gramps_id ,
                                 'name' : _nd.display(person)
                                 }
-                self._createpersonmarkers(dbstate, person, comment)
+                self._createpersonmarkers(dbstate, person, comment, family_id)
 
     def _createmap(self, family_x):
         """
@@ -366,82 +334,50 @@ class GeoFamily(GeoGraphyView):
                           )
         self._create_markers()
 
+    def add_event_bubble_message(self, event, lat, lon, mark, menu):
+        itemoption = gtk.Menu()
+        itemoption.show()
+        menu.set_submenu(itemoption)
+        modify = gtk.MenuItem(_("Edit family"))
+        modify.show()
+        modify.connect("activate", self.edit_family, event, lat, lon, mark)
+        itemoption.append(modify)
+        modify = gtk.MenuItem(_("Edit person"))
+        modify.show()
+        modify.connect("activate", self.edit_person, event, lat, lon, mark)
+        itemoption.append(modify)
+        modify = gtk.MenuItem(_("Edit event"))
+        modify.show()
+        modify.connect("activate", self.edit_event, event, lat, lon, mark)
+        itemoption.append(modify)
+        center = gtk.MenuItem(_("Center on this place"))
+        center.show()
+        center.connect("activate", self.center_here, event, lat, lon, mark)
+        itemoption.append(center)
+
     def bubble_message(self, event, lat, lon, marks):
         _LOG.debug("bubble_message")
         menu = gtk.Menu()
         menu.set_title("family")
         message = ""
         oldplace = ""
+        prevmark = None
         for mark in marks:
             if message != "":
                 add_item = gtk.MenuItem(message)
                 add_item.show()
                 menu.append(add_item)
-                itemoption = gtk.Menu()
-                itemoption.set_title(message)
-                itemoption.show()
-                add_item.set_submenu(itemoption)
-                modify = gtk.MenuItem(_("Edit event"))
-                modify.show()
-                modify.connect("activate", self.edit_event, event, lat, lon, marks)
-                itemoption.append(modify)
-                center = gtk.MenuItem(_("Center on this place"))
-                center.show()
-                center.connect("activate", self.center_here, event, lat, lon, marks)
-                itemoption.append(center)
+                self.add_event_bubble_message(event, lat, lon, prevmark, add_item)
             if mark[0] != oldplace:
-                if message != "":
-                    add_item = gtk.MenuItem(message)
-                    add_item.show()
-                    menu.append(add_item)
-                    itemoption = gtk.Menu()
-                    itemoption.set_title(message)
-                    itemoption.show()
-                    add_item.set_submenu(itemoption)
-                    modify = gtk.MenuItem(_("Edit event"))
-                    modify.show()
-                    modify.connect("activate", self.edit_place, event, lat, lon, marks)
-                    itemoption.append(modify)
-                    center = gtk.MenuItem(_("Center on this place"))
-                    center.show()
-                    center.connect("activate", self.center_here, event, lat, lon, marks)
-                    itemoption.append(center)
                 message = "%s :" % mark[0]
-                add_item = gtk.MenuItem(message)
-                add_item.show()
-                menu.append(add_item)
-                itemoption = gtk.Menu()
-                itemoption.set_title(message)
-                itemoption.show()
-                add_item.set_submenu(itemoption)
-                modify = gtk.MenuItem(_("Edit place"))
-                modify.show()
-                modify.connect("activate", self.edit_place, event, lat, lon, marks)
-                itemoption.append(modify)
-                center = gtk.MenuItem(_("Center on this place"))
-                center.show()
-                center.connect("activate", self.center_here, event, lat, lon, marks)
-                itemoption.append(center)
-                add_item = gtk.MenuItem()
-                add_item.show()
-                menu.append(add_item)
+                self.add_place_bubble_message(event, lat, lon, marks, menu, message, mark)
                 oldplace = mark[0]
             message = "%s" % mark[5]
+            prevmark = mark
         add_item = gtk.MenuItem(message)
         add_item.show()
         menu.append(add_item)
-        itemoption = gtk.Menu()
-        itemoption.set_title(message)
-        itemoption.show()
-        add_item.set_submenu(itemoption)
-        modify = gtk.MenuItem(_("Edit event"))
-        modify.show()
-        modify.connect("activate", self.edit_event, event, lat, lon, marks)
-        itemoption.append(modify)
-        center = gtk.MenuItem(_("Center on this place"))
-        center.show()
-        center.connect("activate", self.center_here, event, lat, lon, marks)
-        itemoption.append(center)
+        self.add_event_bubble_message(event, lat, lon, prevmark, add_item)
         menu.popup(None, None, None, 0, event.time)
         return 1
 

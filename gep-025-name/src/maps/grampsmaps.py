@@ -165,15 +165,6 @@ class osmGpsMap():
         config.set("geography.zoom",self.osm.props.zoom)
         self.save_center(self.osm.props.latitude, self.osm.props.longitude)
 
-    def cache_clicked(self, button):
-        _LOG.debug("cache_clicked")
-        bbox = self.osm.get_bbox()
-        self.osm.download_maps(
-            *bbox,
-            zoom_start=self.osm.props.zoom,
-            zoom_end=self.osm.props.max_zoom
-        )
-
     def save_center(self, lat, lon):
         """
         Save the longitude and lontitude in case we switch between maps.

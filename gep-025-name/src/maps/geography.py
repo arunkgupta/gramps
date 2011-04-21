@@ -65,8 +65,7 @@ import constfunc
 from grampsmaps import *
 import constants
 from config import config
-from gui.editors import EditPlace
-from gui.editors import EditEvent
+from gui.editors import EditPlace, EditEvent, EditFamily, EditPerson
 from gui.selectors.selectplace import SelectPlace
 
 #-------------------------------------------------------------------------
@@ -375,7 +374,7 @@ class GeoGraphyView(osmGpsMap, NavigationView):
 
     def _append_to_places_list(self, place, evttype, name, lat, 
                                longit, descr, center, year, icontype,
-                               gramps_id, place_id, event_id
+                               gramps_id, place_id, event_id, family_id
                               ):
         """
         Create a list of places with coordinates.
@@ -386,7 +385,7 @@ class GeoGraphyView(osmGpsMap, NavigationView):
             self.nbplaces += 1
         self.place_list.append([place, name, evttype, lat,
                                 longit, descr, int(center), year, icontype,
-                                gramps_id, place_id, event_id
+                                gramps_id, place_id, event_id, family_id
                                ])
         self.nbmarkers += 1
         tfa = float(lat)
@@ -544,33 +543,82 @@ class GeoGraphyView(osmGpsMap, NavigationView):
     # Specific functionalities
     #
     #-------------------------------------------------------------------------
-    def center_here(self, menu, event, lat, lon, marks): 
+    def center_here(self, menu, event, lat, lon, mark): 
         """ 
         Center the map at the marker position
         """ 
         _LOG.debug("center_here")
-        self.set_center(menu, event, float(marks[0][3]), float(marks[0][4]))
+        self.set_center(menu, event, float(mark[3]), float(mark[4]))
 
-    def edit_place(self, menu, event, lat, lon, marks): 
+    def add_place_bubble_message(self, event, lat, lon, marks, menu, message, mark):
+        """
+        Create the place menu of a marker
+        """
+        add_item = gtk.MenuItem()
+        add_item.show()
+        menu.append(add_item)
+        add_item = gtk.MenuItem(message)
+        add_item.show()
+        menu.append(add_item)
+        itemoption = gtk.Menu()
+        itemoption.set_title(message)
+        itemoption.show()
+        add_item.set_submenu(itemoption)
+        modify = gtk.MenuItem(_("Edit place"))
+        modify.show()
+        modify.connect("activate", self.edit_place, event, lat, lon, mark)
+        itemoption.append(modify)
+        center = gtk.MenuItem(_("Center on this place"))
+        center.show()
+        center.connect("activate", self.center_here, event, lat, lon, mark)
+        itemoption.append(center)
+        add_item = gtk.MenuItem()
+        add_item.show()
+        menu.append(add_item)
+
+    def edit_place(self, menu, event, lat, lon, mark): 
         """ 
         Edit the selected place at the marker position
         """ 
-        _LOG.debug("edit_place : %s" % marks[0][10])
+        _LOG.debug("edit_place : %s" % mark[10])
         # need to add code here to edit the event.
-        place = self.dbstate.db.get_place_from_gramps_id(marks[0][10])
+        place = self.dbstate.db.get_place_from_gramps_id(mark[10])
         try:
             EditPlace(self.dbstate, self.uistate, [], place)
         except Errors.WindowActiveError: 
             pass 
 
-    def edit_event(self, menu, event, lat, lon, marks): 
+    def edit_person(self, menu, event, lat, lon, mark): 
+        """ 
+        Edit the selected person at the marker position
+        """ 
+        _LOG.debug("edit_person : %s" % mark[9])
+        # need to add code here to edit the person.
+        person = self.dbstate.db.get_person_from_gramps_id(mark[9])
+        try:
+            EditPerson(self.dbstate, self.uistate, [], person)
+        except Errors.WindowActiveError: 
+            pass 
+
+    def edit_family(self, menu, event, lat, lon, mark): 
+        """ 
+        Edit the selected family at the marker position
+        """ 
+        _LOG.debug("edit_family : %s" % mark[12])
+        # need to add code here to edit the family.
+        family = self.dbstate.db.get_family_from_gramps_id(mark[12])
+        try:
+            EditFamily(self.dbstate, self.uistate, [], family)
+        except Errors.WindowActiveError: 
+            pass 
+
+    def edit_event(self, menu, event, lat, lon, mark): 
         """ 
         Edit the selected event at the marker position
         """ 
-        _LOG.debug("edit_event : %s" % marks[0][11])
+        _LOG.debug("edit_event : %s" % mark[11])
         # need to add code here to edit the event.
-        event = self.dbstate.db.get_event_from_gramps_id(marks[0][11])
-        print event
+        event = self.dbstate.db.get_event_from_gramps_id(mark[11])
         try:
             EditEvent(self.dbstate, self.uistate, [], event)
         except Errors.WindowActiveError: 

@@ -263,7 +263,8 @@ class GeoEvents(GeoGraphyView):
                                                 event.get_type(),
                                                 None, # person.gramps_id
                                                 place.gramps_id,
-                                                event.gramps_id
+                                                event.gramps_id,
+                                                None
                                                 )
                     self.center = False
                 else:
@@ -308,6 +309,7 @@ class GeoEvents(GeoGraphyView):
         menu.set_title("events")
         message = ""
         oldplace = ""
+        prevmark = None
         for mark in marks:
             if message != "":
                 add_item = gtk.MenuItem(message)
@@ -319,11 +321,11 @@ class GeoEvents(GeoGraphyView):
                 add_item.set_submenu(itemoption)
                 modify = gtk.MenuItem(_("Edit event"))
                 modify.show()
-                modify.connect("activate", self.edit_event, event, lat, lon, marks)
+                modify.connect("activate", self.edit_event, event, lat, lon, prevmark)
                 itemoption.append(modify)
                 center = gtk.MenuItem(_("Center on this place"))
                 center.show()
-                center.connect("activate", self.center_here, event, lat, lon, marks)
+                center.connect("activate", self.center_here, event, lat, lon, prevmark)
                 itemoption.append(center)
             if mark[0] != oldplace:
                 if message != "":
@@ -336,36 +338,17 @@ class GeoEvents(GeoGraphyView):
                     add_item.set_submenu(itemoption)
                     modify = gtk.MenuItem(_("Edit event"))
                     modify.show()
-                    modify.connect("activate", self.edit_event, event, lat, lon, marks)
+                    modify.connect("activate", self.edit_event, event, lat, lon, mark)
                     itemoption.append(modify)
                     center = gtk.MenuItem(_("Center on this place"))
                     center.show()
-                    center.connect("activate", self.center_here, event, lat, lon, marks)
+                    center.connect("activate", self.center_here, event, lat, lon, mark)
                     itemoption.append(center)
                 message = "%s :" % mark[0]
-                add_item = gtk.MenuItem()
-                add_item.show()
-                menu.append(add_item)
-                add_item = gtk.MenuItem(message)
-                add_item.show()
-                menu.append(add_item)
-                itemoption = gtk.Menu()
-                itemoption.set_title(message)
-                itemoption.show()
-                add_item.set_submenu(itemoption)
-                modify = gtk.MenuItem(_("Edit place"))
-                modify.show()
-                modify.connect("activate", self.edit_place, event, lat, lon, marks)
-                itemoption.append(modify)
-                center = gtk.MenuItem(_("Center on this place"))
-                center.show()
-                center.connect("activate", self.center_here, event, lat, lon, marks)
-                itemoption.append(center)
-                add_item = gtk.MenuItem()
-                add_item.show()
-                menu.append(add_item)
+                self.add_place_bubble_message(event, lat, lon, marks, menu, message, mark)
                 oldplace = mark[0]
             message = "%s : %s" % (gen.lib.EventType( mark[8] ), mark[5] )
+            prevmark = mark
         add_item = gtk.MenuItem(message)
         add_item.show()
         menu.append(add_item)
@@ -375,11 +358,11 @@ class GeoEvents(GeoGraphyView):
         add_item.set_submenu(itemoption)
         modify = gtk.MenuItem(_("Edit event"))
         modify.show()
-        modify.connect("activate", self.edit_event, event, lat, lon, marks)
+        modify.connect("activate", self.edit_event, event, lat, lon, prevmark)
         itemoption.append(modify)
         center = gtk.MenuItem(_("Center on this place"))
         center.show()
-        center.connect("activate", self.center_here, event, lat, lon, marks)
+        center.connect("activate", self.center_here, event, lat, lon, prevmark)
         itemoption.append(center)
         menu.popup(None, None, None, 0, event.time)
         return 1
