@@ -207,6 +207,7 @@ class GeoPerson(GeoGraphyView):
         startlon = float(marks[i][4])
 	heading = 1
 	if index == 0 and stepyear == 0:
+            self.remove_all_gps()
             self.osm.gps_add(startlat, startlon, heading)
         endlat = float(marks[ni][3])
         endlon = float(marks[ni][4])
@@ -222,15 +223,18 @@ class GeoPerson(GeoGraphyView):
         stepyear = 1 if stepyear < 1 else stepyear
 	startlat += ( latstep * stepyear )
 	startlon += ( lonstep * stepyear )
-	self.osm.gps_add(startlat, startlon, heading)
         if ( int(startyear) + stepyear ) > int(endmov) :
             self.already_started = False
             return False
+	self.osm.gps_add(startlat, startlon, heading)
         stepyear += 1
         difflat = ( startlat - endlat ) if startlat > endlat else ( endlat - startlat )
         difflon = ( startlon - endlon ) if startlon > endlon else ( endlon - startlon )
         if ( difflat == 0.0 and difflon == 0.0 ):
             i += 1
+            if ( int(startyear) + stepyear ) > int(endmov) :
+                self.already_started = False
+                return False
             stepyear = 1
         # 100ms => 1s per 10 years, so movements for a 100 years person takes 10 secondes.
         glib.timeout_add(100, self.animate, menu, marks, i, stepyear)
