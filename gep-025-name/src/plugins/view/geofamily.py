@@ -112,7 +112,6 @@ class GeoFamily(GeoGraphyView):
     """
 
     def __init__(self, pdata, dbstate, uistate, nav_group=0):
-        _LOG.debug("GeoFamily : __init__")
         GeoGraphyView.__init__(self, _('Family places map'),
                                       pdata, dbstate, uistate, 
                                       dbstate.db.get_family_bookmarks(), 
@@ -125,7 +124,6 @@ class GeoFamily(GeoGraphyView):
         self.minlat = self.maxlat = self.minlon = self.maxlon = 0.0
         self.minyear = 9999
         self.maxyear = 0
-        self.center = True
         self.nbplaces = 0
         self.nbmarkers = 0
         self.sort = []
@@ -135,7 +133,6 @@ class GeoFamily(GeoGraphyView):
         """
         Used to set the titlebar in the configuration window.
         """
-        _LOG.debug("get_title")
         return _('GeoFamily')
 
     def get_stock(self):
@@ -144,13 +141,11 @@ class GeoFamily(GeoGraphyView):
         This assumes that this icon has already been registered 
         as a stock icon.
         """
-        _LOG.debug("get_stock")
         return 'geo-show-family'
     
     def get_viewtype_stock(self):
         """Type of view in category
         """
-        _LOG.debug("get_viewtype_stock")
         return 'geo-show-family'
 
     def additional_ui(self):
@@ -158,7 +153,6 @@ class GeoFamily(GeoGraphyView):
         Specifies the UIManager XML code that defines the menus and buttons
         associated with the interface.
         """
-        _LOG.debug("additional_ui")
         return _UI_DEF
 
     def navigation_type(self):
@@ -166,7 +160,6 @@ class GeoFamily(GeoGraphyView):
         Indicates the navigation type. Navigation type can be the string
         name of any of the primary objects.
         """
-        _LOG.debug("navigation_type")
         return 'Family'
 
     def get_bookmarks(self):
@@ -179,7 +172,6 @@ class GeoFamily(GeoGraphyView):
         """
         Rebuild the tree with the given person handle as the root.
         """
-        _LOG.debug("goto_handle")
         if handle:
             self.change_active(handle)
             self._createmap(handle)
@@ -191,15 +183,33 @@ class GeoFamily(GeoGraphyView):
         all handling of visibility is now in rebuild_trees, see that for more
         information.
         """
-        _LOG.debug("build_tree")
         if not self.uistate.get_active('Family') and self.uistate.get_active('Family'):
             return
         if self.uistate.get_active('Family'):
-            _LOG.debug("build_tree for active family")
             self._createmap(self.uistate.get_active('Family'))
         else:
-            _LOG.debug("build_tree for active person")
             self._createmap(self.uistate.get_active('Person'))
+
+    def _get_father_and_mother_name(self, event):
+        """
+        Return the father and mother name of a family event
+        """
+        dbstate = self.dbstate
+        family_list = [
+            dbstate.db.get_family_from_handle(ref_handle)
+            for (ref_type, ref_handle) in
+                dbstate.db.find_backlink_handles(event.handle)
+                    if ref_type == 'Family'
+                      ]
+        if family_list:
+            for family in family_list:
+                handle = family.get_father_handle()
+                father = dbstate.db.get_person_from_handle(handle)
+                handle = family.get_mother_handle()
+                mother = dbstate.db.get_person_from_handle(handle)
+                fnam = _nd.display(father) if father else "???"
+                mnam = _nd.display(mother) if mother else "???"
+        return ( fnam, mnam )
 
     def _createpersonmarkers(self, dbstate, person, comment, fam_id):
         """
@@ -231,38 +241,72 @@ class GeoFamily(GeoGraphyView):
                         # one string. We have coordinates when the two values
                         # contains non null string.
                         if ( longitude and latitude ):
-                            self._append_to_places_list(descr, evt,
+                            if not self._present_in_places_list(2, str(descr1 + descr + str(evt))):
+                                self._append_to_places_list(descr, str(descr1 + descr + str(evt)),
                                                         _nd.display(person),
                                                         latitude, longitude,
-                                                        descr1, self.center,
+                                                        descr1, 
                                                         eventyear,
                                                         event.get_type(),
                                                         person.gramps_id,
                                                         place.gramps_id,
                                                         event.gramps_id,
-                                                        None
+                                                        fam_id
                                                         )
                         else:
                             self._append_to_places_without_coord(
                                                         place.gramps_id, descr)
+            family_list = person.get_family_handle_list()
+            for family_hdl in family_list:
+                family = self.dbstate.db.get_family_from_handle(family_hdl)
+                if family is not None:
+                    for event_ref in family.get_event_ref_list():
+                        if event_ref:
+                            event = dbstate.db.get_event_from_handle(event_ref.ref)
+                            if event.get_place_handle():
+                                place_handle = event.get_place_handle()
+                                if place_handle:
+                                    place = dbstate.db.get_place_from_handle(place_handle)
+                                    if place:
+                                        longitude = place.get_longitude()
+                                        latitude = place.get_latitude()
+                                        latitude, longitude = conv_lat_lon(latitude,
+                                                                           longitude, "D.D8")
+                                        descr = place.get_title()
+                                        evt = gen.lib.EventType(event.get_type())
+                                        (father_name, mother_name) = self._get_father_and_mother_name(event)
+                                        descr1 = "%s : %s - " % ( evt, father_name )
+                                        descr1 = "%s%s" % ( descr1, mother_name )
+                                        eventyear = event.get_date_object().to_calendar(self.cal).get_year()
+                                        if ( longitude and latitude ):
+                                            if not self._present_in_places_list(2, str(descr1 + descr + str(evt))):
+                                                self._append_to_places_list(descr, str(descr1 + descr + str(evt)),
+                                                                        _nd.display(person),
+                                                                        latitude, longitude,
+                                                                        descr1, 
+                                                                        eventyear,
+                                                                        event.get_type(),
+                                                                        person.gramps_id,
+                                                                        place.gramps_id,
+                                                                        event.gramps_id,
+                                                                        family.gramps_id
+                                                                       )
+                                        else:
+                                            self._append_to_places_without_coord( place.gramps_id, descr)
 
     def _createmap_for_one_family(self, family):
         """
         Create all markers for one family : all event's places with a lat/lon.
         """
-        _LOG.debug("_createmap_for_one_family")
         dbstate = self.dbstate
         try:
             person = dbstate.db.get_person_from_handle(family.get_father_handle())
         except:
-            _LOG.debug("_createmap_for_one_family : no family")
             return
         family_id = family.gramps_id
         if person is None: # family without father ?
-            _LOG.debug("family without father. mother ?")
             person = dbstate.db.get_person_from_handle(family.get_mother_handle())
         if person is None:
-            _LOG.debug("no family bookmark. use active person")
             person = dbstate.db.get_person_from_handle(self.uistate.get_active('Person'))
         if person is not None:
             family_list = person.get_family_handle_list()
@@ -309,13 +353,11 @@ class GeoFamily(GeoGraphyView):
         Create all markers for each people's event in the database which has 
         a lat/lon.
         """
-        _LOG.debug("_createmap")
         self.place_list = []
         self.place_without_coordinates = []
         self.minlat = self.maxlat = self.minlon = self.maxlon = 0.0
         self.minyear = 9999
         self.maxyear = 0
-        self.center = True
         family = self.dbstate.db.get_family_from_handle(family_x)
         if family is None:
             person = self.dbstate.db.get_person_from_handle(self.uistate.get_active('Person'))
@@ -325,12 +367,11 @@ class GeoFamily(GeoGraphyView):
             for family_hdl in family_list:
                 family = self.dbstate.db.get_family_from_handle(family_hdl)
                 if family is not None:
-                    _LOG.debug("_createmap except family : %s" % family)
                     self._createmap_for_one_family(family)
         else:
             self._createmap_for_one_family(family)
         self.sort = sorted(self.place_list,
-                           key=operator.itemgetter(3, 4, 7)
+                           key=operator.itemgetter(3, 4, 6)
                           )
         self._create_markers()
 
@@ -356,7 +397,6 @@ class GeoFamily(GeoGraphyView):
         itemoption.append(center)
 
     def bubble_message(self, event, lat, lon, marks):
-        _LOG.debug("bubble_message")
         menu = gtk.Menu()
         menu.set_title("family")
         message = ""

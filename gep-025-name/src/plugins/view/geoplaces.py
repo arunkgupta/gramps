@@ -33,6 +33,7 @@ Geography for places
 from gen.ggettext import gettext as _
 import os
 import sys
+import time
 import urlparse
 import const
 import operator
@@ -112,7 +113,6 @@ class GeoPlaces(GeoGraphyView):
     """
 
     def __init__(self, pdata, dbstate, uistate, nav_group=0):
-        _LOG.debug("GeoPlaces : __init__")
         GeoGraphyView.__init__(self, _('Places places map'),
                                       pdata, dbstate, uistate, 
                                       dbstate.db.get_place_bookmarks(), 
@@ -125,7 +125,6 @@ class GeoPlaces(GeoGraphyView):
         self.minlat = self.maxlat = self.minlon = self.maxlon = 0.0
         self.minyear = 9999
         self.maxyear = 0
-        self.center = True
         self.nbplaces = 0
         self.nbmarkers = 0
         self.sort = []
@@ -136,7 +135,6 @@ class GeoPlaces(GeoGraphyView):
         """
         Used to set the titlebar in the configuration window.
         """
-        _LOG.debug("get_title")
         return _('GeoPlaces')
 
     def get_stock(self):
@@ -145,13 +143,11 @@ class GeoPlaces(GeoGraphyView):
         This assumes that this icon has already been registered 
         as a stock icon.
         """
-        _LOG.debug("get_stock")
         return 'geo-show-place'
     
     def get_viewtype_stock(self):
         """Type of view in category
         """
-        _LOG.debug("get_viewtype_stock")
         return 'geo-show-place'
 
     def additional_ui(self):
@@ -159,7 +155,6 @@ class GeoPlaces(GeoGraphyView):
         Specifies the UIManager XML code that defines the menus and buttons
         associated with the interface.
         """
-        _LOG.debug("additional_ui")
         return _UI_DEF
 
     def navigation_type(self):
@@ -167,7 +162,6 @@ class GeoPlaces(GeoGraphyView):
         Indicates the navigation type. Navigation type can be the string
         name of any of the primary objects.
         """
-        _LOG.debug("navigation_type")
         return 'Place'
 
     def get_bookmarks(self):
@@ -180,7 +174,6 @@ class GeoPlaces(GeoGraphyView):
         """
         Rebuild the tree with the given places handle as the root.
         """
-        _LOG.debug("goto_handle")
         if handle:
             self.change_active(handle)
             self._createmap(handle)
@@ -190,7 +183,6 @@ class GeoPlaces(GeoGraphyView):
         """
         Ask to show all places.
         """
-        _LOG.debug("show_all_places")
         self._createmap(None)
 
     def build_tree(self):
@@ -199,8 +191,6 @@ class GeoPlaces(GeoGraphyView):
         all handling of visibility is now in rebuild_trees, see that for more
         information.
         """
-        _LOG.debug("build_tree")
-        #active = self.get_active()
         active = self.uistate.get_active('Place')
         if active:
             self._createmap(active)
@@ -211,9 +201,7 @@ class GeoPlaces(GeoGraphyView):
         """
         Create one entry for one place with a lat/lon.
         """
-        _LOG.debug("_create_one_place")
         descr = place.get_title()
-        descr1 = _("Id : %s") % place.gramps_id
         longitude = place.get_longitude()
         latitude = place.get_latitude()
         latitude, longitude = conv_lat_lon(latitude, longitude, "D.D8")
@@ -223,14 +211,13 @@ class GeoPlaces(GeoGraphyView):
         if ( longitude and latitude ):
             self._append_to_places_list(descr, None, "",
                                         latitude, longitude,
-                                        descr1, self.center, None,
+                                        None, None,
                                         gen.lib.EventType.UNKNOWN,
                                         None, # person.gramps_id
                                         place.gramps_id,
                                         None, # event.gramps_id
                                         None # family.gramps_id
                                        )
-            self.center = False
         else:
             self._append_to_places_without_coord(place.gramps_id, descr)
 
@@ -239,7 +226,6 @@ class GeoPlaces(GeoGraphyView):
         Create all markers for each people's event in the database which has 
         a lat/lon.
         """
-        _LOG.debug("_createmap")
         dbstate = self.dbstate
         self.cal = config.get('preferences.calendar-format-report')
         self.place_list = []
@@ -253,8 +239,9 @@ class GeoPlaces(GeoGraphyView):
         self.without = 0
         latitude = ""
         longitude = ""
-        self.center = True
-
+        # base "villes de france" : 38101 places : createmap : 8'50"; create_markers : 1'23"
+        # base "villes de france" : 38101 places : createmap : 8'50"; create_markers : 0'07" with pixbuf optimization
+        _LOG.debug("%s" % time.strftime("start createmap : %a %d %b %Y %H:%M:%S", time.gmtime()))
         if self.generic_filter:
             place_list = self.generic_filter.apply(dbstate.db)
             for place_handle in place_list:
@@ -269,13 +256,14 @@ class GeoPlaces(GeoGraphyView):
             else:
                 place = dbstate.db.get_place_from_handle(place_x)
                 self._create_one_place(place)
+        _LOG.debug("%s" % time.strftime(" stop createmap and\nbegin sort : %a %d %b %Y %H:%M:%S", time.gmtime()))
         self.sort = sorted(self.place_list,
-                           key=operator.itemgetter(7)
+                           key=operator.itemgetter(0)
                           )
+        _LOG.debug("%s" % time.strftime("  end sort : %a %d %b %Y %H:%M:%S", time.gmtime()))
         self._create_markers()
 
     def bubble_message(self, event, lat, lon, marks):
-        _LOG.debug("bubble_message")
         menu = gtk.Menu()
         menu.set_title("places")
         message = ""

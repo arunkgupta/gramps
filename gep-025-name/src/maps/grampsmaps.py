@@ -75,7 +75,6 @@ sys.path.append(os.path.join(const.ROOT_DIR, 'maps'))
 try:
     import osmgpsmap
 except:
-    _LOG.debug("import error for osmgpsmap")
     raise
 
 class DummyMapNoGpsPoint(osmgpsmap.GpsMap):
@@ -86,22 +85,17 @@ gobject.type_register(DummyMapNoGpsPoint)
 class DummyLayer(gobject.GObject, osmgpsmap.GpsMapLayer):
     def __init__(self):
         gobject.GObject.__init__(self)
-        #_LOG.debug("__init__ DummyLayer")
 
     def do_draw(self, gpsmap, gdkdrawable):
-        #_LOG.debug("do_draw in DummyLayer")
         pass
 
     def do_render(self, gpsmap):
-        #_LOG.debug("do_render in DummyLayer")
         pass
 
     def do_busy(self):
-        #_LOG.debug("do_busy in DummyLayer")
         return False
 
     def do_button_press(self, gpsmap, gdkeventbutton):
-        #_LOG.debug("do_button_press in DummyLayer")
         #point = osmgpsmap.point_new_degrees(0.0, 0.0)
         #gpsmap.convert_screen_to_geographic(int(gdkeventbutton.x), int(gdkeventbutton.y), point)
         return False
@@ -115,7 +109,6 @@ class osmGpsMap():
         self.show_tooltips = True
 
     def build_widget(self):
-        _LOG.debug("build_widget in osmgpsmap")
         self.vbox = gtk.VBox(False, 0)
         cache_path = os.path.join(const.HOME_DIR, 'maps')
         if not os.path.isdir(cache_path):
@@ -130,7 +123,6 @@ class osmGpsMap():
         return self.vbox
 
     def change_map(self, obj, map_type):
-        _LOG.debug("change_map")
         if obj is not None:
             self.osm.layer_remove_all()
             self.osm.image_remove_all()
@@ -161,7 +153,6 @@ class osmGpsMap():
             self._createmap(obj)
 
     def zoom_changed(self, zoom):
-        _LOG.debug("zoom_changed")
         config.set("geography.zoom",self.osm.props.zoom)
         self.save_center(self.osm.props.latitude, self.osm.props.longitude)
 
@@ -173,20 +164,15 @@ class osmGpsMap():
         config.set("geography.center-lon",lon)
 
     def map_clicked(self, osm, event):
-        _LOG.debug("map_clicked")
         lat,lon = self.osm.get_event_location(event).get_degrees()
         if event.button == 1:
-            _LOG.debug("map_clicked btn 1")
             # do we click on a marker ?
             marker = self.is_there_a_marker_here(event, lat, lon)
         elif event.button == 2:
-            _LOG.debug("map_clicked btn 2")
             self.osm.gps_add(lat, lon, heading=osmgpsmap.INVALID);
         elif event.button == 3:
-            _LOG.debug("map_clicked btn 3")
             self.build_nav_menu(osm, event, lat, lon )
         else:
-            _LOG.debug("map_clicked other")
             self.save_center(lat,lon)
 
     def is_there_a_marker_here(self, lat, lon):
@@ -196,7 +182,6 @@ class osmGpsMap():
         """
         Show or hide the crosshair ?
         """
-        _LOG.debug("set crosshair : %d" % active )
         if active:
             self.cross_map = osmgpsmap.GpsMapOsd( show_crosshair=True)
             self.osm.layer_add( self.cross_map )

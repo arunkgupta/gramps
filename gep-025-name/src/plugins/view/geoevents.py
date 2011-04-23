@@ -112,7 +112,6 @@ class GeoEvents(GeoGraphyView):
     """
 
     def __init__(self, pdata, dbstate, uistate, nav_group=0):
-        _LOG.debug("GeoEvents : __init__")
         GeoGraphyView.__init__(self, _('Events places map'),
                                       pdata, dbstate, uistate, 
                                       dbstate.db.get_event_bookmarks(), 
@@ -125,7 +124,6 @@ class GeoEvents(GeoGraphyView):
         self.minlat = self.maxlat = self.minlon = self.maxlon = 0.0
         self.minyear = 9999
         self.maxyear = 0
-        self.center = True
         self.nbplaces = 0
         self.nbmarkers = 0
         self.sort = []
@@ -136,7 +134,6 @@ class GeoEvents(GeoGraphyView):
         """
         Used to set the titlebar in the configuration window.
         """
-        _LOG.debug("get_title")
         return _('GeoEvents')
 
     def get_stock(self):
@@ -145,13 +142,11 @@ class GeoEvents(GeoGraphyView):
         This assumes that this icon has already been registered 
         as a stock icon.
         """
-        _LOG.debug("get_stock")
         return 'geo-show-events'
     
     def get_viewtype_stock(self):
         """Type of view in category
         """
-        _LOG.debug("get_viewtype_stock")
         return 'geo-show-events'
 
     def additional_ui(self):
@@ -159,7 +154,6 @@ class GeoEvents(GeoGraphyView):
         Specifies the UIManager XML code that defines the menus and buttons
         associated with the interface.
         """
-        _LOG.debug("additional_ui")
         return _UI_DEF
 
     def navigation_type(self):
@@ -167,7 +161,6 @@ class GeoEvents(GeoGraphyView):
         Indicates the navigation type. Navigation type can be the string
         name of any of the primary objects.
         """
-        _LOG.debug("navigation_type")
         return 'Event'
 
     def get_bookmarks(self):
@@ -180,7 +173,6 @@ class GeoEvents(GeoGraphyView):
         """
         Rebuild the tree with the given events handle as the root.
         """
-        _LOG.debug("goto_handle")
         if handle:
             self.change_active(handle)
             self._createmap(handle)
@@ -190,7 +182,6 @@ class GeoEvents(GeoGraphyView):
         """
         Ask to show all events.
         """
-        _LOG.debug("show_all_events")
         self._createmap(None)
 
     def build_tree(self):
@@ -199,7 +190,6 @@ class GeoEvents(GeoGraphyView):
         all handling of visibility is now in rebuild_trees, see that for more
         information.
         """
-        _LOG.debug("build_tree")
         active = self.uistate.get_active('Event')
         if active:
             self._createmap(active)
@@ -211,9 +201,8 @@ class GeoEvents(GeoGraphyView):
         Create all markers for each people's event in the database which has 
         a lat/lon.
         """
-        _LOG.debug("_createmap")
         dbstate = self.dbstate
-        descr2 = ""
+        descr = descr2 = ""
         place_handle = event.get_place_handle()
         eventyear = event.get_date_object().to_calendar(self.cal).get_year()
         if place_handle:
@@ -222,8 +211,7 @@ class GeoEvents(GeoGraphyView):
                 descr1 = place.get_title()
                 longitude = place.get_longitude()
                 latitude = place.get_latitude()
-                latitude, longitude = conv_lat_lon(latitude, longitude,
-                                                   "D.D8")
+                latitude, longitude = conv_lat_lon(latitude, longitude, "D.D8")
                 # place.get_longitude and place.get_latitude return
                 # one string. We have coordinates when the two values
                 # contains non null string.
@@ -234,32 +222,36 @@ class GeoEvents(GeoGraphyView):
                             dbstate.db.find_backlink_handles(event.handle)
                                 if ref_type == 'Person'
                                   ]
-                    #descr2 = "%s" % event.get_type()
                     if person_list:
                         for person in person_list:
-                            #descr2 = ("%(description)s - %(name)s") % {
-                            #            'description' : descr2,
-                            #            'name' : _nd.display(person)}
-                            descr2 = ("%s") % _nd.display(person)
-                        #descr = ("%(eventtype)s;"+
-                        descr = (
-                                 "%(description)s"
-                                 #) % { 'eventtype': gen.lib.EventType(
-                                 #                       event.get_type()
-                                 #                       ),
-                                 ) % { 
-                                       #'place': place.get_title(),
-                                       'description': descr2}
+                            if descr2 == "":
+                                descr2 = ("%s") % _nd.display(person)
+                            else:
+                                descr2 = ("%s - %s") % ( descr2, _nd.display(person))
                     else:
-                        descr = ("%(eventtype)s; %(place)s") % {
-                                       'eventtype': gen.lib.EventType(
-                                                        event.get_type()
-                                                        ),
-                                       'place': place.get_title()}
-                    self._append_to_places_list(descr1, descr,
-                                                descr,
+                        # family list ?
+                        family_list = [
+                            dbstate.db.get_family_from_handle(ref_handle)
+                            for (ref_type, ref_handle) in
+                                dbstate.db.find_backlink_handles(event.handle)
+                                    if ref_type == 'Family'
+                                      ]
+                        if family_list:
+                            for family in family_list:
+                                handle = family.get_father_handle()
+                                father = dbstate.db.get_person_from_handle(handle)
+                                handle = family.get_mother_handle()
+                                mother = dbstate.db.get_person_from_handle(handle)
+                                descr2 = ("%(father)s - %(mother)s") % {
+                                               'father': _nd.display(father) if father is not None else "?",
+                                               'mother': _nd.display(mother) if mother is not None else "?"
+                                              }
+                        else:
+                            descr2 = _("incomplete or unreferenced event ?")
+                    self._append_to_places_list(descr1, None,
+                                                None,
                                                 latitude, longitude,
-                                                descr2, self.center,
+                                                descr2, 
                                                 eventyear,
                                                 event.get_type(),
                                                 None, # person.gramps_id
@@ -267,7 +259,6 @@ class GeoEvents(GeoGraphyView):
                                                 event.gramps_id,
                                                 None
                                                 )
-                    self.center = False
                 else:
                     descr = place.get_title()
                     self._append_to_places_without_coord(
@@ -278,7 +269,6 @@ class GeoEvents(GeoGraphyView):
         Create all markers for each people's event in the database which has 
         a lat/lon.
         """
-        _LOG.debug("_createmap")
         dbstate = self.dbstate
         self.place_list = []
         self.place_without_coordinates = []
@@ -288,7 +278,6 @@ class GeoEvents(GeoGraphyView):
         latitude = ""
         longitude = ""
         self.without = 0
-        self.center = True
         self.cal = config.get('preferences.calendar-format-report')
 
         if self.generic_filter:
@@ -306,12 +295,11 @@ class GeoEvents(GeoGraphyView):
                 event = dbstate.db.get_event_from_handle(obj)
                 self._createmap_for_one_event(event)
         self.sort = sorted(self.place_list,
-                           key=operator.itemgetter(7)
+                           key=operator.itemgetter(6)
                           )
         self._create_markers()
 
     def bubble_message(self, event, lat, lon, marks):
-        _LOG.debug("bubble_message")
         menu = gtk.Menu()
         menu.set_title("events")
         message = ""
@@ -354,7 +342,7 @@ class GeoEvents(GeoGraphyView):
                 message = "%s :" % mark[0]
                 self.add_place_bubble_message(event, lat, lon, marks, menu, message, mark)
                 oldplace = mark[0]
-            message = "%s : %s" % (gen.lib.EventType( mark[8] ), mark[5] )
+            message = "%s : %s" % (gen.lib.EventType( mark[7] ), mark[5] )
             prevmark = mark
         add_item = gtk.MenuItem(message)
         add_item.show()
@@ -378,7 +366,6 @@ class GeoEvents(GeoGraphyView):
         """ 
         Add specific entry to the navigation menu.
         """ 
-        _LOG.debug("add_specific_menu")
         add_item = gtk.MenuItem()
         add_item.show()
         menu.append(add_item)

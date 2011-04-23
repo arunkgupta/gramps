@@ -115,7 +115,6 @@ class GeoPerson(GeoGraphyView):
     """
 
     def __init__(self, pdata, dbstate, uistate, nav_group=0):
-        _LOG.debug("GeoPerson : __init__")
         GeoGraphyView.__init__(self, _("Person places map"),
                                       pdata, dbstate, uistate, 
                                       dbstate.db.get_bookmarks(), 
@@ -128,7 +127,6 @@ class GeoPerson(GeoGraphyView):
         self.minlat = self.maxlat = self.minlon = self.maxlon = 0.0
         self.minyear = 9999
         self.maxyear = 0
-        self.center = True
         self.nbplaces = 0
         self.nbmarkers = 0
         self.sort = []
@@ -138,7 +136,6 @@ class GeoPerson(GeoGraphyView):
         """
         Used to set the titlebar in the configuration window.
         """
-        _LOG.debug("get_title")
         return _('GeoPerson')
 
     def get_stock(self):
@@ -147,13 +144,11 @@ class GeoPerson(GeoGraphyView):
         This assumes that this icon has already been registered 
         as a stock icon.
         """
-        _LOG.debug("get_stock")
         return 'geo-show-person'
     
     def get_viewtype_stock(self):
         """Type of view in category
         """
-        _LOG.debug("get_viewtype_stock")
         return 'geo-show-person'
 
     def additional_ui(self):
@@ -161,7 +156,6 @@ class GeoPerson(GeoGraphyView):
         Specifies the UIManager XML code that defines the menus and buttons
         associated with the interface.
         """
-        _LOG.debug("additional_ui")
         return _UI_DEF
 
     def navigation_type(self):
@@ -169,7 +163,6 @@ class GeoPerson(GeoGraphyView):
         Indicates the navigation type. Navigation type can be the string
         name of any of the primary objects.
         """
-        _LOG.debug("navigation_type")
         return 'Person'
 
     def get_bookmarks(self):
@@ -182,7 +175,6 @@ class GeoPerson(GeoGraphyView):
         """
         Rebuild the tree with the given person handle as the root.
         """
-        _LOG.debug("goto_handle")
         if handle:
             self.change_active(handle)
             self._createmap(handle)
@@ -194,20 +186,14 @@ class GeoPerson(GeoGraphyView):
         all handling of visibility is now in rebuild_trees, see that for more
         information.
         """
-        _LOG.debug("build_tree")
-        try:
-            active = self.get_active()
-            self._createmap(self)
-        except AttributeError, msg:
-            _LOG.debug("build_tree error")
-        pass
+        active = self.get_active()
+        self._createmap(active)
 
     def _createmap(self,obj):
         """
         Create all markers for each people's event in the database which has 
         a lat/lon.
         """
-        _LOG.debug("_createmap")
         dbstate = self.dbstate
         self.cal = config.get('preferences.calendar-format-report')
         self.place_list = []
@@ -219,7 +205,6 @@ class GeoPerson(GeoGraphyView):
         longitude = ""
         person_handle = self.uistate.get_active('Person')
         person = dbstate.db.get_person_from_handle(person_handle)
-        self.center = True
         if person is not None:
             # For each event, if we have a place, set a marker.
             for event_ref in person.get_event_ref_list():
@@ -247,7 +232,7 @@ class GeoPerson(GeoGraphyView):
                             self._append_to_places_list(descr, evt,
                                                         _nd.display(person),
                                                         latitude, longitude,
-                                                        descr1, self.center, 
+                                                        descr1, 
                                                         eventyear,
                                                         event.get_type(),
                                                         person.gramps_id,
@@ -255,17 +240,59 @@ class GeoPerson(GeoGraphyView):
                                                         event.gramps_id,
                                                         None
                                                         )
-                            self.center = False
                         else:
                             self._append_to_places_without_coord(
                                                         place.gramps_id, descr)
+            family_list = person.get_family_handle_list()
+            for family_hdl in family_list:
+                family = self.dbstate.db.get_family_from_handle(family_hdl)
+                if family is not None:
+                    fhandle = family_list[0] # first is primary
+                    fam = dbstate.db.get_family_from_handle(fhandle)
+                    handle = fam.get_father_handle()
+                    father = dbstate.db.get_person_from_handle(handle)
+                    if father:
+                        descr1 = "%s - " % _nd.display(father)
+                    handle = fam.get_mother_handle()
+                    mother = dbstate.db.get_person_from_handle(handle)
+                    if mother:
+                        descr1 = "%s%s" % ( descr1, _nd.display(mother))
+                    for event_ref in family.get_event_ref_list():
+                        if event_ref:
+                            event = dbstate.db.get_event_from_handle(event_ref.ref)
+                            if event.get_place_handle():
+                                place_handle = event.get_place_handle()
+                                if place_handle:
+                                    place = dbstate.db.get_place_from_handle(place_handle)
+                                    if place:
+                                        longitude = place.get_longitude()
+                                        latitude = place.get_latitude()
+                                        latitude, longitude = conv_lat_lon(latitude,
+                                                                           longitude, "D.D8")
+                                        descr = place.get_title()
+                                        evt = gen.lib.EventType(event.get_type())
+                                        eventyear = event.get_date_object().to_calendar(self.cal).get_year()
+                                        if ( longitude and latitude ):
+                                            self._append_to_places_list(descr, evt,
+                                                                        _nd.display(person),
+                                                                        latitude, longitude,
+                                                                        descr1, 
+                                                                        eventyear,
+                                                                        event.get_type(),
+                                                                        person.gramps_id,
+                                                                        place.gramps_id,
+                                                                        event.gramps_id,
+                                                                        None
+                                                                       )
+                                        else:
+                                            self._append_to_places_without_coord( place.gramps_id, descr)
+
             self.sort = sorted(self.place_list,
-                               key=operator.itemgetter(7)
+                               key=operator.itemgetter(6)
                               )
             self._create_markers()
 
     def bubble_message(self, event, lat, lon, marks):
-        _LOG.debug("bubble_message")
         menu = gtk.Menu()
         menu.set_title("person")
         message = ""

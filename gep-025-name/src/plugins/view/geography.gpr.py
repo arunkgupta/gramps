@@ -46,7 +46,7 @@ register(VIEW,
 
 register(VIEW, 
          id    = 'placesmap',
-         name  = _("place"),
+         name  = _("places"),
          description =  _("A view allowing to see all places of the database."),
          version = '1.0',
          gramps_target_version = '3.4',
@@ -61,7 +61,7 @@ register(VIEW,
 
 register(VIEW, 
          id    = 'eventsmap',
-         name  = _("event"),
+         name  = _("events"),
          description =  _("A view allowing to see all events "
                           "places of the database."),
          version = '1.0',

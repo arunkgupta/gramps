@@ -141,7 +141,6 @@ class GeoGraphyView(osmGpsMap, NavigationView):
 
     def __init__(self, title, pdata, dbstate, uistate,
                  get_bookmarks, bm_type, nav_group):
-        _LOG.debug("__init__ GeoGraphyView")
         NavigationView.__init__(self, title, pdata, dbstate, uistate, 
                               get_bookmarks, bm_type, nav_group)
 
@@ -161,10 +160,24 @@ class GeoGraphyView(osmGpsMap, NavigationView):
         self.cross_map = None
         self.current_map = None
         self.without = 0
+        self.geo_mainmap = gtk.gdk.pixbuf_new_from_file_at_size(
+                                 os.path.join(const.ROOT_DIR, "images", "22x22", ('gramps-geo-mainmap' + '.png' )),
+                                 22, 22)
+        self.geo_altmap = gtk.gdk.pixbuf_new_from_file_at_size(
+                                 os.path.join(const.ROOT_DIR, "images", "22x22", ('gramps-geo-altmap' + '.png' )),
+                                 22, 22)
+        if ( config.get('geography.map_service') in ( constants.OPENSTREETMAP, constants.OPENSTREETMAP_RENDERER )):
+            default_image = self.geo_mainmap
+        else:
+            default_image = self.geo_altmap
+        self.geo_othermap = {}
+        for id in gen.lib.EventType.BIRTH, gen.lib.EventType.DEATH, gen.lib.EventType.MARRIAGE:
+            self.geo_othermap[id] = gtk.gdk.pixbuf_new_from_file_at_size(
+                                 os.path.join(const.ROOT_DIR, "images", "22x22", (constants.ICONS.get(int(id), default_image) + '.png' )),
+                                 22, 22)
         
     def change_page(self):
         """Called when the page changes."""
-        _LOG.debug("change_page")
         NavigationView.change_page(self)
         self.uistate.clear_filter_results()
 
@@ -183,7 +196,6 @@ class GeoGraphyView(osmGpsMap, NavigationView):
         is no need to store the database, since we will get the value
         from self.state.db
         """
-        _LOG.debug("change_db")
         self.bookmarks.update_bookmarks(self.dbstate.db.get_bookmarks())
         if self.active:
             self.bookmarks.redraw()
@@ -193,7 +205,6 @@ class GeoGraphyView(osmGpsMap, NavigationView):
         See :class:`~gui.views.pageview.PageView 
         :return: bool
         """
-        _LOG.debug("can_configure")
         return True
 
     def config_connect(self):
@@ -202,7 +213,6 @@ class GeoGraphyView(osmGpsMap, NavigationView):
         This method will be called after the ini file is initialized,
         use it to monitor changes in the ini file
         """
-        _LOG.debug("config_connect")
 
     #-------------------------------------------------------------------------
     #
@@ -211,7 +221,6 @@ class GeoGraphyView(osmGpsMap, NavigationView):
     #-------------------------------------------------------------------------
     def build_nav_menu(self, obj, event, lat, lon):
         """Builds the menu for actions on the map."""
-        _LOG.debug("build_nav_menu")
         menu = gtk.Menu()
         menu.set_title(_('Map Menu'))
 
@@ -298,7 +307,6 @@ class GeoGraphyView(osmGpsMap, NavigationView):
         """
         Is there a marker at this position ?
         """
-        _LOG.debug("is_there_a_marker_here")
         found = False
         mark_selected = []
         self.uistate.set_busy_cursor(1)
@@ -308,17 +316,16 @@ class GeoGraphyView(osmGpsMap, NavigationView):
             # need some work here to have a better selection.
             precision = {
                           1 : '%3.0f', 2 : '%3.0f', 3 : '%3.0f', 4 : '%3.0f',
-                          5 : '%3.1f', 6 : '%3.1f', 7 : '%3.1f', 8 : '%3.1f',
-                          9 : '%3.2f', 10 : '%3.2f', 11 : '%3.2f', 12 : '%3.2f',
-                          13 : '%3.3f', 14 : '%3.3f', 15 : '%3.3f', 16 : '%3.4f',
+                          5 : '%3.0f', 6 : '%3.1f', 7 : '%3.1f', 8 : '%3.1f',
+                          9 : '%3.1f', 10 : '%3.1f', 11 : '%3.2f', 12 : '%3.2f',
+                          13 : '%3.2f', 14 : '%3.3f', 15 : '%3.3f', 16 : '%3.4f',
                           17 : '%3.4f', 18 : '%3.5f' }.get(config.get("geography.zoom"), '%3.1f')
-            _LOG.debug("is_there_a_marker_here : zoom=%d, precision=%s" % (config.get("geography.zoom"), precision ))
             latp  = precision % lat
             lonp  = precision % lon
             mlatp = precision % float(mark[3])
             mlonp = precision % float(mark[4])
-            _LOG.debug(" compare latitude : %s with %s (precision = %s)" % (float(mark[3]), lat, precision))
-            _LOG.debug("compare longitude : %s with %s (precision = %s)" % (float(mark[4]), lon, precision))
+            _LOG.debug(" compare latitude : %s with %s (precision = %s) place='%s'" % (float(mark[3]), lat, precision, mark[0]))
+            _LOG.debug("compare longitude : %s with %s (precision = %s) zoom=%d" % (float(mark[4]), lon, precision, config.get("geography.zoom")))
             if mlatp == latp and mlonp == lonp:
                 _LOG.debug(" compare latitude : %s with %s OK" % (mlatp, latp))
                 _LOG.debug("compare longitude : %s with %s OK" % (mlonp, lonp))
@@ -338,53 +345,43 @@ class GeoGraphyView(osmGpsMap, NavigationView):
         """
         Add a new marker
         """
-        _LOG.debug("add_marker")
         mapservice = config.get('geography.map_service')
         if ( mapservice in ( constants.OPENSTREETMAP, constants.OPENSTREETMAP_RENDERER )):
-            default_image = 'gramps-geo-mainmap'
+            default_image = self.geo_mainmap
         else:
-            default_image = 'gramps-geo-altmap'
+            default_image = self.geo_altmap
         value = default_image
         if event_type is not None:
-            value = constants.ICONS.get(int(event_type), default_image)
+            value = self.geo_othermap.get(int(event_type), default_image)
         if differtype:                   # in case multiple evts
             value = default_image # we use default icon.
-        icone = os.path.join(const.ROOT_DIR, "images", "22x22", (value + '.png' ))
-        pb = gtk.gdk.pixbuf_new_from_file_at_size (icone, 22, 22)
-        marker = self.osm.image_add_with_alignment(float(lat), float(lon), pb, 0.2, 1.0)
+        marker = self.osm.image_add_with_alignment(float(lat), float(lon), value, 0.2, 1.0)
 
-    def remove_marker(self, menu, event, lat, lon):
+    def remove_all_markers(self): 
         """
-        Remove the marker
+        Remove all markers on the map
         """
-        _LOG.debug("remove_marker")
-        pass
+        self.osm.image_remove_all()
 
-    def add_all_markers(self, liste_of_markers): 
+    def _present_in_places_list(self, index, string):
         """
-        Display all markers on the map
+        Search a string in place_list depending index
         """
-        _LOG.debug("add_all_markers")
-
-    def remove_all_markers(self, liste_of_markers): 
-        """
-        Display remove all markers on the map
-        """
-        _LOG.debug("remove_all_markers")
+        found = any(p[index] == string for p in self.place_list)
+        return found
 
     def _append_to_places_list(self, place, evttype, name, lat, 
-                               longit, descr, center, year, icontype,
+                               longit, descr, year, icontype,
                                gramps_id, place_id, event_id, family_id
                               ):
         """
         Create a list of places with coordinates.
         """
-        _LOG.debug("_append_to_places_list for %s in place %s" % (name, place))
         found = any(p[0] == place for p in self.place_list)
         if not found:
             self.nbplaces += 1
         self.place_list.append([place, name, evttype, lat,
-                                longit, descr, int(center), year, icontype,
+                                longit, descr, year, icontype,
                                 gramps_id, place_id, event_id, family_id
                                ])
         self.nbmarkers += 1
@@ -412,7 +409,6 @@ class GeoGraphyView(osmGpsMap, NavigationView):
         """
         Create a list of places without coordinates.
         """
-        _LOG.debug("_append_to_places_without_coord")
         if not [gid, place] in self.place_without_coordinates:
             self.place_without_coordinates.append([gid, place])
             self.without += 1
@@ -421,10 +417,8 @@ class GeoGraphyView(osmGpsMap, NavigationView):
         """
         Create all markers for the specified person.
         """
-        _LOG.debug("_create_markers")
-        self.osm.image_remove_all()
+        self.remove_all_markers()
         if self.current_map is not None and self.current_map != config.get("geography.map_service"):
-            _LOG.debug("We need to change the current map")
             self.change_map(self.osm, config.get("geography.map_service"))
         last = ""
         current = ""
@@ -434,32 +428,31 @@ class GeoGraphyView(osmGpsMap, NavigationView):
         lon = 0.0
         icon = None
         self.uistate.set_busy_cursor(True)
+        _LOG.debug("%s" % time.strftime("start create_marker : %a %d %b %Y %H:%M:%S", time.gmtime()))
         for mark in self.sort:
             current = ([mark[3], mark[4]])
             if last == "":
                 last = current
                 lat = mark[3]
                 lon = mark[4]
-                icon = mark[8]
+                icon = mark[7]
                 differtype = False
                 continue
             if last != current:
-                _LOG.debug("create new marker at lat=%s, lon=%s for %s" %( lat,lon,mark[1] ))
                 self.add_marker(None, None, lat, lon, icon, differtype)
                 differtype = False
                 last = current
                 lat = mark[3]
                 lon = mark[4]
-                icon = mark[8]
+                icon = mark[7]
                 differtype = False
             else: # This marker already exists. add info.
-                _LOG.debug("same marker")
-                if ( mark[8] and icon != mark[8] ):
-                    _LOG.debug("same marker with multiple events")
+                if ( mark[6] and icon != mark[7] ):
                     differtype = True
         if ( lat != 0.0 and lon != 0.0 ):
             self.add_marker(None, None, lat, lon, icon, differtype)
             self._set_center_and_zoom()
+        _LOG.debug("%s" % time.strftime(" stop create_marker : %a %d %b %Y %H:%M:%S", time.gmtime()))
         self.uistate.set_busy_cursor(False)
 
     def _set_center_and_zoom(self):
@@ -472,9 +465,7 @@ class GeoGraphyView(osmGpsMap, NavigationView):
         If some markers are missing : return to the zoom - 1
         The following is too complex. In some case, all markers are not present.
         """
-        _LOG.debug("_set_center_and_zoom")
         # Select the center of the map and the zoom
-        self.centered = False
         signminlon = _get_sign(self.minlon)
         signminlat = _get_sign(self.minlat)
         signmaxlon = _get_sign(self.maxlon)
@@ -500,30 +491,27 @@ class GeoGraphyView(osmGpsMap, NavigationView):
         self.centerlon = maxlong/2
         latit = longt = 0.0
         for mark in self.sort:
-            cent = int(mark[6])
-            if cent:
-                self.centered = True
-                if ( signminlat == signmaxlat ):
-                    if signminlat == 1: 
-                        latit = self.minlat+self.centerlat
-                    else:
-                        latit = self.maxlat-self.centerlat
-                elif self.maxlat > self.centerlat:
-                    latit = self.maxlat-self.centerlat
-                else:
+            if ( signminlat == signmaxlat ):
+                if signminlat == 1: 
                     latit = self.minlat+self.centerlat
-                if ( signminlon == signmaxlon ):
-                    if signminlon == 1: 
-                        longt = self.minlon+self.centerlon
-                    else:
-                        longt = self.maxlon-self.centerlon
-                elif self.maxlon > self.centerlon:
-                    longt = self.maxlon-self.centerlon
                 else:
+                    latit = self.maxlat-self.centerlat
+            elif self.maxlat > self.centerlat:
+                latit = self.maxlat-self.centerlat
+            else:
+                latit = self.minlat+self.centerlat
+            if ( signminlon == signmaxlon ):
+                if signminlon == 1: 
                     longt = self.minlon+self.centerlon
-                # all maps: 0.0 for longitude and latitude means no location.
-                if latit == longt == 0.0:
-                    latit = longt = 0.00000001
+                else:
+                    longt = self.maxlon-self.centerlon
+            elif self.maxlon > self.centerlon:
+                longt = self.maxlon-self.centerlon
+            else:
+                longt = self.minlon+self.centerlon
+            # all maps: 0.0 for longitude and latitude means no location.
+            if latit == longt == 0.0:
+                latit = longt = 0.00000001
         self.mustcenter = False
         self.latit = latit
         self.longt = longt
@@ -547,7 +535,6 @@ class GeoGraphyView(osmGpsMap, NavigationView):
         """ 
         Center the map at the marker position
         """ 
-        _LOG.debug("center_here")
         self.set_center(menu, event, float(mark[3]), float(mark[4]))
 
     def add_place_bubble_message(self, event, lat, lon, marks, menu, message, mark):
@@ -580,9 +567,9 @@ class GeoGraphyView(osmGpsMap, NavigationView):
         """ 
         Edit the selected place at the marker position
         """ 
-        _LOG.debug("edit_place : %s" % mark[10])
+        _LOG.debug("edit_place : %s" % mark[9])
         # need to add code here to edit the event.
-        place = self.dbstate.db.get_place_from_gramps_id(mark[10])
+        place = self.dbstate.db.get_place_from_gramps_id(mark[9])
         try:
             EditPlace(self.dbstate, self.uistate, [], place)
         except Errors.WindowActiveError: 
@@ -592,9 +579,9 @@ class GeoGraphyView(osmGpsMap, NavigationView):
         """ 
         Edit the selected person at the marker position
         """ 
-        _LOG.debug("edit_person : %s" % mark[9])
+        _LOG.debug("edit_person : %s" % mark[8])
         # need to add code here to edit the person.
-        person = self.dbstate.db.get_person_from_gramps_id(mark[9])
+        person = self.dbstate.db.get_person_from_gramps_id(mark[8])
         try:
             EditPerson(self.dbstate, self.uistate, [], person)
         except Errors.WindowActiveError: 
@@ -604,9 +591,9 @@ class GeoGraphyView(osmGpsMap, NavigationView):
         """ 
         Edit the selected family at the marker position
         """ 
-        _LOG.debug("edit_family : %s" % mark[12])
+        _LOG.debug("edit_family : %s" % mark[11])
         # need to add code here to edit the family.
-        family = self.dbstate.db.get_family_from_gramps_id(mark[12])
+        family = self.dbstate.db.get_family_from_gramps_id(mark[11])
         try:
             EditFamily(self.dbstate, self.uistate, [], family)
         except Errors.WindowActiveError: 
@@ -616,9 +603,9 @@ class GeoGraphyView(osmGpsMap, NavigationView):
         """ 
         Edit the selected event at the marker position
         """ 
-        _LOG.debug("edit_event : %s" % mark[11])
+        _LOG.debug("edit_event : %s" % mark[10])
         # need to add code here to edit the event.
-        event = self.dbstate.db.get_event_from_gramps_id(mark[11])
+        event = self.dbstate.db.get_event_from_gramps_id(mark[10])
         try:
             EditEvent(self.dbstate, self.uistate, [], event)
         except Errors.WindowActiveError: 
@@ -629,7 +616,6 @@ class GeoGraphyView(osmGpsMap, NavigationView):
         Add a new place using longitude and latitude of location centred
         on the map
         """
-        _LOG.debug("_add_place")
         new_place = gen.lib.Place()
         new_place.set_latitude(str(lat))
         new_place.set_longitude(str(lon))
@@ -643,7 +629,6 @@ class GeoGraphyView(osmGpsMap, NavigationView):
         Link an existing place using longitude and latitude of location centred
         on the map
         """
-        _LOG.debug("_link_place")
         selector = SelectPlace(self.dbstate, self.uistate, [])
         place = selector.run()
         if place:
@@ -663,7 +648,6 @@ class GeoGraphyView(osmGpsMap, NavigationView):
         """
         The function which is used to create the configuration window.
         """
-        _LOG.debug("_get_configure_page_funcs")
         return [self.map_options]
 
     def config_zoom_and_position(self, client, cnxn_id, entry, data):
@@ -672,11 +656,9 @@ class GeoGraphyView(osmGpsMap, NavigationView):
         """
         if config.get("geography.lock"):
             config.set("geography.lock", False)
-            _LOG.debug("config_zoom_and_position : 1 => 0 ")
             self._set_center_and_zoom()
         else:
             config.set("geography.lock", True)
-            _LOG.debug("config_zoom_and_position : 0 => 1 ")
         self.lock = config.get("geography.lock")
         pass
 
@@ -686,10 +668,8 @@ class GeoGraphyView(osmGpsMap, NavigationView):
         """
         if config.get("geography.show_cross"):
             config.set("geography.show_cross", False)
-            _LOG.debug("config crosshair : 1 => 0 ")
         else:
             config.set("geography.show_cross", True)
-            _LOG.debug("config crosshair : 0 => 1 ")
         self.set_crosshair(config.get("geography.show_cross"))
         pass
 
@@ -698,7 +678,6 @@ class GeoGraphyView(osmGpsMap, NavigationView):
         Function that builds the widget in the configuration dialog
         for the map options.
         """
-        _LOG.debug("map_options")
         table = gtk.Table(2, 2)
         table.set_border_width(12)
         table.set_col_spacings(6)
