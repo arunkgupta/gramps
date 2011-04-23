@@ -12,6 +12,7 @@ SUBDIRS = \
 	GrampsLocale \
 	GrampsLogger \
 	gui \
+	maps \
 	images \
 	Merge \
 	plugins \
