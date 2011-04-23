@@ -357,6 +357,18 @@ class GeoGraphyView(osmGpsMap, NavigationView):
             value = default_image # we use default icon.
         marker = self.osm.image_add_with_alignment(float(lat), float(lon), value, 0.2, 1.0)
 
+    def remove_all_gps(self): 
+        """
+        Remove all gps points on the map
+        """
+        self.osm.gps_clear()
+
+    def remove_all_tracks(self): 
+        """
+        Remove all tracks on the map
+        """
+        self.osm.track_remove_all()
+
     def remove_all_markers(self): 
         """
         Remove all markers on the map
@@ -418,6 +430,8 @@ class GeoGraphyView(osmGpsMap, NavigationView):
         Create all markers for the specified person.
         """
         self.remove_all_markers()
+        self.remove_all_gps()
+        self.remove_all_tracks()
         if self.current_map is not None and self.current_map != config.get("geography.map_service"):
             self.change_map(self.osm, config.get("geography.map_service"))
         last = ""

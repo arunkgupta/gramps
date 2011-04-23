@@ -40,6 +40,7 @@ import locale
 from gtk.keysyms import Tab as KEY_TAB
 import socket
 import gtk
+import glib
 
 #-------------------------------------------------------------------------
 #
@@ -189,6 +190,52 @@ class GeoPerson(GeoGraphyView):
         active = self.get_active()
         self._createmap(active)
 
+    def animate(self, menu, marks, index, stepyear):
+        """
+        Create all movements for the people's event.
+        Yes, you can see the person moving.
+        """
+        if len(marks) == 0:
+            self.already_started = False
+            return False
+        i = int(index)
+        ni = i + 1
+        if ni == len(marks) :
+            self.already_started = False
+            return False
+        startlat = float(marks[i][3])
+        startlon = float(marks[i][4])
+	heading = 1
+	if index == 0 and stepyear == 0:
+            self.osm.gps_add(startlat, startlon, heading)
+        endlat = float(marks[ni][3])
+        endlon = float(marks[ni][4])
+        # year format = YYYYMMDD ( for sort )
+        startyear = str(marks[i][6])[0:4]
+        endyear = str(marks[ni][6])[0:4]
+        endmov = str(marks[len(marks)-1][6])[0:4]
+        years = int(endyear) - int(startyear)
+        if years < 1:
+            years = 1
+        latstep = ( endlat - startlat ) / years
+        lonstep = ( endlon - startlon ) / years
+        stepyear = 1 if stepyear < 1 else stepyear
+	startlat += ( latstep * stepyear )
+	startlon += ( lonstep * stepyear )
+	self.osm.gps_add(startlat, startlon, heading)
+        if ( int(startyear) + stepyear ) > int(endmov) :
+            self.already_started = False
+            return False
+        stepyear += 1
+        difflat = ( startlat - endlat ) if startlat > endlat else ( endlat - startlat )
+        difflon = ( startlon - endlon ) if startlon > endlon else ( endlon - startlon )
+        if ( difflat == 0.0 and difflon == 0.0 ):
+            i += 1
+            stepyear = 1
+        # 100ms => 1s per 10 years, so movements for a 100 years person takes 10 secondes.
+        glib.timeout_add(100, self.animate, menu, marks, i, stepyear)
+	return False
+
     def _createmap(self,obj):
         """
         Create all markers for each people's event in the database which has 
@@ -211,7 +258,9 @@ class GeoPerson(GeoGraphyView):
                 if not event_ref:
                     continue
                 event = dbstate.db.get_event_from_handle(event_ref.ref)
-                eventyear = event.get_date_object().to_calendar(self.cal).get_year()
+                eventyear = str("%04d" % event.get_date_object().to_calendar(self.cal).get_year()) + \
+                          str("%02d" % event.get_date_object().to_calendar(self.cal).get_month()) + \
+                          str("%02d" % event.get_date_object().to_calendar(self.cal).get_day())
                 place_handle = event.get_place_handle()
                 if place_handle:
                     place = dbstate.db.get_place_from_handle(place_handle)
@@ -271,7 +320,9 @@ class GeoPerson(GeoGraphyView):
                                                                            longitude, "D.D8")
                                         descr = place.get_title()
                                         evt = gen.lib.EventType(event.get_type())
-                                        eventyear = event.get_date_object().to_calendar(self.cal).get_year()
+                                        eventyear = str("%04d" % event.get_date_object().to_calendar(self.cal).get_year()) + \
+                                                  str("%02d" % event.get_date_object().to_calendar(self.cal).get_month()) + \
+                                                  str("%02d" % event.get_date_object().to_calendar(self.cal).get_day())
                                         if ( longitude and latitude ):
                                             self._append_to_places_list(descr, evt,
                                                                         _nd.display(person),
@@ -359,5 +410,12 @@ class GeoPerson(GeoGraphyView):
         """ 
         Add specific entry to the navigation menu.
         """ 
+        add_item = gtk.MenuItem()
+        add_item.show()
+        menu.append(add_item)
+        add_item = gtk.MenuItem(_("Animate"))
+        add_item.connect("activate", self.animate, self.sort, 0, 0)
+        add_item.show()
+        menu.append(add_item)
         return
 
