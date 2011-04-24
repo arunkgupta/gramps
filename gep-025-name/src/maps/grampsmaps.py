@@ -114,7 +114,7 @@ class osmGpsMap():
             except:
                 ErrorDialog(_("Can't create tiles cache directory %s") %
                              cache_path )
-            return self.vbox
+                return self.vbox
 
         self.change_map(None,config.get("geography.map_service"))
         return self.vbox
