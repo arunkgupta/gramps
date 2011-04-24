@@ -168,8 +168,6 @@ class osmGpsMap():
         if event.button == 1:
             # do we click on a marker ?
             marker = self.is_there_a_marker_here(event, lat, lon)
-        elif event.button == 2:
-            self.osm.gps_add(lat, lon, heading=osmgpsmap.INVALID);
         elif event.button == 3:
             self.build_nav_menu(osm, event, lat, lon )
         else:
