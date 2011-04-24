@@ -239,9 +239,12 @@ class GeoPlaces(GeoGraphyView):
         self.without = 0
         latitude = ""
         longitude = ""
-        # base "villes de france" : 38101 places : createmap : 8'50"; create_markers : 1'23"
-        # base "villes de france" : 38101 places : createmap : 8'50"; create_markers : 0'07" with pixbuf optimization
-        _LOG.debug("%s" % time.strftime("start createmap : %a %d %b %Y %H:%M:%S", time.gmtime()))
+        # base "villes de france" : 38101 places :
+        # createmap : 8'50"; create_markers : 1'23"
+        # base "villes de france" : 38101 places :
+        # createmap : 8'50"; create_markers : 0'07" with pixbuf optimization
+        _LOG.debug("%s" % time.strftime("start createmap : "
+                   "%a %d %b %Y %H:%M:%S", time.gmtime()))
         if self.generic_filter:
             place_list = self.generic_filter.apply(dbstate.db)
             for place_handle in place_list:
@@ -256,11 +259,13 @@ class GeoPlaces(GeoGraphyView):
             else:
                 place = dbstate.db.get_place_from_handle(place_x)
                 self._create_one_place(place)
-        _LOG.debug("%s" % time.strftime(" stop createmap and\nbegin sort : %a %d %b %Y %H:%M:%S", time.gmtime()))
+        _LOG.debug("%s" % time.strftime(" stop createmap and\nbegin sort : "
+                   "%a %d %b %Y %H:%M:%S", time.gmtime()))
         self.sort = sorted(self.place_list,
                            key=operator.itemgetter(0)
                           )
-        _LOG.debug("%s" % time.strftime("  end sort : %a %d %b %Y %H:%M:%S", time.gmtime()))
+        _LOG.debug("%s" % time.strftime("  end sort : "
+                   "%a %d %b %Y %H:%M:%S", time.gmtime()))
         self._create_markers()
 
     def bubble_message(self, event, lat, lon, marks):
@@ -279,11 +284,13 @@ class GeoPlaces(GeoGraphyView):
                 add_item.set_submenu(itemoption)
                 modify = gtk.MenuItem(_("Edit place"))
                 modify.show()
-                modify.connect("activate", self.edit_place, event, lat, lon, prevmark)
+                modify.connect("activate", self.edit_place,
+                               event, lat, lon, prevmark)
                 itemoption.append(modify)
                 center = gtk.MenuItem(_("Center on this place"))
                 center.show()
-                center.connect("activate", self.center_here, event, lat, lon, prevmark)
+                center.connect("activate", self.center_here,
+                               event, lat, lon, prevmark)
                 itemoption.append(center)
             message = "%s" % mark[0]
             prevmark = mark

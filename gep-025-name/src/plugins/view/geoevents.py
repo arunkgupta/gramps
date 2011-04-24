@@ -227,7 +227,8 @@ class GeoEvents(GeoGraphyView):
                             if descr2 == "":
                                 descr2 = ("%s") % _nd.display(person)
                             else:
-                                descr2 = ("%s - %s") % ( descr2, _nd.display(person))
+                                descr2 = ("%s - %s") % ( descr2,
+                                                         _nd.display(person))
                     else:
                         # family list ?
                         family_list = [
@@ -238,10 +239,10 @@ class GeoEvents(GeoGraphyView):
                                       ]
                         if family_list:
                             for family in family_list:
-                                handle = family.get_father_handle()
-                                father = dbstate.db.get_person_from_handle(handle)
-                                handle = family.get_mother_handle()
-                                mother = dbstate.db.get_person_from_handle(handle)
+                                hdle = family.get_father_handle()
+                                father = dbstate.db.get_person_from_handle(hdle)
+                                hdle = family.get_mother_handle()
+                                mother = dbstate.db.get_person_from_handle(hdle)
                                 descr2 = ("%(father)s - %(mother)s") % {
                                                'father': _nd.display(father) if father is not None else "?",
                                                'mother': _nd.display(mother) if mother is not None else "?"
@@ -316,11 +317,13 @@ class GeoEvents(GeoGraphyView):
                 add_item.set_submenu(itemoption)
                 modify = gtk.MenuItem(_("Edit event"))
                 modify.show()
-                modify.connect("activate", self.edit_event, event, lat, lon, prevmark)
+                modify.connect("activate", self.edit_event,
+                               event, lat, lon, prevmark)
                 itemoption.append(modify)
                 center = gtk.MenuItem(_("Center on this place"))
                 center.show()
-                center.connect("activate", self.center_here, event, lat, lon, prevmark)
+                center.connect("activate", self.center_here,
+                               event, lat, lon, prevmark)
                 itemoption.append(center)
             if mark[0] != oldplace:
                 if message != "":
@@ -333,14 +336,17 @@ class GeoEvents(GeoGraphyView):
                     add_item.set_submenu(itemoption)
                     modify = gtk.MenuItem(_("Edit event"))
                     modify.show()
-                    modify.connect("activate", self.edit_event, event, lat, lon, mark)
+                    modify.connect("activate", self.edit_event,
+                                   event, lat, lon, mark)
                     itemoption.append(modify)
                     center = gtk.MenuItem(_("Center on this place"))
                     center.show()
-                    center.connect("activate", self.center_here, event, lat, lon, mark)
+                    center.connect("activate", self.center_here,
+                                   event, lat, lon, mark)
                     itemoption.append(center)
                 message = "%s :" % mark[0]
-                self.add_place_bubble_message(event, lat, lon, marks, menu, message, mark)
+                self.add_place_bubble_message(event, lat, lon,
+                                              marks, menu, message, mark)
                 oldplace = mark[0]
             message = "%s : %s" % (gen.lib.EventType( mark[7] ), mark[5] )
             prevmark = mark

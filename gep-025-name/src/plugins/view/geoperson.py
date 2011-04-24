@@ -228,15 +228,18 @@ class GeoPerson(GeoGraphyView):
             return False
 	self.osm.gps_add(startlat, startlon, heading)
         stepyear += 1
-        difflat = ( startlat - endlat ) if startlat > endlat else ( endlat - startlat )
-        difflon = ( startlon - endlon ) if startlon > endlon else ( endlon - startlon )
+        difflat = ( startlat - endlat ) if startlat > endlat else \
+                                           ( endlat - startlat )
+        difflon = ( startlon - endlon ) if startlon > endlon else \
+                                           ( endlon - startlon )
         if ( difflat == 0.0 and difflon == 0.0 ):
             i += 1
             if ( int(startyear) + stepyear ) > int(endmov) :
                 self.already_started = False
                 return False
             stepyear = 1
-        # 100ms => 1s per 10 years, so movements for a 100 years person takes 10 secondes.
+        # 100ms => 1s per 10 years. 
+        # For a 100 years person, it takes 10 secondes.
         glib.timeout_add(100, self.animate, menu, marks, i, stepyear)
 	return False
 
@@ -262,7 +265,7 @@ class GeoPerson(GeoGraphyView):
                 if not event_ref:
                     continue
                 event = dbstate.db.get_event_from_handle(event_ref.ref)
-                eventyear = str("%04d" % event.get_date_object().to_calendar(self.cal).get_year()) + \
+                eyear = str("%04d" % event.get_date_object().to_calendar(self.cal).get_year()) + \
                           str("%02d" % event.get_date_object().to_calendar(self.cal).get_month()) + \
                           str("%02d" % event.get_date_object().to_calendar(self.cal).get_day())
                 place_handle = event.get_place_handle()
@@ -285,8 +288,7 @@ class GeoPerson(GeoGraphyView):
                             self._append_to_places_list(descr, evt,
                                                         _nd.display(person),
                                                         latitude, longitude,
-                                                        descr1, 
-                                                        eventyear,
+                                                        descr1, eyear,
                                                         event.get_type(),
                                                         person.gramps_id,
                                                         place.gramps_id,
@@ -324,21 +326,20 @@ class GeoPerson(GeoGraphyView):
                                                                            longitude, "D.D8")
                                         descr = place.get_title()
                                         evt = gen.lib.EventType(event.get_type())
-                                        eventyear = str("%04d" % event.get_date_object().to_calendar(self.cal).get_year()) + \
+                                        eyear = str("%04d" % event.get_date_object().to_calendar(self.cal).get_year()) + \
                                                   str("%02d" % event.get_date_object().to_calendar(self.cal).get_month()) + \
                                                   str("%02d" % event.get_date_object().to_calendar(self.cal).get_day())
                                         if ( longitude and latitude ):
-                                            self._append_to_places_list(descr, evt,
-                                                                        _nd.display(person),
-                                                                        latitude, longitude,
-                                                                        descr1, 
-                                                                        eventyear,
-                                                                        event.get_type(),
-                                                                        person.gramps_id,
-                                                                        place.gramps_id,
-                                                                        event.gramps_id,
-                                                                        None
-                                                                       )
+                                            self._append_to_places_list(descr,
+                                                 evt, _nd.display(person),
+                                                 latitude, longitude,
+                                                 descr1, eyear,
+                                                 event.get_type(),
+                                                 person.gramps_id,
+                                                 place.gramps_id,
+                                                 event.gramps_id,
+                                                 None
+                                                 )
                                         else:
                                             self._append_to_places_without_coord( place.gramps_id, descr)
 
@@ -364,11 +365,13 @@ class GeoPerson(GeoGraphyView):
                 add_item.set_submenu(itemoption)
                 modify = gtk.MenuItem(_("Edit event"))
                 modify.show()
-                modify.connect("activate", self.edit_event, event, lat, lon, prevmark)
+                modify.connect("activate", self.edit_event,
+                               event, lat, lon, prevmark)
                 itemoption.append(modify)
                 center = gtk.MenuItem(_("Center on this place"))
                 center.show()
-                center.connect("activate", self.center_here, event, lat, lon, prevmark)
+                center.connect("activate", self.center_here,
+                               event, lat, lon, prevmark)
                 itemoption.append(center)
             if mark[0] != oldplace:
                 if message != "":
@@ -381,14 +384,17 @@ class GeoPerson(GeoGraphyView):
                     add_item.set_submenu(itemoption)
                     modify = gtk.MenuItem(_("Edit event"))
                     modify.show()
-                    modify.connect("activate", self.edit_event, event, lat, lon, mark)
+                    modify.connect("activate", self.edit_event,
+                                   event, lat, lon, mark)
                     itemoption.append(modify)
                     center = gtk.MenuItem(_("Center on this place"))
                     center.show()
-                    center.connect("activate", self.center_here, event, lat, lon, mark)
+                    center.connect("activate", self.center_here,
+                                   event, lat, lon, mark)
                     itemoption.append(center)
                 message = "%s :" % mark[0]
-                self.add_place_bubble_message(event, lat, lon, marks, menu, message, mark)
+                self.add_place_bubble_message(event, lat, lon,
+                                              marks, menu, message, mark)
                 oldplace = mark[0]
             message = "%s : %s" % ( mark[2], mark[1] )
             prevmark = mark
