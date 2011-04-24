@@ -96,8 +96,6 @@ class DummyLayer(gobject.GObject, osmgpsmap.GpsMapLayer):
         return False
 
     def do_button_press(self, gpsmap, gdkeventbutton):
-        #point = osmgpsmap.point_new_degrees(0.0, 0.0)
-        #gpsmap.convert_screen_to_geographic(int(gdkeventbutton.x), int(gdkeventbutton.y), point)
         return False
 gobject.type_register(DummyLayer)
 
@@ -113,9 +111,9 @@ class osmGpsMap():
         cache_path = os.path.join(const.HOME_DIR, 'maps')
         if not os.path.isdir(cache_path):
             try:
-                os.mkdir(cache_path, 0700)
+                os.mkdir(cache_path, 0750)
             except:
-                ErrorDialog( _("Could not create media directory %s") %
+                ErrorDialog(_("Can't create tiles cache directory %s") %
                              cache_path )
             return
 
@@ -129,6 +127,12 @@ class osmGpsMap():
             self.vbox.remove(self.osm)
             self.osm.destroy()
         tiles_path=os.path.join(GEOGRAPHY_PATH, constants.tiles_path[map_type])
+        if not os.path.isdir(tiles_path):
+            try:
+                os.mkdir(tiles_path, 0750)
+            except:
+                ErrorDialog(_("Can't create tiles cache directory for '%s'.") %
+                             constants.map_title[map_type])
         config.set("geography.map_service", map_type)
         self.current_map = map_type
         if 0:
