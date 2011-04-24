@@ -174,9 +174,9 @@ class GeoGraphyView(osmGpsMap, NavigationView):
         else:
             default_image = self.geo_altmap
         self.geo_othermap = {}
-        for id in gen.lib.EventType.BIRTH,
-                  gen.lib.EventType.DEATH,
-                  gen.lib.EventType.MARRIAGE:
+        for id in ( gen.lib.EventType.BIRTH,
+                    gen.lib.EventType.DEATH,
+                    gen.lib.EventType.MARRIAGE ):
             self.geo_othermap[id] = gtk.gdk.pixbuf_new_from_file_at_size(
                 os.path.join(const.ROOT_DIR, "images", "22x22",
                     (constants.ICONS.get(int(id), default_image) + '.png' )),
@@ -446,8 +446,8 @@ class GeoGraphyView(osmGpsMap, NavigationView):
         self.remove_all_markers()
         self.remove_all_gps()
         self.remove_all_tracks()
-        if self.current_map is not None and
-            self.current_map != config.get("geography.map_service"):
+        if ( self.current_map is not None and
+             self.current_map != config.get("geography.map_service") ):
             self.change_map(self.osm, config.get("geography.map_service"))
         last = ""
         current = ""
