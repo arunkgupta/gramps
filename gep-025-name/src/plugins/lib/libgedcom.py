@@ -3125,6 +3125,7 @@ class GedcomParser(UpdateCallback):
         addr.set_street("Unknown")
         addr.set_phone(line.data)
         state.person.add_address(addr)
+        self.__skip_subordinate_levels(state.level+1)
     
     def __person_email(self, line, state):
         """
@@ -4203,7 +4204,7 @@ class GedcomParser(UpdateCallback):
 
     def __family_frel(self, line, state):
         """
-        The _FREL key is a FTW specific extension to indicate father/child
+        The _FREL key is a FTW/FTM specific extension to indicate father/child
         relationship.
 
         n _FREL <type>
@@ -4217,7 +4218,7 @@ class GedcomParser(UpdateCallback):
 
     def __family_mrel(self, line, state):
         """
-        The _MREL key is a FTW specific extension to indicate father/child
+        The _MREL key is a FTW/FTM specific extension to indicate father/child
         relationship.
 
         n _MREL <type>
@@ -5571,7 +5572,7 @@ class GedcomParser(UpdateCallback):
         @type state: CurrentState
         """
         self.gedsource = self.gedmap.get_from_source_tag(line.data)
-        if line.data.strip() == "FTW":
+        if line.data.strip() in ["FTW", "FTM"]:
             self.is_ftw = True
         state.genby = line.data
 

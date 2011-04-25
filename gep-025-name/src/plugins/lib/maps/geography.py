@@ -20,7 +20,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 
-# $Id: geography.py 16552 2011-02-03 10:31:37Z snoiraud $
+# $Id: $
 
 #-------------------------------------------------------------------------
 #
@@ -40,7 +40,7 @@ import time
 #
 #------------------------------------------------------------------------
 import logging
-_LOG = logging.getLogger(".geographyNG")
+_LOG = logging.getLogger(".geography")
 
 #-------------------------------------------------------------------------
 #
@@ -719,4 +719,15 @@ class GeoGraphyView(osmGpsMap, NavigationView):
                 1)
         configdialog.add_entry(table, '',
                 2, 'geography.path')
+        configdialog.add_text(table,
+                _('If you have no more space in your file system\n'
+                  'You can remove all tiles placed in the above path.\n'
+                  'Be careful if you have no internet, you\'ll get no map.'),
+                3)
+        # there is no button. I need to found a solution for this.
+        # it can be very dangerous ! if someone put / in geography.path ...
+        # perhaps we need some contrôl on this path :
+        # should begin with : /home, /opt, /map, ...
+        #configdialog.add_button(table, '', 4, 'geography.clean')
+        
         return _('The map'), table

@@ -91,8 +91,14 @@ def GET_AVAILABLE_GRAMPLETS(name):
                 "page":     0,
                 "data":    [],
                 "help_url": gplug.help_url,
+                "navtypes": gplug.navtypes,
                 }
     return None
+
+def GET_GRAMPLET_LIST(nav_type, skip):
+    return [(gplug.name, gplug.id) for gplug in PLUGMAN.get_reg_gramplets()
+            if gplug.navtypes == [] or nav_type in gplug.navtypes
+            and gplug.name not in skip]
 
 def parse_tag_attr(text):
     """
@@ -318,6 +324,7 @@ class GuiGramplet(object):
         ########## Set defaults
         self.gname = kwargs.get("name", "Unnamed Gramplet")
         self.tname = kwargs.get("tname", "Unnamed Gramplet")
+        self.navtypes = kwargs.get("navtypes", [])
         self.version = kwargs.get("version", "0.0.0")
         self.gramps = kwargs.get("gramps", "0.0.0")
         self.expand = logical_true(kwargs.get("expand", False))
@@ -1362,8 +1369,8 @@ class GrampletPane(gtk.ScrolledWindow):
             if ag_menu:
                 qr_menu = ag_menu.get_submenu()
                 qr_menu = gtk.Menu()
-                names = [GET_AVAILABLE_GRAMPLETS(key)["tname"] for key 
-                         in AVAILABLE_GRAMPLETS()]
+                names = [gplug.name for gplug in PLUGMAN.get_reg_gramplets()
+                         if gplug.navtypes == []]
                 names.sort()
                 for name in names:
                     add_menuitem(qr_menu, name, None, self.add_gramplet)

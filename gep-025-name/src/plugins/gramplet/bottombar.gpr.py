@@ -36,6 +36,7 @@ register(GRAMPLET,
          height=200,
          gramplet = 'PersonDetails',
          gramplet_title=_("Details"),
+         navtypes=["Person"],
          )
 
 register(GRAMPLET, 
@@ -49,6 +50,7 @@ register(GRAMPLET,
          height=200,
          gramplet = 'RepositoryDetails',
          gramplet_title=_("Details"),
+         navtypes=["Repository"],
          )
 
 register(GRAMPLET, 
@@ -62,6 +64,7 @@ register(GRAMPLET,
          height=200,
          gramplet = 'PlaceDetails',
          gramplet_title=_("Details"),
+         navtypes=["Place"],
          )
 
 register(GRAMPLET, 
@@ -75,22 +78,31 @@ register(GRAMPLET,
          height=200,
          gramplet = 'MediaPreview',
          gramplet_title=_("Preview"),
+         navtypes=["Media"],
          )
 
-register(GRAMPLET, 
-        id                    = "Exif Viewer Gramplet", 
-        name                  = _("Exif Viewer Gramplet"), 
-        description           =  _("Gramplet showing exif tags for a media object"),
-        version               = "1.0.0",
-        gramps_target_version = "3.4.0",
-        status                = STABLE,
-        fname                 = "Exif.py",
-        height                = 200,
-        gramplet              =  'Exif',
-        gramplet_title        = _("Exif"),
-        authors               = ["Rob G. Healey"],
-        authors_email         = ["robhealey1@gmail.com"],
-         )
+try:
+    import pyexiv2
+    available = True
+except:
+    print _("WARNING: pyexiv2 module not loaded.  "
+            "Image metadata functionality will not be available.")
+    available = False
+
+if available:
+    register(GRAMPLET, 
+            id = "Metadata Viewer Gramplet", 
+            name = _("Metadata Viewer Gramplet"), 
+            description = _("Gramplet showing metadata for a media object"),
+            version = "1.0.0",
+            gramps_target_version = "3.4",
+            status = STABLE,
+            fname = "MetadataViewer.py",
+            height = 200,
+            gramplet = 'MetadataViewer',
+            gramplet_title = _("Image Metadata"),
+            navtypes=["Media"],
+            )
 
 register(GRAMPLET, 
          id="Person Residence Gramplet", 
@@ -103,6 +115,35 @@ register(GRAMPLET,
          height=200,
          gramplet = 'PersonResidence',
          gramplet_title=_("Residence"),
+         navtypes=["Person"],
+         )
+
+register(GRAMPLET, 
+         id="Person Events Gramplet", 
+         name=_("Person Events Gramplet"), 
+         description = _("Gramplet showing the events for a person"),
+         version="1.0.0",
+         gramps_target_version="3.4",
+         status = STABLE,
+         fname="Events.py",
+         height=200,
+         gramplet = 'PersonEvents',
+         gramplet_title=_("Events"),
+         navtypes=["Person"],
+         )
+
+register(GRAMPLET, 
+         id="Family Events Gramplet", 
+         name=_("Family Events Gramplet"), 
+         description = _("Gramplet showing the events for a family"),
+         version="1.0.0",
+         gramps_target_version="3.4",
+         status = STABLE,
+         fname="Events.py",
+         height=200,
+         gramplet = 'FamilyEvents',
+         gramplet_title=_("Events"),
+         navtypes=["Family"],
          )
 
 register(GRAMPLET, 
@@ -116,6 +157,7 @@ register(GRAMPLET,
          height=200,
          gramplet = 'PersonGallery',
          gramplet_title=_("Gallery"),
+         navtypes=["Person"],
          )
 
 register(GRAMPLET, 
@@ -129,6 +171,7 @@ register(GRAMPLET,
          height=200,
          gramplet = 'EventGallery',
          gramplet_title=_("Gallery"),
+         navtypes=["Event"],
          )
 
 register(GRAMPLET, 
@@ -142,6 +185,7 @@ register(GRAMPLET,
          height=200,
          gramplet = 'PlaceGallery',
          gramplet_title=_("Gallery"),
+         navtypes=["Place"],
          )
 
 register(GRAMPLET, 
@@ -155,6 +199,7 @@ register(GRAMPLET,
          height=200,
          gramplet = 'SourceGallery',
          gramplet_title=_("Gallery"),
+         navtypes=["Source"],
          )
 
 register(GRAMPLET, 
@@ -168,6 +213,7 @@ register(GRAMPLET,
          height=200,
          gramplet = 'PersonAttributes',
          gramplet_title=_("Attributes"),
+         navtypes=["Person"],
          )
 
 register(GRAMPLET, 
@@ -181,6 +227,7 @@ register(GRAMPLET,
          height=200,
          gramplet = 'EventAttributes',
          gramplet_title=_("Attributes"),
+         navtypes=["Event"],
          )
 
 register(GRAMPLET, 
@@ -194,6 +241,7 @@ register(GRAMPLET,
          height=200,
          gramplet = 'FamilyAttributes',
          gramplet_title=_("Attributes"),
+         navtypes=["Family"],
          )
 
 register(GRAMPLET, 
@@ -207,6 +255,7 @@ register(GRAMPLET,
          height=200,
          gramplet = 'MediaAttributes',
          gramplet_title=_("Attributes"),
+         navtypes=["Media"],
          )
 
 register(GRAMPLET, 
@@ -220,6 +269,7 @@ register(GRAMPLET,
          height=200,
          gramplet = 'PersonNotes',
          gramplet_title=_("Notes"),
+         navtypes=["Person"],
          )
 
 register(GRAMPLET, 
@@ -233,6 +283,7 @@ register(GRAMPLET,
          height=200,
          gramplet = 'EventNotes',
          gramplet_title=_("Notes"),
+         navtypes=["Event"],
          )
 
 register(GRAMPLET, 
@@ -246,6 +297,7 @@ register(GRAMPLET,
          height=200,
          gramplet = 'FamilyNotes',
          gramplet_title=_("Notes"),
+         navtypes=["Family"],
          )
 
 register(GRAMPLET, 
@@ -259,6 +311,7 @@ register(GRAMPLET,
          height=200,
          gramplet = 'PlaceNotes',
          gramplet_title=_("Notes"),
+         navtypes=["Place"],
          )
 
 register(GRAMPLET, 
@@ -272,6 +325,7 @@ register(GRAMPLET,
          height=200,
          gramplet = 'SourceNotes',
          gramplet_title=_("Notes"),
+         navtypes=["Source"],
          )
 
 register(GRAMPLET, 
@@ -285,6 +339,7 @@ register(GRAMPLET,
          height=200,
          gramplet = 'RepositoryNotes',
          gramplet_title=_("Notes"),
+         navtypes=["Repository"],
          )
 
 register(GRAMPLET, 
@@ -298,6 +353,7 @@ register(GRAMPLET,
          height=200,
          gramplet = 'MediaNotes',
          gramplet_title=_("Notes"),
+         navtypes=["Media"],
          )
 
 register(GRAMPLET, 
@@ -311,6 +367,7 @@ register(GRAMPLET,
          height=200,
          gramplet = 'PersonSources',
          gramplet_title=_("Sources"),
+         navtypes=["Person"],
          )
 
 register(GRAMPLET, 
@@ -324,6 +381,7 @@ register(GRAMPLET,
          height=200,
          gramplet = 'EventSources',
          gramplet_title=_("Sources"),
+         navtypes=["Event"],
          )
 
 register(GRAMPLET, 
@@ -337,6 +395,7 @@ register(GRAMPLET,
          height=200,
          gramplet = 'FamilySources',
          gramplet_title=_("Sources"),
+         navtypes=["Family"],
          )
 
 register(GRAMPLET, 
@@ -350,6 +409,7 @@ register(GRAMPLET,
          height=200,
          gramplet = 'PlaceSources',
          gramplet_title=_("Sources"),
+         navtypes=["Place"],
          )
 
 register(GRAMPLET, 
@@ -363,6 +423,7 @@ register(GRAMPLET,
          height=200,
          gramplet = 'MediaSources',
          gramplet_title=_("Sources"),
+         navtypes=["Media"],
          )
 
 register(GRAMPLET, 
@@ -376,6 +437,7 @@ register(GRAMPLET,
          height=200,
          gramplet = 'PersonChildren',
          gramplet_title=_("Children"),
+         navtypes=["Person"],
          )
 
 register(GRAMPLET, 
@@ -389,6 +451,7 @@ register(GRAMPLET,
          height=200,
          gramplet = 'FamilyChildren',
          gramplet_title=_("Children"),
+         navtypes=["Family"],
          )
 
 register(GRAMPLET, 
@@ -402,6 +465,7 @@ register(GRAMPLET,
          height=200,
          gramplet = 'PersonBacklinks',
          gramplet_title=_("References"),
+         navtypes=["Person"],
          )
 
 register(GRAMPLET, 
@@ -415,6 +479,7 @@ register(GRAMPLET,
          height=200,
          gramplet = 'EventBacklinks',
          gramplet_title=_("References"),
+         navtypes=["Event"],
          )
 
 register(GRAMPLET, 
@@ -428,6 +493,7 @@ register(GRAMPLET,
          height=200,
          gramplet = 'FamilyBacklinks',
          gramplet_title=_("References"),
+         navtypes=["Family"],
          )
 
 register(GRAMPLET, 
@@ -441,6 +507,7 @@ register(GRAMPLET,
          height=200,
          gramplet = 'PlaceBacklinks',
          gramplet_title=_("References"),
+         navtypes=["Place"],
          )
 
 register(GRAMPLET, 
@@ -454,6 +521,7 @@ register(GRAMPLET,
          height=200,
          gramplet = 'SourceBacklinks',
          gramplet_title=_("References"),
+         navtypes=["Source"],
          )
 
 register(GRAMPLET, 
@@ -467,6 +535,7 @@ register(GRAMPLET,
          height=200,
          gramplet = 'RepositoryBacklinks',
          gramplet_title=_("References"),
+         navtypes=["Repository"],
          )
 
 register(GRAMPLET, 
@@ -480,6 +549,7 @@ register(GRAMPLET,
          height=200,
          gramplet = 'MediaBacklinks',
          gramplet_title=_("References"),
+         navtypes=["Media"],
          )
 
 register(GRAMPLET, 
@@ -493,6 +563,7 @@ register(GRAMPLET,
          height=200,
          gramplet = 'NoteBacklinks',
          gramplet_title=_("References"),
+         navtypes=["Note"],
          )
 
 register(GRAMPLET, 
@@ -506,6 +577,7 @@ register(GRAMPLET,
          height=200,
          gramplet = 'PersonFilter',
          gramplet_title=_("Filter"),
+         navtypes=["Person"],
          )
 
 register(GRAMPLET, 
@@ -519,6 +591,7 @@ register(GRAMPLET,
          height=200,
          gramplet = 'FamilyFilter',
          gramplet_title=_("Filter"),
+         navtypes=["Family"],
          )
 
 register(GRAMPLET, 
@@ -532,6 +605,7 @@ register(GRAMPLET,
          height=200,
          gramplet = 'EventFilter',
          gramplet_title=_("Filter"),
+         navtypes=["Event"],
          )
 
 register(GRAMPLET, 
@@ -545,6 +619,7 @@ register(GRAMPLET,
          height=200,
          gramplet = 'SourceFilter',
          gramplet_title=_("Filter"),
+         navtypes=["Source"],
          )
 
 register(GRAMPLET, 
@@ -558,6 +633,7 @@ register(GRAMPLET,
          height=200,
          gramplet = 'PlaceFilter',
          gramplet_title=_("Filter"),
+         navtypes=["Place"],
          )
 
 register(GRAMPLET, 
@@ -571,6 +647,7 @@ register(GRAMPLET,
          height=200,
          gramplet = 'MediaFilter',
          gramplet_title=_("Filter"),
+         navtypes=["Media"],
          )
 
 register(GRAMPLET, 
@@ -584,6 +661,7 @@ register(GRAMPLET,
          height=200,
          gramplet = 'RepositoryFilter',
          gramplet_title=_("Filter"),
+         navtypes=["Repository"],
          )
 
 register(GRAMPLET, 
@@ -597,4 +675,5 @@ register(GRAMPLET,
          height=200,
          gramplet = 'NoteFilter',
          gramplet_title=_("Filter"),
+         navtypes=["Note"],
          )

@@ -20,7 +20,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 
-# $Id: geography.py 16552 2011-02-03 10:31:37Z snoiraud $
+# $Id: $
 
 #-------------------------------------------------------------------------
 #
@@ -69,7 +69,6 @@ GEOGRAPHY_PATH = os.path.join(const.HOME_DIR, "maps")
 # osmGpsMap
 #
 #-------------------------------------------------------------------------
-sys.path.append(os.path.join(const.ROOT_DIR, 'maps'))
 
 try:
     import osmgpsmap

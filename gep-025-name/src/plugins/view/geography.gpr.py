@@ -19,7 +19,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 
-# $Id: htmlrenderer.gpr.py 14843 2011-03-15 22:15:29Z snoiraud $
+# $Id: $
 
 #------------------------------------------------------------------------
 #

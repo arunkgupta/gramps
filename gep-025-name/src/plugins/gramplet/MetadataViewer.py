@@ -23,44 +23,22 @@
 from ListModel import ListModel, NOSORT
 from gen.plug import Gramplet
 from gen.ggettext import gettext as _
+import gen.lib
+import DateHandler
+import datetime
 import gtk
 import Utils
 import sys
-
-# pyexiv2 download page (C) Olivier Tilloy
-_DOWNLOAD_LINK = "http://tilloy.net/dev/pyexiv2/download.html"
-
-# make sure the pyexiv2 library is installed and at least a minimum version
-pyexiv2_req_install = True
-Min_VERSION = (0, 1, 3)
-Min_VERSION_str = "pyexiv2-%d.%d.%d" % Min_VERSION
-PrefVersion_str = "pyexiv2-%d.%d.%d" % (0, 3, 0)
+import pyexiv2
 
 # v0.1 has a different API to v0.2 and above
-LesserVersion = False
-
-try:
-    import pyexiv2
-    if pyexiv2.version_info < Min_VERSION:
-        pyexiv2_req_install = False
-
-except ImportError:
-    pyexiv2_req_install = False
-               
-except AttributeError:
+if hasattr(pyexiv2, 'version_info'):
+    LesserVersion = False
+else:
     # version_info attribute does not exist prior to v0.2.0
     LesserVersion = True
 
-# the library is either not installed or does not meet 
-# minimum required version for this addon....
-if not pyexiv2_req_install:
-    raise Exception((_("The minimum required version for pyexiv2 must be %s "
-        "or greater.\n  Or you do not have the python library installed yet.\n"
-        "You may download it from here: %s\n\n  I recommend getting, %s") % (
-         Min_VERSION_str, _DOWNLOAD_LINK, PrefVersion_str)
-         ).encode(sys.getfilesystemencoding()) )
-
-class Exif(Gramplet):
+class MetadataViewer(Gramplet):
     """
     Displays the exif tags of an image.
     """
@@ -135,11 +113,17 @@ class Exif(Gramplet):
             try:
                 metadata = pyexiv2.Image(full_path)
             except IOError:
+                self.set_has_data(False)
                 return
             metadata.readMetadata()
             for key in metadata.exifKeys():
                 label = metadata.tagDetails(key)[0]
-                human_value = metadata.interpretedExifValue(key)
+                if key in ("Exif.Image.DateTime",
+                           "Exif.Photo.DateTimeOriginal",
+                           "Exif.Photo.DateTimeDigitized"):
+                    human_value = format_datetime(metadata[key])
+                else:
+                    human_value = metadata.interpretedExifValue(key)
                 self.model.add((label, human_value))
 
         else: # v0.2.0 and above
@@ -147,9 +131,29 @@ class Exif(Gramplet):
             try:
                 metadata.read()
             except IOError:
+                self.set_has_data(False)
                 return
             for key in metadata.exif_keys:
                 tag = metadata[key]
-                self.model.add((tag.label, tag.human_value))
+                if key in ("Exif.Image.DateTime",
+                           "Exif.Photo.DateTimeOriginal",
+                           "Exif.Photo.DateTimeDigitized"):
+                    human_value = format_datetime(tag.value)
+                else:
+                    human_value = tag.human_value
+                self.model.add((tag.label, human_value))
                 
         self.set_has_data(self.model.count > 0)
+
+def format_datetime(exif_dt):
+    """
+    Convert a python datetime object into a string for display, using the
+    standard Gramps date format.
+    """
+    if type(exif_dt) != datetime.datetime:
+        return ''
+    date_part = gen.lib.Date()
+    date_part.set_yr_mon_day(exif_dt.year, exif_dt.month, exif_dt.day)
+    date_str = DateHandler.displayer.display(date_part)
+    time_str = exif_dt.strftime('%H:%M:%S')
+    return _('%(date)s %(time)s') % {'date': date_str, 'time': time_str}

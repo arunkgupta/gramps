@@ -20,7 +20,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 
-# $Id: geoview.py 15649 2010-07-23 07:27:32Z ldnp $
+# $Id: $
 
 """
 Geography for events

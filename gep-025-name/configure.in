@@ -139,6 +139,7 @@ src/plugins/gramplet/Makefile
 src/plugins/graph/Makefile
 src/plugins/import/Makefile
 src/plugins/lib/Makefile
+src/plugins/lib/maps/Makefile
 src/plugins/mapservices/Makefile
 src/plugins/quickview/Makefile
 src/plugins/rel/Makefile
@@ -154,7 +155,6 @@ src/plugins/webstuff/js/Makefile
 src/DateHandler/Makefile
 src/data/Makefile
 src/glade/Makefile
-src/maps/Makefile
 src/images/Makefile
 src/images/scalable/Makefile
 src/images/16x16/Makefile

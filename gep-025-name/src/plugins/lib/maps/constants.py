@@ -18,7 +18,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 
-# $Id: _Constants.py 15146 2010-04-15 14:37:18Z robhealey1 $
+# $Id: $
 
 "Geography constants"
 

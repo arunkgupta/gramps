@@ -60,6 +60,7 @@ import ManagedWindow
 import GrampsDisplay
 from gui.widgets.grampletpane import (AVAILABLE_GRAMPLETS,
                                       GET_AVAILABLE_GRAMPLETS,
+                                      GET_GRAMPLET_LIST,
                                       get_gramplet_opts,
                                       get_gramplet_options_by_name,
                                       make_requested_gramplet,
@@ -107,11 +108,12 @@ class GrampsBar(gtk.Notebook):
 
         opts_list.sort(key=lambda opt: opt["page"])
         for opts in opts_list:
-            all_opts = get_gramplet_opts(opts["name"], opts)
-            gramplet = make_requested_gramplet(TabGramplet, self, all_opts, 
-                                               self.dbstate, self.uistate)
-            if gramplet:
-                self.__add_tab(gramplet)
+            if opts["name"] in AVAILABLE_GRAMPLETS():
+                all_opts = get_gramplet_opts(opts["name"], opts)
+                gramplet = make_requested_gramplet(TabGramplet, self, all_opts, 
+                                                   self.dbstate, self.uistate)
+                if gramplet:
+                    self.__add_tab(gramplet)
 
         if len(opts_list) == 0:
             self.empty = True
@@ -126,7 +128,7 @@ class GrampsBar(gtk.Notebook):
         Load the gramplets from the configuration file.
         """
         retval = []
-        visible = False
+        visible = True
         default_page = 0
         filename = self.configfile
         if filename and os.path.exists(filename):
@@ -196,8 +198,8 @@ class GrampsBar(gtk.Notebook):
                         base_opts[key] = gramplet.__dict__[key]
                 fp.write(("[%s]" + NL) % gramplet.gname)
                 for key in base_opts:
-                    if key in ["content", "title", "title_id", "tname", "row", "column", "page",
-                               "version", "gramps"]: # don't save
+                    if key in ["content", "title", "tname", "row", "column", 
+                               "page", "version", "gramps"]: # don't save
                         continue
                     elif key == "data":
                         if not isinstance(base_opts["data"], (list, tuple)):
@@ -412,10 +414,9 @@ class GrampsBar(gtk.Notebook):
         if event.type == gtk.gdk.BUTTON_PRESS and event.button == 3:
             uiman = self.uistate.uimanager
             ag_menu = uiman.get_widget('/GrampsBarPopup/AddGramplet')
+            nav_type = self.pageview.navigation_type()
             skip = self.all_gramplets()
-            gramplet_list = [(GET_AVAILABLE_GRAMPLETS(name)["tname"], name)
-                             for name in AVAILABLE_GRAMPLETS()
-                             if name not in skip]
+            gramplet_list = GET_GRAMPLET_LIST(nav_type, skip)
             gramplet_list.sort()
             self.__create_submenu(ag_menu, gramplet_list, self.__add_clicked)
 
