@@ -27,68 +27,77 @@
 #
 #------------------------------------------------------------------------
 
-register(VIEW, 
-         id    = 'personmap',
-         name  = _("person"),
-         description =  _("A view allowing to see the places visited by "
-                          "one person during his life."),
-         version = '1.0',
-         gramps_target_version = '3.4',
-         status = STABLE,
-         fname = 'geoperson.py',
-         authors = [u"Serge Noiraud"],
-         authors_email = [""],
-         category = ("Geography", _("Geography")),
-         viewclass = 'GeoPerson',
-         order = START,
-         stock_icon = 'geo-show-person',
-  )
+try :
+    import osmgpsmap
+    OSMGPSMAP = True
+except:
+    OSMGPSMAP = False
+    pass
 
-register(VIEW, 
-         id    = 'placesmap',
-         name  = _("places"),
-         description =  _("A view allowing to see all places of the database."),
-         version = '1.0',
-         gramps_target_version = '3.4',
-         status = STABLE,
-         fname = 'geoplaces.py',
-         authors = [u"Serge Noiraud"],
-         authors_email = [""],
-         category = ("Geography", _("Geography")),
-         viewclass = 'GeoPlaces',
-         stock_icon = 'geo-show-place',
-  )
-
-register(VIEW, 
-         id    = 'eventsmap',
-         name  = _("events"),
-         description =  _("A view allowing to see all events "
-                          "places of the database."),
-         version = '1.0',
-         gramps_target_version = '3.4',
-         status = STABLE,
-         fname = 'geoevents.py',
-         authors = [u"Serge Noiraud"],
-         authors_email = [""],
-         category = ("Geography", _("Geography")),
-         viewclass = 'GeoEvents',
-         stock_icon = 'geo-show-event',
-  )
-
-register(VIEW, 
-         id    = 'familymap',
-         name  = _("family"),
-         description =  _("A view allowing to see the places visited by "
-                          "one family during all their life."),
-         version = '1.0',
-         gramps_target_version = '3.4',
-         status = STABLE,
-         order = START,
-         fname = 'geofamily.py',
-         authors = [u"Serge Noiraud"],
-         authors_email = [""],
-         category = ("Geography", _("Geography")),
-         viewclass = 'GeoFamily',
-         stock_icon = 'geo-show-family',
-  )
-
+if OSMGPSMAP:
+    # Load the view only if osmgpsmap library is present.
+    register(VIEW, 
+             id    = 'personmap',
+             name  = _("person"),
+             description =  _("A view allowing to see the places visited by "
+                              "one person during his life."),
+             version = '1.0',
+             gramps_target_version = '3.4',
+             status = STABLE,
+             fname = 'geoperson.py',
+             authors = [u"Serge Noiraud"],
+             authors_email = [""],
+             category = ("Geography", _("Geography")),
+             viewclass = 'GeoPerson',
+             order = START,
+             stock_icon = 'geo-show-person',
+      )
+    
+    register(VIEW, 
+             id    = 'placesmap',
+             name  = _("places"),
+             description =  _("A view allowing to see all places of the database."),
+             version = '1.0',
+             gramps_target_version = '3.4',
+             status = STABLE,
+             fname = 'geoplaces.py',
+             authors = [u"Serge Noiraud"],
+             authors_email = [""],
+             category = ("Geography", _("Geography")),
+             viewclass = 'GeoPlaces',
+             stock_icon = 'geo-show-place',
+      )
+    
+    register(VIEW, 
+             id    = 'eventsmap',
+             name  = _("events"),
+             description =  _("A view allowing to see all events "
+                              "places of the database."),
+             version = '1.0',
+             gramps_target_version = '3.4',
+             status = STABLE,
+             fname = 'geoevents.py',
+             authors = [u"Serge Noiraud"],
+             authors_email = [""],
+             category = ("Geography", _("Geography")),
+             viewclass = 'GeoEvents',
+             stock_icon = 'geo-show-event',
+      )
+    
+    register(VIEW, 
+             id    = 'familymap',
+             name  = _("family"),
+             description =  _("A view allowing to see the places visited by "
+                              "one family during all their life."),
+             version = '1.0',
+             gramps_target_version = '3.4',
+             status = STABLE,
+             order = START,
+             fname = 'geofamily.py',
+             authors = [u"Serge Noiraud"],
+             authors_email = [""],
+             category = ("Geography", _("Geography")),
+             viewclass = 'GeoFamily',
+             stock_icon = 'geo-show-family',
+      )
+    
