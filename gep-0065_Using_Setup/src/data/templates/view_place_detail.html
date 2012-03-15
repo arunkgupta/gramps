@@ -1,0 +1,68 @@
+{% extends "view_page_detail.html" %}
+{% load my_tags %}
+
+{% block content %} 
+
+   <script type="text/javascript">
+     $(function(){
+
+            $('#tabs').tabs();
+      });
+   </script>
+
+<div class="content" id="IndividualDetail">
+
+{% include "detail_breadcrumb.html" %}
+
+<div id="summaryarea">
+
+<table class="infolist">
+<tr>
+<td class="ColumnAttribute">Place Name:</td>
+<td class="Columnvalue" id="data" colpan="3"> {{place.title|escape}}</td>
+</tr>
+<tr>
+<td class="ColumnAttribute">Latitude:</td>
+<td class="ColumnValue" id="data">{{place.latitude|escape}}</td>
+<td class="ColumnAttribute">Longitude:</td>
+<td class="ColumnValue" id="data">{{place.longitude|escape}}</td>
+</tr>
+<tr>
+<td class="ColumnAttribute">ID:</td>
+<td class="ColumnValue" id="data">{{place.gramps_id|escape}}</td>
+<td class="ColumnAttribute">Private:</td>
+<td class="ColumnValue" id="data">{{place.private}}
+</tr>
+</table>
+
+<!-- Tabs -->
+
+<div class="ui-tabs ui-widget ui-widget-content ui-corner-all" id="tabs">
+  <ul class="ui-tabs-nav ui-helper-reset ui-helper-clearfix ui-widget-header ui-corner-all">
+    <li class="ui-state-default ui-corner-top ui-tabs-selected ui-state-active"><a href="#tabs-location">Location</a></li>
+    <li class="ui-corner-top ui-state-default"><a href="#tabs-alternatelocations">Alternate Locations</a></li>
+    <li class="ui-corner-top ui-state-default"><a href="#tabs-sources">Sources</a></li>
+    <li class="ui-corner-top ui-state-default"><a href="#tabs-notes">Notes</a></li>
+    <li class="ui-corner-top ui-state-default"><a href="#tabs-gallery">Gallery</a></li>
+    <li class="ui-corner-top ui-state-default"><a href="#tabs-internet">Internet</a></li>
+    <li class="ui-corner-top ui-state-default"><a href="#tabs-references">References</a></li>
+  </ul>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom" id="tabs-locations">
+  </div>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tabs-alternatelocations">
+  </div>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tabs-sources">
+  </div>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tabs-notes">
+  </div>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tabs-gallery">
+  </div>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tabs-internet">
+  </div>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tabs-references">
+  </div>
+</div>
+</div>
+</div>
+{% endblock %}
+
