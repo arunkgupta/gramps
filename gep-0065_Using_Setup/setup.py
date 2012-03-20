@@ -16,20 +16,29 @@
 #
 # testing a setup.py for Gramps
 
-from distutils.cmd import Command
 from distutils.core import setup
-from distutils.command.build import build
+from distutils.dist import Distribution
+from distutils.cmd import Command
 from distutils.command.install_data import install_data
-import distutils.command.clean
-import sys
-import glob
-import os.path
-import os
-import subprocess
-import platform
+from distutils.command.install import install
+from distutils.command.build import build
+from distutils.dep_util import newer
+from distutils.log import warn, info, error
+from distutils.errors import DistutilsFileError
+
+try:
+    import py2exe
+except:
+    pass
+
+import os, glob, sys, platform
+import shutil, subprocess
                         
-name = 'gramps'
+name    = 'gramps'
 version = "trunk"
+
+# set up the base/ root directory
+ROOT_DIR = os.getcwd()
 
 PO_DIR = 'po'
 MO_DIR = os.path.join('build', 'mo')
@@ -37,6 +46,12 @@ MO_DIR = os.path.join('build', 'mo')
 if sys.version < '2.6':
     sys.exit('Error: Python-2.6 or newer is required. Current version:\n %s'
              % sys.version)
+
+# if const.py.in exists but const.py does not, then copy it?
+const_file    = os.path.join(ROOT_DIR, 'gramps', 'const.py')
+const_in_file = os.path.join(ROOT_DIR, 'gramps', 'const.py.in')
+if (os.path.exists(const_in_file) and not os.path.exists(const_file)):
+    shutil.copy(const_in_file, const_file)
              
 if os.name == 'nt':
     script = [os.path.join('windows','gramps.pyw')]
@@ -94,7 +109,6 @@ def modules_check():
         sys.exit(1)
 
 def gramps():
-    # missing const.py (const.py.in)
     libs = {'gramps': [
             '*.py', 
             'DateHandler/*.py',
@@ -112,10 +126,6 @@ def gramps():
             'gramps.data': [
             '*.txt',
             '*.xml'],
-            #'javascript/css/swanky-purse/images/*.png',
-            #'javascript/css/swanky-purse/*.css',
-            #'javascript/index.html',
-            #'javascript/js/*.js',
             #'templates/*.html',
             #'templates/registration/login.html',
             #'templates/successful_data_change.html'],
@@ -181,12 +191,16 @@ def os_files():
     if os.name == 'nt' or os.name == 'darwin':
         files = [
                 # application icon
-                (os.path.join('share', 'pixmaps'), [os.path.join('src', 'images', 'ped24.ico')]),
-                (os.path.join('share', 'pixmaps'), [os.path.join('src', 'images', 'gramps.png')]),
-                (os.path.join('share', 'icons', 'scalable'), glob.glob(os.path.join('src', 'images', 'scalable', '*.svg'))),
-                (os.path.join('share', 'icons', '16x16'), glob.glob(os.path.join('src', 'images', '16x16', '*.png'))),
-                (os.path.join('share', 'icons', '22x22'), glob.glob(os.path.join('src', 'images', '22x22' ,'*.png'))),
-                (os.path.join('share', 'icons', '48x48'), glob.glob(os.path.join('src', 'images', '48x48', '*.png'))),
+                (os.path.join('share', 'pixmaps'), [os.path.join('gramps', 'images', 'ped24.ico')]),
+                (os.path.join('share', 'pixmaps'), [os.path.join('gramps', 'images', 'gramps.png')]),
+                (os.path.join('share', 'icons', 'scalable'),
+                        glob.glob(os.path.join('gramps', 'images', 'scalable', '*.svg'))),
+                (os.path.join('share', 'icons', '16x16'),
+                        glob.glob(os.path.join('gramps', 'images', '16x16', '*.png'))),
+                (os.path.join('share', 'icons', '22x22'),
+                        glob.glob(os.path.join('gramps', 'images', '22x22' ,'*.png'))),
+                (os.path.join('share', 'icons', '48x48'),
+                        glob.glob(os.path.join('gramps', 'images', '48x48', '*.png'))),
                 # doc
                 ('share', ['COPYING']),
                 ('share', ['FAQ']),
@@ -200,7 +214,7 @@ def os_files():
                 # XDG application description
                 ('share/applications', ['data/gramps.desktop']),
                 # XDG application icon
-                ('share/pixmaps', ['src/images/gramps.png']),
+                ('share/pixmaps', ['gramps/images/gramps.png']),
                 # XDG desktop mime types cache
                 ('share/mime/packages', ['data/gramps.xml']),
                 # mime.types
@@ -225,10 +239,10 @@ def os_files():
                 (os.path.join(man_dir, 'pl', 'man1'), ['data/man/pl/gramps.1.in']),
                 (os.path.join(man_dir, 'sv', 'man1'), ['data/man/sv/gramps.1.in']),
                 # icons 
-                ('share/icons/hicolor/scalable/apps', glob.glob('src/images/scalable/*.svg')),
-                ('share/icons/hicolor/16x16/apps', glob.glob('src/images/16x16/*.png')),
-                ('share/icons/hicolor/22x22/apps', glob.glob('src/images/22x22/*.png')),
-                ('share/icons/hicolor/48x48/apps', glob.glob('src/images/48x48/*.png')),
+                ('share/icons/hicolor/scalable/apps', glob.glob('gramps/images/scalable/*.svg')),
+                ('share/icons/hicolor/16x16/apps', glob.glob('gramps/images/16x16/*.png')),
+                ('share/icons/hicolor/22x22/apps', glob.glob('gramps/images/22x22/*.png')),
+                ('share/icons/hicolor/48x48/apps', glob.glob('gramps/images/48x48/*.png')),
                 # doc
                 ('share/doc/gramps', ['COPYING']),
                 ('share/doc/gramps', ['FAQ']),
@@ -411,7 +425,7 @@ result = setup(
                     'gramps.plugins',
                     'gramps.webapp',
                   ],
-    package_dir  = {'gramps' : 'src'},
+    package_dir  = {'gramps' : 'gramps'},
     package_data = gramps(),
     data_files   = trans_files() + os_files(),
     platforms    = ['Linux', 'FreeBSD', 'MacOS', 'Windows'],
