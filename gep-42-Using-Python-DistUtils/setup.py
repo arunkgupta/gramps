@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+#!/usr/bin/env python
+#
 # Gramps - a GTK+/GNOME based genealogy program
 #
 # This program is free software; you can redistribute it and/or modify
@@ -16,39 +19,79 @@
 #
 # testing a setup.py for Gramps
 #
+# for linux install: "python setup.py install --prefix=/usr -f"
+# for windows exe creation: "python setup.py py2exe"
+#
 # $ID$
 
-import sys
+#-----------------------------------------------------
+#
+#        DisUtils modules
+#
+#-----------------------------------------------------
+from distutils.cmd import Command
+from distutils import log
+from distutils import text_file
+from distutils.core import Extension, setup
+from distutils.command.build import build
+from distutils.command.install_data import install_data
+from distutils.command.install import INSTALL_SCHEMES
+from distutils.command.clean import clean
+
+from distutils.command.install import install
+from distutils.spawn import find_executable
+
+from distutils.dist import Distribution
+from distutils.command.install_data import install_data
+from distutils.dep_util import newer
+from distutils.log import warn, info, error
+from distutils.errors import DistutilsFileError
+
+#-----------------------------------------------------
+#
+#        Python modules
+#
+#-----------------------------------------------------
+import imp, re, optparse
 from glob import glob
+import sysconfig
+
+import sys
 import os
 import subprocess
 import platform
 import shutil
+import cons
 
 try:
     import py2exe
 except:
     pass
 
+# get the root directory so that everything can be absolute...
 ROOT_DIR = os.getcwd()
 
 PO_DIR = os.path.join(ROOT_DIR, 'po')
 MO_DIR = os.path.join(ROOT_DIR, 'build', 'mo')
 
+if sys.version < '2.6':
+    sys.exit('Error: Python-2.6 or newer is required. Current version:\n %s'
+             % sys.version)
+
 if os.name == 'nt':
-    script = os.path.join(ROOT_DIR, 'windows','gramps.pyw')
+    script = [os.path.join(ROOT_DIR, 'windows','gramps.pyw')]
 elif os.name == 'darwin':
-    script = os.path.join(ROOT_DIR, 'mac','gramps.launcher.sh')
+    script = [os.path.join(ROOT_DIR, 'mac','gramps.launcher.sh')]
 else:
     # os.name == 'posix'
-    script = os.path.join(ROOT_DIR, 'gramps.sh')
+    script = [os.path.join(ROOT_DIR, 'gramps.sh')]
 
 if platform.system() == 'FreeBSD':
     man_dir = 'man'
 else:
     man_dir = os.path.join('share', 'man')
 
-# copy gramps/const.py.in to gramps/const.py
+# copy gramps/const.py.in to gramps/const.py ...
 const_file_in = os.path.join(ROOT_DIR, 'gramps', 'const.py.in')
 const_file    = os.path.join(ROOT_DIR, 'gramps', 'const.py')
 if (os.path.exists(const_file_in) and not os.path.exists(const_file)):
@@ -60,8 +103,6 @@ if os.name == "posix":
     gramps_launcher    = os.path.join(ROOT_DIR, 'gramps.sh')
     if (os.path.exists(gramps_launcher_in) and not os.path.exists(gramps_launcher)):
         shutil.copy(gramps_launcher_in, gramps_launcher)
-
-from distutils.core import setup
 
 def gramps():
     return {'gramps': [
@@ -215,6 +256,12 @@ def trans_files():
             dest = os.path.join('locale', lang, 'LC_MESSAGES')
         translation_files.append((dest, [mo]))
     return translation_files
+
+system_prefix = os.path.normpath(sys.prefix)
+python_framework = sysconfig.get_config_var('PYTHONFRAMEWORK')
+library_dir = sysconfig.get_config_var("LIBDIR")
+include_dir = sysconfig.get_config_var("INCLUDEDIR"))
+source_dir = sysconfig.get_config_var('srcdir')
 
 from gramps.const import VERSION
 
