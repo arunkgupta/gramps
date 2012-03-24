@@ -1,0 +1,69 @@
+{% extends "view_page_detail.html" %}
+{% load my_tags %}
+
+{% block content %} 
+
+   <script type="text/javascript">
+     $(function(){
+
+            $('#tabs').tabs();
+      });
+   </script>
+
+<div class="content" id="IndividualDetail">
+
+{% include "detail_breadcrumb.html" %}
+
+<div id="summaryarea">
+<table class="infolist">
+<trbody>
+<tr>
+<td class="ColumnAttribute">Event type:</td>
+<td class="ColumnValue" id="data"> {{event.event_type|escape}}</td>
+<td class="ColumnAttribute">Date:</td>
+<td class="ColumnValue" id="data">{{event|display_date}}</td>
+</tr>
+<tr>
+<td class="ColumnAttribute">Description:</td>
+{% if user.is_authenticated %}
+<td  class="ColumnValue" id="data" colspan="3">{{event.description|escape}}</td>
+{% else %}
+<td  class="ColumnValue" id="data" colspan="3">[Private]</td>
+{% endif %}
+</tr>
+<tr>
+<td class="ColumnAttribute">ID:</td>
+<td  class="ColumnValue" id="data" colspan="3">{{event.gramps_id|escape}}</td>
+</tr>
+<tr>
+<td class="ColumnAttribute">Place:</td>
+<td  class="ColumnValue" id="data" colspan="3">{{event.place.title|escape}} [{{event.place.gramps_id}}]</td>
+</tr>
+</table>
+</div>
+</div>
+<!-- Tabs -->
+
+<div class="ui-tabs ui-widget ui-widget-content ui-corner-all" id="tabs">
+  <ul class="ui-tabs-nav ui-helper-reset ui-helper-clearfix ui-widget-header ui-corner-all">
+    <li class="ui-state-default ui-corner-top ui-tabs-selected ui-state-active"><a href="#tabs-sources">Sources</a></li>
+    <li class="ui-corner-top ui-state-default"><a href="#tabs-notes">Notes</a></li>
+    <li class="ui-corner-top ui-state-default"><a href="#tabs-gallery">Gallery</a></li>
+    <li class="ui-corner-top ui-state-default"><a href="#tabs-attributes">Attributes</a></li>
+    <li class="ui-corner-top ui-state-default"><a href="#tabs-references">References</a></li>
+  </ul>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom" id="tabs-sources">
+  </div>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tabs-notes">
+  </div>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tabs-gallery">
+  </div>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tabs-attributes">
+  </div>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tabs-references">
+  </div>
+</div>
+
+
+{% endblock %}
+

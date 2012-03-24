@@ -1,0 +1,113 @@
+{% extends "view_page_detail.html" %}
+{% load my_tags %}
+
+{% block content %} 
+
+   <script type="text/javascript">
+     $(function(){
+
+            $('#tabs').tabs();
+      });
+   </script>
+
+<div class="content" id="IndividualDetail">
+
+{% include "detail_breadcrumb.html" %}
+
+<h3>{{family.father|make_name:user}} and {{family.mother|make_name:user}}</h3>
+
+<div id="summaryarea">
+<table class="infolist"> {% comment %} 4 cols {% endcomment %}
+<tbody>
+<tr>
+<th colspan="2">Father</th>
+<th colspan="2">Mother</th>
+</tr>
+<tr>
+ <td class="ColumnAttribute">Name:</td>
+ <td class="ColumnValue" id="data"><a href="/person/{{family.father.handle}}">{{family.father|render_name:user}} [{{family.father.gramps_id}}]</a></td>
+ <td class="ColumnAttribute">Name:</td>
+ <td class="ColumnValue" id="data"><a href="/person/{{family.mother.handle}}">{{family.mother|render_name:user}} [{{family.mother.gramps_id}}]</a></td>
+</tr>
+{% if user.is_authenticated or not family.father.probably_alive %}
+<tr>
+ <td class="ColumnAttribute">Birth:</td>
+ <td class="ColumnValue" id="data">{{family.father.birth|render_date:user}}</td>
+ <td class="ColumnAttribute">Birth:</td>
+ <td class="ColumnValue" id="data">{{family.mother.birth|render_date:user}}</td>
+</tr>
+{% else %}
+<tr>
+ <td class="ColumnAttribute">Birth:</td>
+ <td class="ColumnValue" id="data">[Private]</td>
+ <td class="ColumnAttribute">Birth:</td>
+ <td class="ColumnValue" id="data">[Private]</td>
+</tr>
+{% endif %}
+<tr>
+ <td class="ColumnAttribute">Death:</td>
+ <td class="ColumnValue" id="data">{{family.father.death|render_date:user}}</td>
+ <td class="ColumnAttribute">Death:</td>
+ <td class="ColumnValue" id="data">{{family.mother.death|render_date:user}}</td>
+</tr>
+</tbody>
+</table>
+<table class="infolist"> 
+<tbody>
+<tr>
+  <th colspan="4">Relationship information</th>
+</tr>
+<tr>
+ <td class="ColumnAttribute">ID:</td>
+ <td class="ColumnValue" id="data">{{family.gramps_id}}</td>
+ <td class="ColumnAttribute">Type:</td>
+ <td class="ColumnValue" id="data">RELTYPE</td>
+</tr>
+<tr>
+ <td class="ColumnAttribute">Marker:</td>
+ <td class="ColumnValue" id="data">{{family.marker_type}}</td>
+ <td class="ColumnAttribute">Private:</td>
+ <td class="ColumnValue" id="data">{{family.private}}</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<!-- Tabs -->
+
+<div class="ui-tabs ui-widget ui-widget-content ui-corner-all" id="tabs">
+  <ul class="ui-tabs-nav ui-helper-reset ui-helper-clearfix ui-widget-header ui-corner-all">
+    <li class="ui-state-default ui-corner-top ui-tabs-selected ui-state-active"><a href="#tab-children">Children</a></li>
+    <li class="ui-corner-top ui-state-default"><a href="#tab-events">Events</a></li>
+    <li class="ui-corner-top ui-state-default"><a href="#tab-sources">Sources</a></li>
+    <li class="ui-corner-top ui-state-default"><a href="#tab-attributes">Attributes</a></li>
+    <li class="ui-corner-top ui-state-default"><a href="#tab-notes">Notes</a></li>
+    <li class="ui-corner-top ui-state-default"><a href="#tab-gallery">Gallery</a></li>
+    <li class="ui-corner-top ui-state-default"><a href="#tab-lds">LDS</a></li>
+  </ul>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom" id="tab-children"> 
+    <!-- Events -->
+    {% children_table family user action "/family/%s/children" family.handle %}
+  </div>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tab-events">
+    {% event_table family user action "/family/%s/children" family.handle %}
+  </div>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tab-sources">
+    {% source_table family user action "/family/%s/children" family.handle %}
+  </div>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tab-attributes">
+    {% attribute_table family user action "/family/%s/children" family.handle %}
+  </div>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tab-notes">
+    {% note_table family user action "/family/%s/children" family.handle %}
+  </div>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tab-gallery">
+    {% gallery_table family user action "/family/%s/children" family.handle %}
+  </div>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tab-lds">
+    {% lds_table family user action "/family/%s/children" family.handle %}
+  </div>
+</div>
+{% endblock %}
+

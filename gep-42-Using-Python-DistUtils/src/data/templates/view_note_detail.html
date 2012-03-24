@@ -1,0 +1,52 @@
+{% extends "view_page_detail.html" %}
+{% load my_tags %}
+
+{% block content %} 
+
+   <script type="text/javascript">
+     $(function(){
+
+            $('#tabs').tabs();
+      });
+   </script>
+
+<div class="content" id="IndividualDetail">
+
+{% include "detail_breadcrumb.html" %}
+
+<div id="summaryarea">
+<table class="infolist">
+<tbody>
+<tr>
+<td class="ColumnAttribute">ID:</td>
+<td class="ColumnValue" id="data"> {{note.gramps_id|escape}}</td>
+<td class="ColumnAttribute">Marker:</td>
+<td class="ColumnValue" id="data" colspan="4">{{note.note_marker_type|escape}}</td>
+</tr>
+<tr>
+<td class="ColumnAttribute">Type:</td>
+<td class="ColumnValue" id="data">{{event.description|escape}}</td>
+<td class="ColumnAttribute"></td>
+<td class="ColumnValue" id="data">Preformatted</td>
+<td class="ColumnValue" id="data">Private</td>
+</tr>
+</table>
+
+<!-- Tabs -->
+
+<div class="ui-tabs ui-widget ui-widget-content ui-corner-all" id="tabs">
+  <ul class="ui-tabs-nav ui-helper-reset ui-helper-clearfix ui-widget-header ui-corner-all">
+    <li class="ui-state-default ui-corner-top ui-tabs-selected ui-state-active"><a href="#tabs-note">Note</a></li>
+    <li class="ui-corner-top ui-state-default"><a href="#tabs-references">References</a></li>
+  </ul>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom" id="tabs-note">
+    {{note.text}}
+  </div>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tabs-references">
+    {{note.references.all.to_list}}
+  </div>
+</div>
+</div>
+</div>
+{% endblock %}
+
