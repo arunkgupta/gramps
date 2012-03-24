@@ -1,26 +1,20 @@
+include AUTHORS
+include ChangeLog
 include COPYING
-include FAQ
 include gramps.sh.in
 include INSTALL
-include NEWS
-include README
-include TODO
+include LICENSE
+include log
 include MANIFEST.in
-include setup.cfg
+include README
 include setup.py
 recursive-include data *
-#recursive-include docs *
+recursive-include debian *
+recursive-include docs *
 recursive-include example *
+recursive-include gramps *
 recursive-include help *
+recursive-include mac *
 recursive-include po *
-recursive-include 
-recursive-include gramps/data *
-recursive-include gramps/DataHandler *
-recursive-include gramps/docgen *
-recursive-include gramps/Filters *
-recursive-include gramps/glade *
-recursive-include gramps/gui *
-recursive-include gramps/images *
-recursive-include gramps/Merge *
-recursive-include gramps/plugins *
-recursive-include gramps/Simple *
+recursive-include test *
+recursive-include windows *
