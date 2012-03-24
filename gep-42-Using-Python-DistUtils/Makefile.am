@@ -5,12 +5,12 @@ SUBDIRS = data example gramps m4 po
 
 EXTRA_DIST = \
 	config.rpath autogen.sh \
-	FAQ COPYING \
+	AUTHORS COPYING FAQ LICENSE NEWS README RELEASE_NOTES TODO \
 	intltool-extract.in intltool-merge.in intltool-update.in
 
 bin_SCRIPTS = gramps.sh
 
-dist_pkgdata_DATA = COPYING
+dist_pkgdata_DATA = AUTHORS COPYING FAQ LICENSE README
 
 distuninstallcheck_listfiles = find . -type -f -print | grep -E -v '/(globs|magic|XMLnamespaces)'
 
