@@ -128,7 +128,7 @@ else:
 SYSTEM_PREFIX = os.path.normpath(sys.prefix)
 
 class osx_install_data(install_data):
-    def initialize_options(self):
+    def initialize_options (self):
         pass
 
     # On MacOS, the platform-specific lib dir is /System/Library/Framework/Python/.../
@@ -136,20 +136,20 @@ class osx_install_data(install_data):
     # for this in distutils.command.install_data#306. It fixes install_lib but not
     # install_data, which is why we roll our own install_data class.
 
-    def run(self):
-        install_data.run(self)
+    def run (self):
+        install_data.run (self)
 
-    def finalize_options(self):
+    def finalize_options (self):
         # By the time finalize_options is called, install.install_lib is set to the
         # fixed directory, so we set the installdir to install_lib. The
         # install_data class uses ('install_data', 'install_dir') instead.
-        self.set_undefined_options('install', ('install_lib', 'install_dir'))
-        install_data.finalize_options(self)
+        self.set_undefined_options ('install', ('install_lib', 'install_dir'))
+        install_data.finalize_options (self)
 
 # copy gramps/const.py.in to gramps/const.py ...
 const_file_in = os.path.join(ROOT_DIR, 'gramps', 'const.py.in')
 const_file    = os.path.join(ROOT_DIR, 'gramps', 'const.py')
-if (os.path.exists(const_file_in) and not os.path.exists(const_file)):
+if (os.path.exists (const_file_in) and not os.path.exists (const_file)):
     shutil.copy(const_file_in, const_file)
 from gramps.const import VERSION as GRAMPS_VERSION
 
@@ -157,16 +157,16 @@ from gramps.const import VERSION as GRAMPS_VERSION
 if os.name == "posix":
     gramps_launcher_in = os.path.join(ROOT_DIR, 'gramps.sh.in')
     gramps_launcher    = os.path.join(ROOT_DIR, 'gramps.sh')
-    if (os.path.exists(gramps_launcher_in) and not os.path.exists(gramps_launcher)):
+    if (os.path.exists (gramps_launcher_in) and not os.path.exists (gramps_launcher)):
         shutil.copy(gramps_launcher_in, gramps_launcher)
 
 # Tell distutils to put the data_files in platform-specific installation
 # locations. See here for an explanation:
 # http://groups.google.com/group/comp.lang.python/browse_thread/thread/35ec7b2fed36eaec/2105ee4d9e8042cb
-for scheme in INSTALL_SCHEMES.values():
+for scheme in INSTALL_SCHEMES.values ():
     scheme['data'] = scheme['purelib']
 
-def gramps():
+def gramps ():
     return {'gramps': [
             '*.py', 
             'DateHandler/*.py',
@@ -239,14 +239,14 @@ def gramps():
             'fixtures/initial_data.json',
             'templatetags/*py']
     }
-
 package_files = []
 for directory, files in gramps().items():
     for file in files:
         package = glob.glob(os.path.join(ROOT_DIR, directory, file))
         package_files.append(package)
+        info('Adding %s to the list of packages' % package)
 
-def os_files():
+def os_files ():
     if (os.name == 'nt' or os.name == 'darwin'):
         return [
                 # application icon
@@ -311,7 +311,7 @@ def os_files():
                 ('share/doc/gramps', ['TODO'])
         ]
 
-def trans_files():
+def trans_files ():
     '''
     List of available compiled translations; ready for installation
     '''
@@ -326,98 +326,108 @@ def trans_files():
     return translation_files
 
 class GrampsDist(Distribution):
-    global_options = Distribution.global_options + [
-       ("without-gettext", None, "Don't build/ install gettext .mo files")]
+  global_options = Distribution.global_options + [
+    ("without-gettext", None, "Don't build/install gettext .mo files"),
+    ("without-icon-cache", None, "Don't attempt to run gtk-update-icon-cache")]
 
-    def __init__(self, *args):
-        self.without_gettext = False
-        Distribution.__init__(self, *args)
+  def __init__(self, *args):
+    self.without_gettext = False
+    self.without_icon_cache = False
+    Distribution.__init__(self, *args)
 
-class GrampsBuild(build):
-    def initialize_options(self):
-        if os.name == 'posix':
-            gramps_build_dir = os.path.join(ROOT_DIR, 'build', 'gramps')
-            if (not os.path.isdir(gramps_build_dir) and not os.path.islink(gramps_build_dir)):
-                os.makedirs(gramps_build_dir)
+'''
+        Standard command for 'python setup.py build' ...
+'''
+class GrampsBuildData(build):
+    def run (self):
+        build.run (self)
 
-            for filecmd in ['intltool-extract.in', 'intltool-merge.in', 'intltool-update.in']:
-                file = os.path.join(ROOT_DIR, filecmd)
-                newfile, rest = file.split('.in')
-                shutil.copy(file, newfile)
+        if self.distribution.without_gettext:
+            return
 
-            # add trans_string to these files and convert file...
-            os.system('intltool-merge -d po/ data/gramps.desktop.in data/gramps.desktop')
-            os.system('intltool-merge -x po/ data/gramps.xml.in data/gramps.xml')
-            os.system('intltool-merge -k po/ data/gramps.keys.in data/gramps.keys')
-            
-    def run(self):
-        build.run(self)
+        if os.name != 'posix':
+            return
+
+        gramps_build_dir = os.path.join(ROOT_DIR, 'build', 'gramps')
+        if (not os.path.isdir(gramps_build_dir) and not os.path.islink(gramps_build_dir)):
+            os.makedirs (gramps_build_dir)
+
+        for filecmd in ['intltool-extract.in', 'intltool-merge.in', 'intltool-update.in']:
+            file = os.path.join(ROOT_DIR, filecmd)
+            newfile, rest = file.split('.in')
+            shutil.copy(file, newfile)
+
+        # add trans_string to these files and convert file...
+        os.system('intltool-merge -d po/ data/gramps.desktop.in data/gramps.desktop')
+        os.system('intltool-merge -x po/ data/gramps.xml.in data/gramps.xml')
+        os.system('intltool-merge -k po/ data/gramps.keys.in data/gramps.keys')
 
         gramps_man_in_file = os.path.join(MAN_DIR, 'gramps.1.in')
         gramps_man_file    = os.path.join(MAN_DIR, 'gramps.1')
-        if (os.path.exists(gramps_man_in_file) and not os.path.exists(gramps_man_file)):
+        if (os.path.exists (gramps_man_in_file) and not os.path.exists (gramps_man_file)):
             shutil.copy(gramps_man_in_file, gramps_man_file)
 
-        gramps_man_file_gz = gramps_man_file + ".gz"
+        gramps_man_file_gz = os.path.join(MAN_DIR, 'gramps.1.gz')
         if newer(gramps_man_file, gramps_man_file_gz):
             if os.path.isfile(gramps_man_file_gz):
                 os.remove(gramps_man_file_gz)
+
             import gzip
 
             f_in = open(gramps_man_file, 'rb')
             f_out = gzip.open(gramps_man_file_gz, 'wb')
-            f_out.writelines(f_in)
+            f_out.writelines (f_in)
             f_out.close()
             f_in.close()
-            info('Merging gramps man file into gzipped file...')
-
-        if self.distribution.without_gettext:
-            return
+            info('Merging gramps man file into gzipped file.')
 
         for po in glob.glob(os.path.join(PO_DIR, '*.po')):
             lang = os.path.basename(po[:-3])
             mo = os.path.join(MO_DIR, lang, 'gramps.mo')
             directory = os.path.dirname(mo)
-            if not os.path.exists(directory):
+            if not os.path.exists (directory):
                 info('creating %s' % directory)
-                os.makedirs(directory)
+                os.makedirs (directory)
 
-            if os.name == 'posix':
-                if newer(po, mo):
-                    info('compiling %s -> %s' % (po, mo))
-                    try:
-                        bash_string = 'msgfmt %s/%s.po -o %s' % (PO_DIR, lang, mo)
-                        result = subprocess.call(bash_string, shell=True)
-                        if result != 0:
-                            raise Warning, "msgfmt returned %d" % result
-                    except Exception, e:
-                        error("Building gettext files failed. Try setup.py --without-gettext [build|install]")
-                        error("Error: %s" % str(e))
-                        sys.exit(1)
+            if newer(po, mo):
+                info('compiling %s -> %s' % (po, mo))
+                try:
+                    bash_string = 'msgfmt %s/%s.po -o %s' % (PO_DIR, lang, mo)
+                    result = subprocess.call(bash_string, shell=True)
+                    if result != 0:
+                        raise Warning, "msgfmt returned %d" % result
+                except Exception, e:
+                    error("Building gettext files failed. Try setup.py --without-gettext [build|install]")
+                    error("Error: %s" % str(e))
+                    sys.exit(1)
 
-    def finalize_options(self):
-        pass
+        INTLTOOL_MERGE = 'intltool-merge'
+        desktop_in = 'data/gramps.desktop.in'
+        desktop_data = 'data/gramps.desktop'
+        os.system ("C_ALL=C " + INTLTOOL_MERGE + " -d -u -c " + ROOT_DIR +
+            "/po/.intltool-merge-cache " + ROOT_DIR + "/po " +
+            desktop_in + " " + desktop_data)
 
 '''
-    Responsible for handling the installation of data files.
+        Standard command for 'python setup.py install_data' ...
 '''
 class GrampsInstallData(install_data):
     description = "Attempt an install and generate a log file"
     user_options = [('fake', None, 'Override')]
 
-    def initialize_options(self):
+    def initialize_options (self):
         pass
 
-    def run(self):
-        install_data.run(self)
+    def run (self):
+        install_data.run (self)
 
-        self.data_files.extend(self._find_mo_files())
+        self.data_files.extend(self._find_mo_files ())
         self.data_files.extend(self._find_desktop_file())
 
     def _find_desktop_file(self):
         return [("share/applications", ["data/gramps.desktop"])]
 
-    def _find_mo_files(self):
+    def _find_mo_files (self):
         data_files = []
         if not self.distribution.without_gettext:
             for mo in glob.glob(os.path.join(MO_DIR, '*', 'gramps.mo')):
@@ -426,7 +436,7 @@ class GrampsInstallData(install_data):
                 data_files.append((dest, [mo]))
         return data_files
 
-    def finalize_options(self):
+    def finalize_options (self):
         if os.name == 'posix':
             #update the XDG Shared MIME-Info database cache
             info('Updating the Shared MIME-Info database cache.')
@@ -442,7 +452,6 @@ class GrampsInstallData(install_data):
             
             # ldconfig
 
-
 '''
         Standard command for 'python setup.py install' ...
 '''
@@ -450,34 +459,30 @@ class GrampsInstall(install):
     description = "Attempt an install and generate a log file"
     user_options = [('fake', None, 'Override')]
     
-    def initialize_options(self):
+    def initialize_options (self):
         pass
     
-    def run(self):
-        install.run(self)
+    def run (self):
+        install.run (self)
         self.distribution.scripts = ['gramps']
         
-    def finalize_options(self):
+    def finalize_options (self):
         pass
 
 '''
         Standard command for 'python setup.py uninstall' ...
 '''
 class GrampsUninstall(Command):
-    
     description = "Attempt an uninstall from an install log file"
     user_options = [('log=', None, 'Installation record filename')]
 
-    def initialize_options(self):
+    def initialize_options (self):
         self.log = 'log'
-
-    def finalize_options(self):
-        pass
 
     def get_command_name(self):
         return 'uninstall'
 
-    def run(self):
+    def run (self):
         f = None
         self.ensure_filename('log')
         try:
@@ -518,18 +523,25 @@ class GrampsUninstall(Command):
             else:
                 info("skipping empty directory %s" % repr(dir))
 
+    def finalize_options (self):
+        pass
+
 '''
         Standard command for 'python setup.py clean' ...
 '''
 class GrampsClean(clean):
-    def initialize_options(self):
+    def initialize_options (self):
         pass
 
-    def run(self):
+    def run (self):
+        clean.run (self)
+
+    def finalize_options (self):
         pass
 
-    def finalize_options(self):
-        pass
+# turn off warnings when deprecated modules are imported
+import warnings
+warnings.filterwarnings ("ignore", category = DeprecationWarning)
 
 if "py2exe" in sys.argv:
     DATA_FILES = [("glade", glob.glob(os.path.join(ROOT_DIR, 'gramps', 'glade', '*.*')))]
@@ -561,7 +573,7 @@ if "py2exe" in sys.argv:
                                 "libgtk-win32-2.0-0.dll","libpango-1.0-0.dll",
                                 "libpangowin32-1.0-0.dll"]}
                            },
-        data_files       = DATA_FILES + os_files() + trans_files(),
+        data_files       = DATA_FILES + os_files () + trans_files (),
         packages         = package_files,
         scripts          = script,
         platforms        = ['Linux', 'FreeBSD', 'Mac OSX', 'Windows'],
@@ -589,16 +601,15 @@ else:
         description      = "Gramps (Genealogical Research and Analysis Management Programming System)",
         long_description = ('Gramps (Genealogical Research and Analysis Management Programming '
                         'System) is a GNOME based genealogy program supporting a Python based plugin system.'),
-        data_files       = DATA_FILES + os_files() + trans_files(),
+        data_files       = DATA_FILES + os_files () + trans_files (),
         packages         = package_files,
         scripts          = script,
         platforms        = ['Linux', 'FreeBSD', 'Mac OSX', 'Windows'],
-        cmdclass         = {'build'        : GrampsBuild,
+        cmdclass         = {'build'        : GrampsBuildData,
                             'install_data' : GrampsInstallData,
                             'install'      : GrampsInstall,
                             'uninstall'    : GrampsUninstall,
                             'clean'        : GrampsClean},
-        distclass        = GrampsDist
     )
     bash_string = "update-desktop-database"
     subprocess.call(bash_string, shell=True)
