@@ -169,7 +169,7 @@ gramps/plugins/webstuff/Makefile
 gramps/Simple/Makefile
 m4/Makefile
 Makefile
-po/Makefile.in
+locale/Makefile.in
 ])
 
 AC_OUTPUT

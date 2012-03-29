@@ -1,7 +1,7 @@
 # This is the top level Makefile for Gramps
 # $Id$
 
-SUBDIRS = data example gramps m4 po
+SUBDIRS = data example gramps locale m4
 
 EXTRA_DIST = \
 	config.rpath autogen.sh \
