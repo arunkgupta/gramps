@@ -29,8 +29,8 @@ recursive-include docs *
 recursive-include example *
 recursive-include gramps *
 recursive-include help *
+recursive-include locale *
 recursive-include m4 *
 recursive-include mac *
-recursive-include po *
 recursive-include test *
 recursive-include windows *
