@@ -180,10 +180,10 @@ def gramps():
             'gramps.cli': [
             '*.py',
             'plug/*.py'],
-            'gramps/data': [
+            'gramps.data': [
             '*.txt',
             '*.xml'],
-            'gramps/gen': [
+            'gramps.gen': [
             '*.py',
             'db/*.py',
             'display/*.py',
@@ -193,11 +193,11 @@ def gramps():
             'plug/*/*.py',
             'proxy/*.py',
             'utils/*.py'],
-            'gramps/glade': [
+            'gramps.glade': [
             '*.glade',
             'glade/catalog/*.py',
             'catalog/*.xml'],
-            'gramps/gui': [
+            'gramps.gui': [
             '*.py',
             'editors/*.py',
             'editors/*/*.py',
@@ -207,14 +207,14 @@ def gramps():
             'views/*.py',
             'views/treemodels/*.py',
             'widgets/*.py'],
-            'gramps/images': [
+            'gramps.images': [
             '*/*.png',
             '*/*.svg',
             '*.png',
             '*.jpg',
             '*.ico',
             '*.gif'],
-            'gramps/plugins': [
+            'gramps.plugins': [
             '*.py',
             '*/*.py',
             'lib/*.xml',
@@ -225,7 +225,7 @@ def gramps():
             'webstuff/images/*.gif',            
             '*.glade',
             '*/*.glade'],
-            'gramps/webapp': [
+            'gramps.webapp': [
             '*.py',
             'webstuff/css/*.css',
             'webstuff/images/*.svg',
@@ -238,12 +238,6 @@ def gramps():
             'fixtures/initial_data.json',
             'templatetags/*py']
     }
-package_files = []
-for directory, files in gramps().items():
-    for file in files:
-        package = glob.glob(os.path.join(ROOT_DIR, directory, file))
-        package_files.append(package)
-        info('Adding %s to the list of packages' % package)
 
 def os_files():
     if (os.name == 'nt' or os.name == 'darwin'):
