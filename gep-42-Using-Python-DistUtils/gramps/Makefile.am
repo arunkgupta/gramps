@@ -3,7 +3,6 @@
 
 SUBDIRS = \
 	cli \
-	data \
 	DateHandler \
 	docgen \
 	Filters \
