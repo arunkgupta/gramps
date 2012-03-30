@@ -29,6 +29,6 @@ DATAFILES = \
 	Web_Mainz_Mid.png \
 	Web_Mainz_MidLight.png 
 
-pkgdatadir = $(datadir)/@PACKAGE@/plugins/webstuff/images
+pkgdatadir = $(datadir)/@PACKAGE@/data/web/images
 
 dist_pkgdata_DATA = $(DATAFILES)

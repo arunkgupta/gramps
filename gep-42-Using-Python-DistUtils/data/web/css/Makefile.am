@@ -27,6 +27,6 @@ DATAFILES = \
 	Web_Visually.css
 
 
-pkgdatadir = $(datadir)/@PACKAGE@/plugins/webstuff/css
+pkgdatadir = $(datadir)/@PACKAGE@/data/web/css
 
 dist_pkgdata_DATA = $(DATAFILES)

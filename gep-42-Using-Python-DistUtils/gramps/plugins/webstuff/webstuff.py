@@ -33,7 +33,7 @@ def make_css_dict(tup):
     Basically, make a named tuple.
     """
     return {
-        "id": tup[0],
+        "id"          : tup[0],
         "user"        : tup[1],
         "translation" : tup[2],
         "filename"    : tup[3],
@@ -48,6 +48,7 @@ def load_on_reg(dbstate, uistate, plugin):
     """
     dir, fname = os.path.split(__file__)
     from functools import partial
+    
     path_css = partial(os.path.join, dir, "css")
     path_img = partial(os.path.join, dir, "images")
     path_js = partial(os.path.join, dir, "js")

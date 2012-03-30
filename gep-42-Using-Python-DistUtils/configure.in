@@ -93,6 +93,9 @@ data/man/Makefile
 data/man/nl/Makefile
 data/man/pl/Makefile
 data/man/sv/Makefile
+data/web/css/Makefile
+data/data/web/images/Makefile
+data/data/web/javascript/Makefile
 example/gramps/Makefile
 example/Makefile
 gramps.sh
@@ -162,9 +165,6 @@ gramps/plugins/textreport/Makefile
 gramps/plugins/tool/Makefile
 gramps/plugins/view/Makefile
 gramps/plugins/webreport/Makefile
-gramps/plugins/webstuff/css/Makefile
-gramps/plugins/webstuff/images/Makefile
-gramps/plugins/webstuff/js/Makefile
 gramps/plugins/webstuff/Makefile
 gramps/Simple/Makefile
 m4/Makefile

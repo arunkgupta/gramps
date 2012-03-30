@@ -1,7 +1,7 @@
 # This is the data level Makefile for gramps
 # $Id$
 
-SUBDIRS = man
+SUBDIRS = man web
 
 # Rules for files with translatable strings
 # These are taken care of by the intltool

@@ -6,12 +6,11 @@
 # $Id$
 
 DATAFILES = \
-	jquery-1.3.2.min.js \
 	jquery-ui-1.7.2.custom.min.js \
 	jquery-1.7.1.min.js \
 	jquery-1.7.1.js
 
 
-pkgdatadir = $(datadir)/@PACKAGE@/plugins/webstuff/js
+pkgdatadir = $(datadir)/@PACKAGE@/data/web/javascript
 
 dist_pkgdata_DATA = $(DATAFILES)
