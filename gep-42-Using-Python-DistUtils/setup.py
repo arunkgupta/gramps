@@ -68,7 +68,7 @@ if ROOT_DIR != '':
     os.chdir(ROOT_DIR)
 
 LOCALE_DIR = os.path.join(ROOT_DIR, 'locale')
-MO_DIR = os.path.join(ROOT_DIR, 'build', 'mo')
+MO_DIR     = os.path.join(ROOT_DIR, 'build', 'mo')
 
 if sys.version < '2.6':
     sys.exit('Error: Python-2.6 or newer is required. Current version: \n %s'
@@ -131,30 +131,11 @@ else:
 
 SYSTEM_PREFIX = os.path.normpath(sys.prefix)
 
-class osx_install_data(install_data):
-    install_data.initialize_options(self)
-
-    # On MacOS, the platform-specific lib dir is /System/Library/Framework/Python/.../
-    # which is wrong. Python 2.5 supplied with MacOS 10.5 has an Apple-specific fix
-    # for this in distutils.command.install_data#306. It fixes install_lib but not
-    # install_data, which is why we roll our own install_data class.
-
-    def run(self):
-        install_data.run(self)
-
-    def finalize_options(self):
-        # By the time finalize_options is called, install.install_lib is set to the
-        # fixed directory, so we set the installdir to install_lib. The
-        # install_data class uses('install_data', 'install_dir') instead.
-        self.set_undefined_options('install', ('install_lib', 'install_dir'))
-        install_data.finalize_options(self)
-
 # copy gramps/const.py.in to gramps/const.py ...
 const_file_in = os.path.join(ROOT_DIR, 'gramps', 'const.py.in')
 const_file    = os.path.join(ROOT_DIR, 'gramps', 'const.py')
 if (os.path.exists(const_file_in) and not os.path.exists(const_file)):
     shutil.copy(const_file_in, const_file)
-from gramps.const import VERSION as GRAMPS_VERSION
 
 # if this system is posix, then copy gramps.sh.in to gramps.sh
 if os.name == "posix":
@@ -162,6 +143,19 @@ if os.name == "posix":
     gramps_launcher    = os.path.join(ROOT_DIR, 'gramps.sh')
     if (os.path.exists(gramps_launcher_in) and not os.path.exists(gramps_launcher)):
         shutil.copy(gramps_launcher_in, gramps_launcher)
+
+'''
+        standard command example, 'python setup.py sdist'...
+'''
+class GrampsDist(Distribution):
+  global_options = Distribution.global_options + [
+    ("without-gettext", None, "Don't build/install gettext .mo files"),
+    ("without-icon-cache", None, "Don't attempt to run gtk-update-icon-cache")]
+
+  def __init__(self, *args):
+    self.without_gettext = False
+    self.without_icon_cache = False
+    Distribution.__init__(self, *args)
 
 # Tell distutils to put the data_files in platform-specific installation
 # locations. See here for an explanation:
@@ -330,20 +324,12 @@ def trans_files():
         translation_files.append((dest, [mo]))
     return translation_files
 
-class GrampsDist(Distribution):
-  global_options = Distribution.global_options + [
-    ("without-gettext", None, "Don't build/install gettext .mo files"),
-    ("without-icon-cache", None, "Don't attempt to run gtk-update-icon-cache")]
-
-  def __init__(self, *args):
-    self.without_gettext = False
-    self.without_icon_cache = False
-    Distribution.__init__(self, *args)
-
 '''
         Standard command for 'python setup.py build' ...
 '''
 class GrampsBuildData(build):
+    build.initialize_options(self)
+
     def run(self):
         build.run(self)
 
@@ -412,6 +398,27 @@ class GrampsBuildData(build):
         os.system ("C_ALL=C " + INTLTOOL_MERGE + " -d -u -c " + ROOT_DIR +
             "/po/.intltool-merge-cache " + ROOT_DIR + "/po " +
             desktop_in + " " + desktop_data)
+
+'''
+        standard command, 'python setup.py MacOSX_InstallData'...
+
+On MacOS, the platform-specific lib dir is /System/Library/Framework/Python/.../
+which is wrong. Python 2.5 supplied with MacOS 10.5 has an Apple-specific fix
+for this in distutils.command.install_data#306. It fixes install_lib but not
+install_data, which is why we roll our own install_data class.
+'''
+class MacOSX_InstallData(install_data):
+    install_data.initialize_options(self)
+
+    def run(self):
+        install_data.run(self)
+
+    def finalize_options(self):
+        # By the time finalize_options is called, install.install_lib is set to the
+        # fixed directory, so we set the installdir to install_lib. The
+        # install_data class uses('install_data', 'install_dir') instead.
+        self.set_undefined_options('install', ('install_lib', 'install_dir'))
+        install_data.finalize_options(self)
 
 '''
         Standard command for 'python setup.py install_data' ...
@@ -559,6 +566,11 @@ if len(sys.argv) > 1 and sys.argv[1] == 'bdist_wininst':
     for file_info in DATA_FILES:
         file_info[0] = '\\PURELIB\\%s' % file_info[0]
 
+if os.name == 'darwin':
+    Install_Data_Class = 'MacOSX_InstallData'
+else:
+    Install_Data_Class = 'GrampsInstallData'
+
 # Dynamically calculate the version based on gramps.VERSION.
 GRAMPS_VERSION = __import__('gramps').get_version()
 
@@ -626,10 +638,11 @@ else:
         scripts          = script,
         platforms        = ['Linux', 'FreeBSD', 'Mac OSX', 'Windows'],
         cmdclass         = {'build'        : GrampsBuildData,
-                            'install_data' : GrampsInstallData,
+                            'install_data' : Install_Data_Class,
                             'install'      : GrampsInstall,
                             'uninstall'    : GrampsUninstall,
-                            'clean'        : GrampsClean},
+                            'clean'        : GrampsClean,
+                            'sdist'        : GrampsDist},
     )
     bash_string = "update-desktop-database"
     subprocess.call(bash_string, shell=True)
