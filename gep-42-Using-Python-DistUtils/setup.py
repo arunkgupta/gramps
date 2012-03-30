@@ -60,19 +60,23 @@ try:
 except:
     pass
 
-# get the root directory so that everything can be absolute paths...
-ROOT_DIR = os.getcwd()
+# get the root directory so that everything can be absolute paths, and
+# set up packages and data files too...
+PACKAGE_FILES, DATA_FILES = [], []
+ROOT_DIR = os.path.dirname(__file__)
+if ROOT_DIR != '':
+    os.chdir(ROOT_DIR)
 
-LOCALE_DIR = os.path.join (ROOT_DIR, 'locale')
-MO_DIR = os.path.join (ROOT_DIR, 'build', 'mo')
+LOCALE_DIR = os.path.join(ROOT_DIR, 'locale')
+MO_DIR = os.path.join(ROOT_DIR, 'build', 'mo')
 
 if sys.version < '2.6':
-    sys.exit('Error: Python-2.6 or newer is required. Current version:\n %s'
+    sys.exit('Error: Python-2.6 or newer is required. Current version: \n %s'
              % sys.version)
 
-def modules_check ():
+def modules_check():
     '''Check if necessary modules is installed.
-    The function is executed by distutils (by the install command).'''
+    The function is executed by distutils(by the install command).'''
     try:
         try:
             import gtk.glade
@@ -101,7 +105,7 @@ def modules_check ():
             if not have_mod:
                 ok = False
                 print ('Error: %s is Python module is required to install %s'
-                    % (' or '.join (m), name.title()))
+                    % (' or '.join(m), name.title()))
         else:
             try:
                 exec('import %s' % m)
@@ -113,60 +117,59 @@ def modules_check ():
         sys.exit(1)
 
 if os.name == 'nt':
-    script = [os.path.join (ROOT_DIR, 'windows','gramps.pyw')]
+    script = [os.path.join(ROOT_DIR, 'windows','gramps.pyw')]
 elif os.name == 'darwin':
-    script = [os.path.join (ROOT_DIR, 'mac','gramps.launcher.sh')]
+    script = [os.path.join(ROOT_DIR, 'mac','gramps.launcher.sh')]
 else:
     # os.name == 'posix'
-    script = [os.path.join (ROOT_DIR, 'gramps.sh')]
+    script = [os.path.join(ROOT_DIR, 'gramps.sh')]
 
 if platform.system() == 'FreeBSD':
     MAN_DIR = 'man'
 else:
-    MAN_DIR = os.path.join ('share', 'man')
+    MAN_DIR = os.path.join('share', 'man')
 
 SYSTEM_PREFIX = os.path.normpath(sys.prefix)
 
-class osx_install_data (install_data):
-    def initialize_options (self):
-        pass
+class osx_install_data(install_data):
+    install_data.initialize_options(self)
 
     # On MacOS, the platform-specific lib dir is /System/Library/Framework/Python/.../
     # which is wrong. Python 2.5 supplied with MacOS 10.5 has an Apple-specific fix
     # for this in distutils.command.install_data#306. It fixes install_lib but not
     # install_data, which is why we roll our own install_data class.
 
-    def run (self):
-        install_data.run (self)
+    def run(self):
+        install_data.run(self)
 
-    def finalize_options (self):
+    def finalize_options(self):
         # By the time finalize_options is called, install.install_lib is set to the
         # fixed directory, so we set the installdir to install_lib. The
-        # install_data class uses ('install_data', 'install_dir') instead.
-        self.set_undefined_options ('install', ('install_lib', 'install_dir'))
-        install_data.finalize_options (self)
+        # install_data class uses('install_data', 'install_dir') instead.
+        self.set_undefined_options('install', ('install_lib', 'install_dir'))
+        install_data.finalize_options(self)
 
 # copy gramps/const.py.in to gramps/const.py ...
-const_file_in = os.path.join (ROOT_DIR, 'gramps', 'const.py.in')
-const_file    = os.path.join (ROOT_DIR, 'gramps', 'const.py')
-if (os.path.exists (const_file_in) and not os.path.exists (const_file)):
+const_file_in = os.path.join(ROOT_DIR, 'gramps', 'const.py.in')
+const_file    = os.path.join(ROOT_DIR, 'gramps', 'const.py')
+if (os.path.exists(const_file_in) and not os.path.exists(const_file)):
     shutil.copy(const_file_in, const_file)
 from gramps.const import VERSION as GRAMPS_VERSION
 
 # if this system is posix, then copy gramps.sh.in to gramps.sh
 if os.name == "posix":
-    gramps_launcher_in = os.path.join (ROOT_DIR, 'gramps.sh.in')
-    gramps_launcher    = os.path.join (ROOT_DIR, 'gramps.sh')
-    if (os.path.exists (gramps_launcher_in) and not os.path.exists (gramps_launcher)):
+    gramps_launcher_in = os.path.join(ROOT_DIR, 'gramps.sh.in')
+    gramps_launcher    = os.path.join(ROOT_DIR, 'gramps.sh')
+    if (os.path.exists(gramps_launcher_in) and not os.path.exists(gramps_launcher)):
         shutil.copy(gramps_launcher_in, gramps_launcher)
 
 # Tell distutils to put the data_files in platform-specific installation
 # locations. See here for an explanation:
 # http://groups.google.com/group/comp.lang.python/browse_thread/thread/35ec7b2fed36eaec/2105ee4d9e8042cb
-for scheme in INSTALL_SCHEMES.values ():
+for scheme in INSTALL_SCHEMES.values():
     scheme['data'] = scheme['purelib']
 
-def gramps ():
+def gramps():
     libraries = {'gramps': [
                     '*.py', 
                     'DateHandler/*.py',
@@ -240,21 +243,21 @@ def gramps ():
                     'templatetags/*py']
                 }
 
-def os_files ():
+def os_files():
     # Windows or MacOSX
     if (os.name == 'nt' or os.name == 'darwin'):
         return [
                 # application icon
-                (os.path.join ('share', 'pixmaps'), [os.path.join ('gramps', 'images', 'ped24.ico')]),
-                (os.path.join ('share', 'pixmaps'), [os.path.join ('gramps', 'images', 'gramps.png')]),
-                (os.path.join ('share', 'icons', 'scalable'),
-                        glob.glob(os.path.join ('gramps', 'images', 'scalable', '*.svg'))),
-                (os.path.join ('share', 'icons', '16x16'),
-                        glob.glob(os.path.join ('gramps', 'images', '16x16', '*.png'))),
-                (os.path.join ('share', 'icons', '22x22'),
-                        glob.glob(os.path.join ('gramps', 'images', '22x22' ,'*.png'))),
-                (os.path.join ('share', 'icons', '48x48'),
-                        glob.glob(os.path.join ('gramps', 'images', '48x48', '*.png'))),
+                (os.path.join('share', 'pixmaps'), [os.path.join('gramps', 'images', 'ped24.ico')]),
+                (os.path.join('share', 'pixmaps'), [os.path.join('gramps', 'images', 'gramps.png')]),
+                (os.path.join('share', 'icons', 'scalable'),
+                        glob.glob(os.path.join('gramps', 'images', 'scalable', '*.svg'))),
+                (os.path.join('share', 'icons', '16x16'),
+                        glob.glob(os.path.join('gramps', 'images', '16x16', '*.png'))),
+                (os.path.join('share', 'icons', '22x22'),
+                        glob.glob(os.path.join('gramps', 'images', '22x22' ,'*.png'))),
+                (os.path.join('share', 'icons', '48x48'),
+                        glob.glob(os.path.join('gramps', 'images', '48x48', '*.png'))),
                 # doc
                 ('share', ['AUTHORS']),
                 ('share', ['COPYING']),
@@ -293,12 +296,12 @@ def os_files ():
 
                 # man-page, /!\ should be gramps.1 with variables
                 # migration to sphinx/docutils/gettext environment ?
-                (os.path.join (MAN_DIR, 'man1'), ['data/man/gramps.1.in']),
-                (os.path.join (MAN_DIR, 'cs', 'man1'), ['data/man/cs/gramps.1.in']),
-                (os.path.join (MAN_DIR, 'fr', 'man1'), ['data/man/fr/gramps.1.in']),
-                (os.path.join (MAN_DIR, 'nl', 'man1'), ['data/man/nl/gramps.1.in']),
-                (os.path.join (MAN_DIR, 'pl', 'man1'), ['data/man/pl/gramps.1.in']),
-                (os.path.join (MAN_DIR, 'sv', 'man1'), ['data/man/sv/gramps.1.in']),
+                (os.path.join(MAN_DIR, 'man1'), ['data/man/gramps.1.in']),
+                (os.path.join(MAN_DIR, 'cs', 'man1'), ['data/man/cs/gramps.1.in']),
+                (os.path.join(MAN_DIR, 'fr', 'man1'), ['data/man/fr/gramps.1.in']),
+                (os.path.join(MAN_DIR, 'nl', 'man1'), ['data/man/nl/gramps.1.in']),
+                (os.path.join(MAN_DIR, 'pl', 'man1'), ['data/man/pl/gramps.1.in']),
+                (os.path.join(MAN_DIR, 'sv', 'man1'), ['data/man/sv/gramps.1.in']),
                 # icons 
                 ('share/icons/hicolor/scalable/apps', glob.glob('gramps/images/scalable/*.svg')),
                 ('share/icons/hicolor/16x16/apps', glob.glob('gramps/images/16x16/*.png')),
@@ -313,17 +316,17 @@ def os_files ():
                 ('share/doc/gramps', ['TODO'])
         ]
 
-def trans_files ():
+def trans_files():
     '''
     List of available compiled translations; ready for installation
     '''
     translation_files = []
-    for mo in glob.glob(os.path.join (MO_DIR, '*', 'gramps.mo')):
+    for mo in glob.glob(os.path.join(MO_DIR, '*', 'gramps.mo')):
         lang = os.path.basename(os.path.dirname(mo))
         if os.name == 'posix':
-            dest = os.path.join ('share', 'locale', lang, 'LC_MESSAGES')
+            dest = os.path.join('share', 'locale', lang, 'LC_MESSAGES')
         else :
-            dest = os.path.join ('locale', lang, 'LC_MESSAGES')
+            dest = os.path.join('locale', lang, 'LC_MESSAGES')
         translation_files.append((dest, [mo]))
     return translation_files
 
@@ -341,8 +344,8 @@ class GrampsDist(Distribution):
         Standard command for 'python setup.py build' ...
 '''
 class GrampsBuildData(build):
-    def run (self):
-        build.run (self)
+    def run(self):
+        build.run(self)
 
         if self.distribution.without_gettext:
             return
@@ -350,12 +353,12 @@ class GrampsBuildData(build):
         if os.name != 'posix':
             return
 
-        gramps_build_dir = os.path.join (ROOT_DIR, 'build', 'gramps')
+        gramps_build_dir = os.path.join(ROOT_DIR, 'build', 'gramps')
         if (not os.path.isdir(gramps_build_dir) and not os.path.islink(gramps_build_dir)):
-            os.makedirs (gramps_build_dir)
+            os.makedirs(gramps_build_dir)
 
         for filecmd in ['intltool-extract.in', 'intltool-merge.in', 'intltool-update.in']:
-            file = os.path.join (ROOT_DIR, filecmd)
+            file = os.path.join(ROOT_DIR, filecmd)
             newfile, rest = file.split('.in')
             shutil.copy(file, newfile)
 
@@ -364,32 +367,32 @@ class GrampsBuildData(build):
         os.system('intltool-merge -x po/ data/gramps.xml.in data/gramps.xml')
         os.system('intltool-merge -k po/ data/gramps.keys.in data/gramps.keys')
 
-        gramps_man_in_file = os.path.join (MAN_DIR, 'gramps.1.in')
-        gramps_man_file    = os.path.join (MAN_DIR, 'gramps.1')
-        if (os.path.exists (gramps_man_in_file) and not os.path.exists (gramps_man_file)):
+        gramps_man_in_file = os.path.join(MAN_DIR, 'gramps.1.in')
+        gramps_man_file    = os.path.join(MAN_DIR, 'gramps.1')
+        if (os.path.exists(gramps_man_in_file) and not os.path.exists(gramps_man_file)):
             shutil.copy(gramps_man_in_file, gramps_man_file)
 
-        gramps_man_file_gz = os.path.join (MAN_DIR, 'gramps.1.gz')
+        gramps_man_file_gz = os.path.join(MAN_DIR, 'gramps.1.gz')
         if newer(gramps_man_file, gramps_man_file_gz):
             if os.path.isfile(gramps_man_file_gz):
                 os.remove(gramps_man_file_gz)
 
             import gzip
 
-            f_in = open (gramps_man_file, 'rb')
-            f_out = gzip.open (gramps_man_file_gz, 'wb')
-            f_out.writelines (f_in)
+            f_in = open(gramps_man_file, 'rb')
+            f_out = gzip.open(gramps_man_file_gz, 'wb')
+            f_out.writelines(f_in)
             f_out.close()
             f_in.close()
             info('Merging gramps man file into gzipped file.')
 
-        for po in glob.glob(os.path.join (LOCALE_DIR, '*.po')):
+        for po in glob.glob(os.path.join(LOCALE_DIR, '*.po')):
             lang = os.path.basename(po[:-3])
-            mo = os.path.join (MO_DIR, lang, 'gramps.mo')
+            mo = os.path.join(MO_DIR, lang, 'gramps.mo')
             directory = os.path.dirname(mo)
-            if not os.path.exists (directory):
+            if not os.path.exists(directory):
                 info('creating %s' % directory)
-                os.makedirs (directory)
+                os.makedirs(directory)
 
             if newer(po, mo):
                 info('compiling %s -> %s' % (po, mo))
@@ -417,32 +420,31 @@ class GrampsInstallData(install_data):
     description = "Attempt an install and generate a log file"
     user_options = [('fake', None, 'Override')]
 
-    def initialize_options (self):
-        pass
+    install_data.initialize_options(self)
 
-    def run (self):
-        install_data.run (self)
+    def run(self):
+        install_data.run(self)
 
-        self.data_files.extend(self._find_mo_files ())
+        self.data_files.extend(self._find_mo_files())
         self.data_files.extend(self._find_desktop_file())
 
     def _find_desktop_file(self):
         return [("share/applications", ["data/gramps.desktop"])]
 
-    def _find_mo_files (self):
+    def _find_mo_files(self):
         data_files = []
         if not self.distribution.without_gettext:
-            for mo in glob.glob(os.path.join (MO_DIR, '*', 'gramps.mo')):
+            for mo in glob.glob(os.path.join(MO_DIR, '*', 'gramps.mo')):
                 lang = os.path.basename(os.path.dirname(mo))
-                dest = os.path.join ('share', 'locale', lang, 'LC_MESSAGES')
+                dest = os.path.join('share', 'locale', lang, 'LC_MESSAGES')
                 data_files.append((dest, [mo]))
         return data_files
 
-    def finalize_options (self):
+    def finalize_options(self):
         if os.name == 'posix':
             #update the XDG Shared MIME-Info database cache
             info('Updating the Shared MIME-Info database cache.')
-            subprocess.call(["update-mime-database", os.path.join (sys.prefix, 'share', 'mime')])
+            subprocess.call(["update-mime-database", os.path.join(sys.prefix, 'share', 'mime')])
 
             # update the mime.types database (debian, ubuntu)
             # info('Updating the mime.types database.')
@@ -461,15 +463,13 @@ class GrampsInstall(install):
     description = "Attempt an install and generate a log file"
     user_options = [('fake', None, 'Override')]
     
-    def initialize_options (self):
-        pass
+    install.initialize_options(self)
     
-    def run (self):
-        install.run (self)
+    def run(self):
+        install.run(self)
         self.distribution.scripts = ['gramps']
         
-    def finalize_options (self):
-        pass
+    install.finalize_options(self)
 
 '''
         Standard command for 'python setup.py uninstall' ...
@@ -478,18 +478,18 @@ class GrampsUninstall(Command):
     description = "Attempt an uninstall from an install log file"
     user_options = [('log=', None, 'Installation record filename')]
 
-    def initialize_options (self):
+    def initialize_options(self):
         self.log = 'log'
 
     def get_command_name(self):
         return 'uninstall'
 
-    def run (self):
+    def run(self):
         f = None
         self.ensure_filename('log')
         try:
             try:
-                f = open (self.log)
+                f = open(self.log)
                 files = [file.strip() for file in f]
             except IOError, e:
                 raise DistutilsFileError("unable to open log: %s", str(e))
@@ -504,14 +504,14 @@ class GrampsUninstall(Command):
                 try:
                     os.unlink(file)
                 except OSError, e:
-                    warn ("could not delete: %s" % repr(file))
+                    warn("could not delete: %s" % repr(file))
             elif not os.path.isdir(file):
                 info("skipping %s" % repr(file))
 
         dirs = set()
         for file in reversed(sorted(files)):
             dir = os.path.dirname(file)
-            if dir not in dirs and os.path.isdir(dir) and len (os.listdir(dir)) == 0:
+            if dir not in dirs and os.path.isdir(dir) and len(os.listdir(dir)) == 0:
                 dirs.add(dir)
                 # Only nuke empty Python library directories, else we could destroy
                 # e.g. locale directories we're the only app with a .mo installed for.
@@ -521,33 +521,50 @@ class GrampsUninstall(Command):
                     try:
                         os.rmdir(dir)
                     except OSError, e:
-                        warn ("could not remove directory: %s" % str(e))
+                        warn("could not remove directory: %s" % str(e))
             else:
                 info("skipping empty directory %s" % repr(dir))
 
-    def finalize_options (self):
-        pass
+    Command.finalize_options(self)
 
 '''
         Standard command for 'python setup.py clean' ...
 '''
-class GrampsClean (clean):
-    def initialize_options (self):
-        pass
+class GrampsClean(clean):
+    clean.initialize_options(self)
 
-    def run (self):
-        clean.run (self)
+    def run(self):
+        clean.run(self)
 
-    def finalize_options (self):
-        pass
+    clean.finalize_options(self)
 
 # turn off warnings when deprecated modules are imported
 import warnings
-warnings.filterwarnings ("ignore", category = DeprecationWarning)
+warnings.filterwarnings("ignore", category = DeprecationWarning)
+
+gramps_dir = 'gramps'
+
+for dirpath, dirnames, filenames in os.walk(gramps_dir):
+    # Ignore dirnames that start with '.'
+    for i, dirname in enumerate(dirnames):
+        if dirname.startswith('.'): del dirnames[i]
+    if '__init__.py' in filenames:
+        packages.append('.'.join(fullsplit(dirpath)))
+    elif filenames:
+        data_files.append([dirpath, [os.path.join(dirpath, f) for f in filenames]])
+
+# Small hack for working with bdist_wininst.
+# See http://mail.python.org/pipermail/distutils-sig/2004-August/004134.html
+if len(sys.argv) > 1 and sys.argv[1] == 'bdist_wininst':
+    for file_info in DATA_FILES:
+        file_info[0] = '\\PURELIB\\%s' % file_info[0]
+
+# Dynamically calculate the version based on gramps.VERSION.
+GRAMPS_VERSION = __import__('gramps').get_version()
 
 if "py2exe" in sys.argv:
-    DATA_FILES = [("glade", glob.glob(os.path.join (ROOT_DIR, 'gramps', 'glade', '*.*')))]
-    for lang in glob.glob(os.path.join (MO_DIR, '*.po')):
+    DATA_FILES.append([("glade", glob.glob(os.path.join(ROOT_DIR, 'gramps', 'glade', '*.*')))])
+    for lang in glob.glob(os.path.join(MO_DIR, '*.po')):
         lang = os.path.basename(os.path.dirname(lang))
         DATA_FILES.append(("locale/%s/LC_MESSAGES" % lang, ["locale/%s/LC_MESSAGES/gramps.mo" % lang]))
 
@@ -559,8 +576,8 @@ if "py2exe" in sys.argv:
         url              = 'http://gramps-project.org/',
         download_url     = 'http://sourceforge.net/projects/gramps/files/Stable/3.3.1/',
         license          = "GPLv2 or greater",
-        description      = "Gramps (Genealogical Research and Analysis Management Programming System)",
-        long_description = ('gramps (Genealogical Research and Analysis Management Programming '
+        description      = "Gramps(Genealogical Research and Analysis Management Programming System)",
+        long_description = ('gramps(Genealogical Research and Analysis Management Programming '
                             'System) is a GNOME based genealogy program supporting a Python based plugin system.'),
        windows           = [{"script"        : script,
                             "icon_resources" : [(1, "gramps/images/favicon2.ico")]
@@ -575,22 +592,23 @@ if "py2exe" in sys.argv:
                                 "libgtk-win32-2.0-0.dll","libpango-1.0-0.dll",
                                 "libpangowin32-1.0-0.dll"]}
                            },
-        data_files       = DATA_FILES + os_files () + trans_files (),
-        packages         = package_files,
+        data_files       = DATA_FILES + os_files() + trans_files(),
+        packages         = PACKAGE_FILES,
         scripts          = script,
         platforms        = ['Linux', 'FreeBSD', 'Mac OSX', 'Windows'],
     )
     shutil.copytree("C:\gtksourceview\share\gtksourceview-2.0", "dist\share\gtksourceview-2.0")
-    info("remember to copy 7za.exe to the dist folder")
+    sys.stdout.write("remember to copy 7za.exe to the dist folder")
 
 else:
-    DATA_FILES       = [
-                        ("share/icons/hicolor/scalable/apps", ["gramps/images/gramps.svg"]),
-                        ("share/gramps/glade", glob.glob("gramps/glade/*.*")),
-                        ("share/mime/packages", ["data/gramps.xml"]),
-                        ("share/mime-info", ["data/gramps.mime", "data/gramps.keys"]),
-                        ("share/application-registry", ["data/gramps.applications"]),
-                        ("share/man/man1", ["data/man/gramps.1.gz"]) ]
+    DATA_FILES.append([
+                       ("share/icons/hicolor/scalable/apps", ["gramps/images/gramps.svg"]),
+                       ("share/gramps/glade", glob.glob("gramps/glade/*.*")),
+                       ("share/mime/packages", ["data/gramps.xml"]),
+                       ("share/mime-info", ["data/gramps.mime", "data/gramps.keys"]),
+                       ("share/application-registry", ["data/gramps.applications"]),
+                       ("share/man/man1", ["data/man/gramps.1.gz"])
+                      ])
 
     setup (
         name             = 'gramps',
@@ -600,11 +618,11 @@ else:
         url              = 'http://gramps-project.org/',
         download_url     = 'http://sourceforge.net/projects/gramps/files/Stable/3.3.1/',
         license          = "GPLv2 or greater",
-        description      = "Gramps (Genealogical Research and Analysis Management Programming System)",
-        long_description = ('Gramps (Genealogical Research and Analysis Management Programming '
-                        'System) is a GNOME based genealogy program supporting a Python based plugin system.'),
-        data_files       = DATA_FILES + os_files () + trans_files (),
-        packages         = package_files,
+        description      = "Gramps(Genealogical Research and Analysis Management Programming System)",
+        long_description = ('Gramps(Genealogical Research and Analysis Management Programming '
+                            'System) is a GNOME based genealogy program supporting a Python based plugin system.'),
+        data_files       = DATA_FILES + os_files() + trans_files(),
+        packages         = PACKAGE_FILES,
         scripts          = script,
         platforms        = ['Linux', 'FreeBSD', 'Mac OSX', 'Windows'],
         cmdclass         = {'build'        : GrampsBuildData,
