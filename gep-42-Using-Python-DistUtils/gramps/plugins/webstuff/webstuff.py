@@ -52,13 +52,13 @@ def load_on_reg(dbstate, uistate, plugin):
     """
     dir, fname = os.path.split(__file__)
     from functools import partial
-    
-    path_css = partial(os.path.join, const.WEBSTUFF_DIR, dir, "css")
+
+    path_css = partial(os.path.join, const.WEBSTUFF_DIR, "css")
 
     # all Gramps images are in one place including web images, gramps/images...
-    path_img = partial(os.path.join, const.IMAGE_DIR, dir, "images")
+    path_img = partial(os.path.join, const.ROOT_DIR, "images")
 
-    path_js = partial(os.path.join, const.WEBSTUFF_DIR, dir, "javascript")
+    path_js = partial(os.path.join, const.WEBSTUFF_DIR, "javascript")
     CSS_FILES = [
 
         # id, user selectable?, translated_name, option name, fullpath,
