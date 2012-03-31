@@ -54,7 +54,7 @@ def load_on_reg(dbstate, uistate, plugin):
     from functools import partial
     
     path_css = partial(os.path.join, const.STYLESHEET_DIR, "css")
-    path_img = partial(os.path.join, WEB_IMAGE_DIR, "images")
+    path_img = partial(os.path.join, const.WEB_IMAGE_DIR, "images")
     path_js = partial(os.path.join, const.JAVASCRIPT_DIR, "javascript")
     CSS_FILES = [
 
