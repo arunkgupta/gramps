@@ -53,9 +53,12 @@ def load_on_reg(dbstate, uistate, plugin):
     dir, fname = os.path.split(__file__)
     from functools import partial
     
-    path_css = partial(os.path.join, const.STYLESHEET_DIR, "css")
-    path_img = partial(os.path.join, const.WEB_IMAGE_DIR, "images")
-    path_js = partial(os.path.join, const.JAVASCRIPT_DIR, "javascript")
+    path_css = partial(os.path.join, const.WEBSTUFF_DIR, dir, "css")
+
+    # all Gramps images are in one place including web images, gramps/images...
+    path_img = partial(os.path.join, const.IMAGE_DIR, dir, "images")
+
+    path_js = partial(os.path.join, const.WEBSTUFF_DIR, dir, "javascript")
     CSS_FILES = [
 
         # id, user selectable?, translated_name, option name, fullpath,
@@ -161,6 +164,10 @@ def load_on_reg(dbstate, uistate, plugin):
 
         # no style sheet option
         ["No style sheet",1, _("No style sheet"),    [],  None, [], [] ],
+
+        # Document image...
+        ["Document", 0, "Document",
+         path_img("document.png"), None, [], [] ],
 
         # all other images for use in NarrativeWeb
         ['All Images', 0, 'All Images', None, None,
