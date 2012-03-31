@@ -63,7 +63,16 @@ except:
 # get the root directory so that everything can be absolute paths, and
 # set up packages and data files too...
 PACKAGE_FILES, DATA_FILES = [], []
-ROOT_DIR = os.path.dirname(__file__)
+if (os.name != "nt" and os.name != "darwin"):
+    ROOT_DIR = os.getcwd()
+else:
+    # test for sys.frozen to detect a py2exe executable on Windows
+    if hasattr(sys, "frozen"):
+        ROOT_DIR = os.path.abspath(os.path.dirname(
+            unicode(sys.executable, sys.getfilesystemencoding())))
+    else:
+        ROOT_DIR = os.path.abspath(os.path.dirname(
+            unicode(__file__, sys.getfilesystemencoding())))
 if ROOT_DIR != '':
     os.chdir(ROOT_DIR)
 

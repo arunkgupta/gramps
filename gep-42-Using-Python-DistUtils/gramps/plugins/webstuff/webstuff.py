@@ -25,6 +25,10 @@
 #    python modules
 #------------------------------------------------
 import os
+
+#------------------------------------------------
+#    Gramps Modules
+#------------------------------------------------
 import const
 from gen.ggettext import sgettext as _
 
@@ -49,9 +53,9 @@ def load_on_reg(dbstate, uistate, plugin):
     dir, fname = os.path.split(__file__)
     from functools import partial
     
-    path_css = partial(os.path.join, dir, "css")
-    path_img = partial(os.path.join, dir, "images")
-    path_js = partial(os.path.join, dir, "js")
+    path_css = partial(os.path.join, const.STYLESHEET_DIR, "css")
+    path_img = partial(os.path.join, WEB_IMAGE_DIR, "images")
+    path_js = partial(os.path.join, const.JAVASCRIPT_DIR, "javascript")
     CSS_FILES = [
 
         # id, user selectable?, translated_name, option name, fullpath,
@@ -109,7 +113,7 @@ def load_on_reg(dbstate, uistate, plugin):
          path_css('behaviour.css'),         None,  [], [] ], 
 
         # NarrativeMap stylesheet/ image for NarrativeWeb place maps
-        ["NarrativeMaps",  0, "",
+        ["NarrativeMaps",  0, "narrative maps",
          path_css("narrative-maps.css"),      None, [], [] ],
 
         # default style sheet in the options
