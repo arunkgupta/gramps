@@ -5,7 +5,7 @@
 
 # $Id$
 
-SUBDIRS = css images js
+SUBDIRS =
 
 pkgdatadir = $(datadir)/@PACKAGE@/plugins/webstuff
 

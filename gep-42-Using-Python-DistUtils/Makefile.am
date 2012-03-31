@@ -4,9 +4,8 @@
 SUBDIRS = data example gramps locale m4
 
 EXTRA_DIST = \
-	config.rpath autogen.sh \
 	AUTHORS COPYING FAQ LICENSE NEWS README RELEASE_NOTES TODO \
-	intltool-extract.in intltool-merge.in intltool-update.in
+	.intltool-extract .intltool-merge .intltool-update
 
 bin_SCRIPTS = gramps.sh
 
@@ -14,8 +13,7 @@ dist_pkgdata_DATA = AUTHORS COPYING FAQ LICENSE README
 
 distuninstallcheck_listfiles = find . -type -f -print | grep -E -v '/(globs|magic|XMLnamespaces)'
 
-DISTCLEANFILES = intltool-extract intltool-merge intltool-update \
-	gnome-doc-utils.make
+DISTCLEANFILES = gnome-doc-utils.make
 
 gramps: gramps.sh
 
