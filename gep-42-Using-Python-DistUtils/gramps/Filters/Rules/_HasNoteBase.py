@@ -45,8 +45,8 @@ class HasNoteBase(Rule):
     """Objects having notes"""
 
     labels      = [  _('Number of instances:'), _('Number must be:')]
-    name        = _('Object with notes')
-    description = _("Matches objects that have a certain number of notes")
+    name        = 'Object with notes'
+    description = "Matches objects that have a certain number of notes"
     category    = _('General filters')
 
     def __init__(self, arg):

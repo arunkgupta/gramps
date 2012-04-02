@@ -47,11 +47,11 @@ class ChangedSinceBase(Rule):
     Rule that checks for primary objects changed since a specific time.
     """
 
-    labels      = [ _('Changed after:'), _('but before:') ]
-    name        = _('Objects changed after <date time>')
-    description = _("Matches object records changed after a specified "
-                    "date/time (yyyy-mm-dd hh:mm:ss) or in range, if a second "
-                    "date/time is given.")
+    labels      = [ 'Changed after:', 'but before:' ]
+    name        = 'Objects changed after <date time>'
+    description = "Matches object records changed after a specified " \
+                    "date/time (yyyy-mm-dd hh:mm:ss) or in range, if a second " \
+                    "date/time is given."
     category    = _('General filters')
 
     def add_time(self, date):

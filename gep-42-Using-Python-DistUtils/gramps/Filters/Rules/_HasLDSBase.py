@@ -47,8 +47,8 @@ class HasLDSBase(Rule):
     """Rule that checks for object with a LDS event"""
 
     labels      = [  _('Number of instances:'), _('Number must be:')]
-    name        = _('Objects with LDS events')
-    description = _("Matches objects with LDS events")
+    name        = 'Objects with LDS events'
+    description = "Matches objects with LDS events"
     category    = _('General filters')
     
     def prepare(self, db):

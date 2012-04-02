@@ -41,9 +41,9 @@ class HasNoteSubstrBase(Rule):
     """People having notes containing <substring>."""
 
     labels      = [ _('Substring:')]
-    name        = _('Objects having notes containing <substring>')
-    description = _("Matches objects whose notes contain text matching a "
-                    "substring")
+    name        = 'Objects having notes containing <substring>'
+    description = "Matches objects whose notes contain text matching a " \
+                    "substring"
     category    = _('General filters')
 
     def apply(self, db, person):

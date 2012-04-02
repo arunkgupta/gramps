@@ -42,9 +42,9 @@ class HasNoteRegexBase(Rule):
     """People having notes containing <substring>."""
 
     labels      = [ _('Regular expression:')]
-    name        = _('Objects having notes containing <regular expression>')
-    description = _("Matches objects whose notes contain text "
-                    "matching a regular expression")
+    name        = 'Objects having notes containing <regular expression>'
+    description = "Matches objects whose notes contain text " \
+                    "matching a regular expression"
     category    = _('General filters')
 
     def __init__(self, list):
