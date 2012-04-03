@@ -1,0 +1,362 @@
+# List of source files which do not need to translate.
+#
+#   Python files
+#
+
+#src
+src/AutoComp.py
+src/Date.py
+src/DdTargets.py
+src/Errors.py
+src/glade.py
+src/GrampsDisplay.py
+src/ImgManip.py
+src/ListModel.py
+src/ManagedWindow.py
+src/RecentFiles.py
+src/Sort.py
+src/soundex.py
+src/ThumbNails.py
+src/TreeTips.py
+
+# cli
+src/cli/__init__.py
+src/cli/user.py
+
+# DateHandler package
+src/DateHandler/_Date_bg.py
+src/DateHandler/_Date_cs.py
+src/DateHandler/_Date_de.py
+src/DateHandler/_DateDisplay.py
+src/DateHandler/_Date_es.py
+src/DateHandler/_Date_fi.py
+src/DateHandler/_Date_fr.py
+src/DateHandler/_DateHandler.py
+src/DateHandler/_Date_lt.py
+src/DateHandler/_Date_nb.py
+src/DateHandler/_Date_nl.py
+src/DateHandler/_Date_pl.py
+src/DateHandler/_Date_pt.py
+src/DateHandler/_DateParser.py
+src/DateHandler/_Date_ru.py
+src/DateHandler/_Date_sk.py
+src/DateHandler/_Date_sv.py
+src/DateHandler/_Date_zh.py
+src/DateHandler/__init__.py
+
+# Filters package
+src/Filters/_FilterComboBox.py
+src/Filters/_FilterList.py
+src/Filters/_FilterMenu.py
+src/Filters/_GenericFilter.py
+src/Filters/_ParamFilter.py
+src/Filters/_SearchFilter.py
+
+# Filters _init_ package
+src/Filters/__init__.py
+src/Filters/Rules/Person/__init__.py
+src/Filters/Rules/Family/__init__.py
+src/Filters/Rules/Event/__init__.py
+src/Filters/Rules/Place/__init__.py
+src/Filters/Rules/Source/__init__.py
+src/Filters/Rules/MediaObject/__init__.py
+src/Filters/Rules/Repository/__init__.py
+src/Filters/Rules/Note/__init__.py
+
+# Filters.Rules package
+src/Filters/Rules/_ChangedSinceBase.py
+src/Filters/Rules/_HasAttributeBase.py
+src/Filters/Rules/_HasCitationBase.py
+src/Filters/Rules/_HasEventBase.py
+src/Filters/Rules/_HasGalleryBase.py
+src/Filters/Rules/_HasLDSBase.py
+src/Filters/Rules/_HasNoteBase.py
+src/Filters/Rules/_HasNoteRegexBase.py
+src/Filters/Rules/_HasNoteSubstrBase.py
+src/Filters/Rules/_HasReferenceCountBase.py
+src/Filters/Rules/_HasSourceBase.py
+src/Filters/Rules/_HasSourceCountBase.py
+src/Filters/Rules/_HasTagBase.py
+src/Filters/Rules/_HasTextMatchingRegexpOf.py
+src/Filters/Rules/__init__.py
+src/Filters/Rules/_IsPublic.py
+src/Filters/Rules/_MatchesEventFilterBase.py
+src/Filters/Rules/_MatchesFilterBase.py
+src/Filters/Rules/_MatchesSourceConfidenceBase.py
+src/Filters/Rules/_MatchesSourceFilterBase.py
+src/Filters/Rules/_RegExpIdBase.py
+src/Filters/Rules/Person/_HasTextMatchingRegexpOf.py
+src/Filters/Rules/Family/_MemberBase.py
+
+# gen
+src/gen/user.py
+
+# gen API
+src/gen/__init__.py
+src/gen/updatecallback.py
+
+# gen db API
+src/gen/db/__init__.py
+src/gen/db/backup.py
+src/gen/db/cursor.py
+src/gen/db/dbconst.py
+src/gen/db/read.py
+src/gen/db/write.py
+src/gen/ggettext.py
+
+# gen lib API
+src/gen/lib/__init__.py
+src/gen/lib/address.py
+src/gen/lib/addressbase.py
+src/gen/lib/attrbase.py
+src/gen/lib/attribute.py
+src/gen/lib/baseobj.py
+src/gen/lib/calendar.py
+src/gen/lib/childref.py
+src/gen/lib/datebase.py
+src/gen/lib/event.py
+src/gen/lib/eventref.py
+src/gen/lib/family.py
+src/gen/lib/genderstats.py
+src/gen/lib/ldsordbase.py
+src/gen/lib/location.py
+src/gen/lib/locationbase.py
+src/gen/lib/mediaobj.py
+src/gen/lib/mediabase.py
+src/gen/lib/mediaref.py
+src/gen/lib/name.py
+src/gen/lib/note.py
+src/gen/lib/notebase.py
+src/gen/lib/personref.py
+src/gen/lib/place.py
+src/gen/lib/placebase.py
+src/gen/lib/primaryobj.py
+src/gen/lib/privacybase.py
+src/gen/lib/privsrcnote.py
+src/gen/lib/refbase.py
+src/gen/lib/repo.py
+src/gen/lib/reporef.py
+src/gen/lib/researcher.py
+src/gen/lib/secondaryobj.py
+src/gen/lib/src.py
+src/gen/lib/srcbase.py
+src/gen/lib/srcnote.py
+src/gen/lib/srcref.py
+src/gen/lib/styledtext.py
+src/gen/lib/styledtexttagtype.py
+src/gen/lib/surname.py
+src/gen/lib/test/date_test.py
+src/gen/lib/url.py
+src/gen/lib/urlbase.py
+src/gen/lib/witness.py
+
+# gen mime API
+src/gen/mime/__init__.py
+src/gen/mime/_winmime.py
+
+# gen plugin API
+src/gen/plug/__init__.py
+src/gen/plug/_docgenplugin.py
+src/gen/plug/_export.py
+src/gen/plug/_import.py
+src/gen/plug/_plugin.py
+src/gen/plug/menu/_boolean.py
+src/gen/plug/menu/_color.py
+src/gen/plug/menu/_destination.py
+src/gen/plug/menu/_enumeratedlist.py
+src/gen/plug/menu/_family.py
+src/gen/plug/menu/_filter.py
+src/gen/plug/menu/__init__.py
+src/gen/plug/menu/_media.py
+src/gen/plug/menu/_menu.py
+src/gen/plug/menu/_note.py
+src/gen/plug/menu/_number.py
+src/gen/plug/menu/_option.py
+src/gen/plug/menu/_personlist.py
+src/gen/plug/menu/_person.py
+src/gen/plug/menu/_placelist.py
+src/gen/plug/menu/_string.py
+src/gen/plug/menu/_style.py
+src/gen/plug/menu/_surnamecolor.py
+src/gen/plug/menu/_text.py
+src/gen/plug/docgen/__init__.py
+src/gen/plug/docgen/basedoc.py
+src/gen/plug/docgen/drawdoc.py
+src/gen/plug/docgen/fontscale.py
+src/gen/plug/docgen/fontstyle.py
+src/gen/plug/docgen/graphdoc.py
+src/gen/plug/docgen/graphicstyle.py
+src/gen/plug/docgen/paperstyle.py
+src/gen/plug/docgen/paragraphstyle.py
+src/gen/plug/docgen/stylesheet.py
+src/gen/plug/docgen/tablestyle.py
+src/gen/plug/docgen/textdoc.py
+src/gen/plug/docbackend/__init__.py
+src/gen/plug/docbackend/cairobackend.py
+
+# gen proxy API
+src/gen/proxy/__init__.py
+src/gen/proxy/filter.py
+src/gen/proxy/living.py
+src/gen/proxy/proxybase.py
+
+# gen utils API
+src/gen/utils/__init__.py
+src/gen/utils/callback.py
+src/gen/utils/callman.py
+
+# GrampsLocale package
+src/GrampsLocale/_GrampsLocale.py
+
+# GrampsLogger package
+src/GrampsLogger/__init__.py
+src/GrampsLogger/_GtkHandler.py
+src/GrampsLogger/_RotateHandler.py
+
+# gui - GUI code
+src/gui/__init__.py
+src/gui/dbguielement.py
+src/gui/navigator.py
+src/gui/pluginmanager.py
+src/gui/user.py
+
+# gui/editors - the GUI editors package
+src/gui/editors/__init__.py
+src/gui/editors/editreference.py
+src/gui/editors/editsecondary.py
+
+# gui/editors/displaytabs - the GUI display tabs package
+src/gui/editors/displaytabs/__init__.py
+src/gui/editors/displaytabs/addressmodel.py
+src/gui/editors/displaytabs/attrmodel.py
+src/gui/editors/displaytabs/childmodel.py
+src/gui/editors/displaytabs/datamodel.py
+src/gui/editors/displaytabs/eventbackreflist.py
+src/gui/editors/displaytabs/familyattrembedlist.py
+src/gui/editors/displaytabs/grampstab.py
+src/gui/editors/displaytabs/groupembeddedlist.py
+src/gui/editors/displaytabs/ldsmodel.py
+src/gui/editors/displaytabs/locationmodel.py
+src/gui/editors/displaytabs/mediabackreflist.py
+src/gui/editors/displaytabs/notebackreflist.py
+src/gui/editors/displaytabs/personrefmodel.py
+src/gui/editors/displaytabs/placebackreflist.py
+src/gui/editors/displaytabs/reporefmodel.py
+src/gui/editors/displaytabs/sourcebackreflist.py
+src/gui/editors/displaytabs/sourcerefmodel.py
+src/gui/editors/displaytabs/surnamemodel.py
+src/gui/editors/displaytabs/webmodel.py
+
+# gui/selectors - the GUI selectors package
+src/gui/selectors/__init__.py
+src/gui/selectors/baseselector.py
+src/gui/selectors/selectorexceptions.py
+src/gui/selectors/selectorfactory.py
+
+# gui/views - the GUI views package
+src/gui/views/__init__.py
+
+# gui/views/treemodels - the GUI views package
+src/gui/views/treemodels/__init__.py
+src/gui/views/treemodels/eventmodel.py
+src/gui/views/treemodels/familymodel.py
+src/gui/views/treemodels/flatbasemodel.py
+src/gui/views/treemodels/repomodel.py
+src/gui/views/treemodels/sourcemodel.py
+
+# gui/widgets - the GUI widgets package
+src/gui/widgets/basicentry.py
+src/gui/widgets/menutoolbuttonaction.py
+src/gui/widgets/styledtextbuffer.py
+src/gui/widgets/undoablestyledbuffer.py
+
+# gui qt
+src/guiQML/grampsqml.py
+src/guiQML/viewmanager.py
+src/guiQML/views/centralview.py
+src/guiQML/views/personview.py
+src/guiQML/views/dbman.py
+
+# Merge package
+src/Merge/__init__.py
+src/Merge/test/merge_ref_test.py
+
+# plugins gpr directory
+src/plugins/sidebar/sidebar.gpr.py
+
+# plugins/docgen directory
+src/plugins/docgen/PdfDoc.py
+
+# plugins/lib directory
+src/plugins/lib/libformatting.py
+src/plugins/lib/libgrampsxml.py
+src/plugins/lib/libhtml.py
+src/plugins/lib/libhtmlbackend.py
+src/plugins/lib/libmapservice.py
+src/plugins/lib/libodfbackend.py
+src/plugins/lib/libsubstkeyword.py
+
+# plugins/import directory
+src/plugins/import/ImportSql.py
+
+# plugins/tool directory
+src/plugins/tool/CalculateEstimatedDates.py
+src/plugins/tool/DateParserDisplayTest.py
+src/plugins/tool/DumpGenderStats.py
+src/plugins/tool/PHPGedViewConnector.py
+src/plugins/tool/TestcaseGenerator.py
+src/plugins/tool/phpgedview.glade
+src/plugins/tool/toolsdebug.gpr.py
+
+# plugins/gramplet directory
+src/plugins/gramplet/DeepConnections.py
+src/plugins/gramplet/Gallery.py
+src/plugins/gramplet/HeadlineNewsGramplet.py
+src/plugins/gramplet/MediaPreview.py
+src/plugins/gramplet/MetadataViewer.py
+src/plugins/gramplet/NoteGramplet.py
+src/plugins/gramplet/PluginManagerGramplet.py
+src/plugins/gramplet/PopulateGramplet.py
+src/plugins/gramplet/PopulateGramplet.gpr.py
+src/plugins/gramplet/PythonGramplet.py
+
+# plugins/quickview directory
+src/plugins/quickview/AllNames.py
+src/plugins/quickview/Query.py
+
+# plugins/rel directory
+src/plugins/rel/rel_cs.py
+src/plugins/rel/rel_da.py
+src/plugins/rel/rel_de.py
+src/plugins/rel/rel_es.py
+src/plugins/rel/rel_fi.py
+src/plugins/rel/rel_fr.py
+src/plugins/rel/rel_hu.py
+src/plugins/rel/rel_it.py
+src/plugins/rel/rel_nl.py
+src/plugins/rel/rel_no.py
+src/plugins/rel/rel_pl.py
+src/plugins/rel/rel_pt.py
+src/plugins/rel/rel_ru.py
+src/plugins/rel/rel_sk.py
+src/plugins/rel/rel_sv.py
+
+# Simple API
+src/Simple/_SimpleDoc.py
+
+#
+#   web
+#
+src/webapp/grampsdb/views.py
+src/webapp/utils.py
+
+#
+#   Glade files
+#
+src/glade/gramps.glade
+src/plugins/export/exportcsv.glade
+src/plugins/export/exportftree.glade
+src/plugins/export/exportgeneweb.glade
+src/plugins/export/exportvcalendar.glade
+src/plugins/export/exportvcard.glade
+src/plugins/tool/check.glade

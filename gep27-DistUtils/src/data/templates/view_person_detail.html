@@ -1,0 +1,143 @@
+{% extends "view_page_detail.html" %}
+{% load my_tags %}
+
+{% block content %} 
+
+   <script type="text/javascript">
+     $(function(){
+
+            $('#tabs').tabs();
+      });
+   </script>
+
+<div class="content" id="IndividualDetail">
+
+{% include "detail_breadcrumb.html" %}
+
+<div id="summaryarea">
+<table class="infolist"> {% comment %} 5 cols {% endcomment %}
+<tbody>
+{% if user.is_authenticated %}
+  {% ifequal action "edit" %}
+    {% for error in personform.errors %}
+       Error in person: {{error}}<br>
+    {% endfor %}
+    {% for error in nameform.errors %}
+       Error in name: {{error}}<br>
+    {% endfor %}
+    <form method="post">{% csrf_token %}
+  {% endifequal %}
+{% endif %}
+
+<tr>
+ <td colspan="4">{{nameform|render_name:user}}</td>
+ <td class="ColumnAttribute" align="right">{{nameform.name_type.label}}:</td>
+ <td class="ColumnValue" id="data">{% render nameform.name_type user action %}</td>
+</tr>
+<tr>
+ <td class="ColumnAttribute" align="right">{{nameform.title.label}}:</td>
+ <td class="ColumnValue" id="data">{% render nameform.title user action %}</td>
+ <td class="ColumnAttribute" align="right">{{nameform.nick.label}}:</td>
+ <td class="ColumnValue" id="data">{% render nameform.nick user action %}</td>
+ <td class="ColumnAttribute" align="right">{{nameform.call.label}}:</td>
+ <td class="ColumnValue" id="data">{% render nameform.call user action %}</td>
+</tr>
+<tr>
+ <td class="ColumnAttribute" align="right">{{nameform.first_name.label}}:</td>
+ <td class="ColumnValue" id="data" colspan="4">{% render nameform.first_name user action %}</td>
+ <td class="ColumnValue" id="data">{% render nameform.suffix user action %}</td>
+</tr>
+<tr>
+ <td class="ColumnAttribute" align="right">{{nameform.surname.label}}:</td>
+ <td class="ColumnValue" id="data">{% render nameform.prefix user action %}</td>
+ <td class="ColumnValue" id="data" colspan="2">{% render nameform.surname user action %}</td>
+ <td class="ColumnAttribute" align="right">{{nameform.origin.label}}:</td>
+ <td class="ColumnValue" id="data" colspan="2">{% render nameform.origin user action %}</td>
+</tr>
+<tr>
+ <td class="ColumnAttribute" align="right">{{personform.gender_type.label}}:</td>
+ <td class="ColumnValue" id="data">{% render personform.gender_type user action %}</td>
+ <td class="ColumnAttribute" align="right">{{personform.gramps_id.label}}:</td>
+ <td class="ColumnValue" id="data">{% render personform.gramps_id user action %}</td>
+ <td class="ColumnAttribute" align="right">{{personform.tags.label}}:</td>
+ <td class="ColumnValue" id="data" rowspan="2">{% render personform.tags user action %}</td>
+</tr>
+<tr>
+ <td class="ColumnAttribute" align="right">{{personform.private.label}}:</td>
+ <td class="ColumnValue" id="data">{% render personform.private user action %}</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+<!-- Tabs -->
+
+<div class="ui-tabs ui-widget ui-widget-content ui-corner-all" id="tabs">
+  <ul class="ui-tabs-nav ui-helper-reset ui-helper-clearfix ui-widget-header ui-corner-all">
+    <li class="ui-state-default ui-corner-top ui-tabs-selected ui-state-active"><a href="#tab-events">Events</a></li>
+    <li class="ui-corner-top ui-state-default"><a href="#tab-names">Names</a></li>
+    <li class="ui-corner-top ui-state-default"><a href="#tab-citations">Citations</a></li>
+    <li class="ui-corner-top ui-state-default"><a href="#tab-attributes">Attributes</a></li>
+    <li class="ui-corner-top ui-state-default"><a href="#tab-addresses">Addresses</a></li>
+    <li class="ui-corner-top ui-state-default"><a href="#tab-notes">Notes</a></li>
+    <li class="ui-corner-top ui-state-default"><a href="#tab-gallery">Gallery</a></li>
+    <li class="ui-corner-top ui-state-default"><a href="#tab-internet">Internet</a></li>
+    <li class="ui-corner-top ui-state-default"><a href="#tab-association">Associations</a></li>
+    <li class="ui-corner-top ui-state-default"><a href="#tab-lds">LDS</a></li>
+    <li class="ui-corner-top ui-state-default"><a href="#tab-references">References</a></li>
+  </ul>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom" id="tab-events"> 
+    <!-- Events -->
+    {% event_table person user action "/person/%s/event" person.handle %}
+  </div>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tab-names">
+    {% name_table person user action "/person/%s/name" person.handle %}
+  </div>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tab-citations">
+    {% citation_table person user action "/person/%s/citation" person.handle %}
+  </div>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tab-attributes">
+    {% attribute_table person user action "/person/%s/attribute" person.handle %}
+  </div>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tab-addresses">
+    {% address_table person user action "/person/%s/address" person.handle %}
+  </div>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom
+	      ui-tabs-hide" id="tab-notes">
+    {% note_table person user action "/person/%s/note" person.handle %}
+  </div>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tab-gallery">
+    {% gallery_table person user action "/person/%s/gallery" person.handle %}
+  </div>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tab-internet">
+    {% internet_table person user action "/person/%s/internet" person.handle %}
+  </div>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tab-association">
+    {% association_table person user action "/person/%s/association" person.handle %}
+  </div>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tab-lds">
+    {% lds_table person user action "/person/%s/lds" person.handle %}
+  </div>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tab-references">
+    {% reference_table person user action "/person/%s/reference" person.handle %}
+  </div>
+</div>
+
+{% if user.is_authenticated %}
+  {% ifequal action "edit" %}
+    {% make_button "Back to Person" "/person/%s" person.handle %}
+    <input type="hidden" name="action" value="save"/>
+    <input type="submit" value="Submit"/>
+    </form>
+  {% else %}
+{% make_button "Back to People" "/person/" %}
+{% make_button "Add Person" "/person/add" %}
+{% make_button "Edit Person" "/person/%s/edit" person.handle %}
+{% make_button "Delete Person" "/person/%s/delete" person.handle %}
+  {% endifequal %}
+{% else %}
+{% endif %}
+
+{% endblock %}
+
