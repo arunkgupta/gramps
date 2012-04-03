@@ -31,8 +31,6 @@ dist_pkgdata_DATA = \
         somerights20.gif\
         splash.jpg\
 	stock_link.png\
-	stock_new_html.png\
-	stock_notes.png\
 	Web_Gender_Female.png\
 	Web_Gender_Male.png\
 	Web_Mainz_Bkgd.png\
@@ -40,9 +38,4 @@ dist_pkgdata_DATA = \
 	Web_Mainz_MidLight.png\
 	Web_Mainz_Mid.png
 
-EXTRA_DIST = gramps.svg \
-	gramps-geo-altmap.svg\
-	gramps-geo-birth.svg\
-	gramps-geo-death.svg\
-	gramps-geo-mainmap.svg\
-	gramps-geo-marriage.svg
+EXTRA_DIST = gramps.svg

@@ -1,28 +1,31 @@
 # This is the top level Makefile for Gramps
 # $Id$
 
-SUBDIRS = data example gramps locale m4
+SUBDIRS = m4 po src data example
 
 EXTRA_DIST = \
-	AUTHORS COPYING FAQ LICENSE NEWS README RELEASE_NOTES TODO \
-	.intltool-extract .intltool-merge .intltool-update
+	config.rpath autogen.sh \
+	FAQ COPYING \
+	intltool-extract.in intltool-merge.in intltool-update.in
 
-bin_SCRIPTS = gramps.sh
+bin_SCRIPTS = gramps
 
-dist_pkgdata_DATA = AUTHORS COPYING FAQ LICENSE README
+dist_pkgdata_DATA = COPYING
 
 distuninstallcheck_listfiles = find . -type -f -print | grep -E -v '/(globs|magic|XMLnamespaces)'
 
-DISTCLEANFILES = gnome-doc-utils.make
+DISTCLEANFILES = intltool-extract intltool-merge intltool-update \
+	gnome-doc-utils.make
 
 gramps: gramps.sh
+	cp gramps.sh gramps
 
 .PHONY: pycheck trans
 
 pycheck:
-	(cd gramps; make pycheck) 
+	(cd src; make pycheck) 
 trans:
-	(cd gramps; make trans) 
+	(cd src; make trans) 
 
 distuninstallcheck:
 	@:
