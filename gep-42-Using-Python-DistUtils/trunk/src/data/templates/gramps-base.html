@@ -1,0 +1,92 @@
+{% load my_tags %}
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head>
+    <title>{% block title %}Gramps-Connect{% endblock %}</title>
+    {% block meta %}
+    <meta http-equiv="content-type" content="text/html;charset=UTF-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+    <meta name="generator" content="Gramps 3.2.0-0.SVN12859M http://gramps-project.org/" />
+    <meta name="author" content="" />
+    {% endblock %}
+    <link href="/images/favicon2.ico" type="image/x-icon" rel="shortcut icon" />
+    {% block css %}
+    <link media="screen" href="/styles/css/behaviour.css" type="text/css" rel="stylesheet" />
+    <link media="screen" href="/styles/css/{{css_theme}}" type="text/css" rel="stylesheet" />
+    <link media="print" href="/styles/css/Web_Print-Default.css" type="text/css" rel="stylesheet" />
+    <link type="text/css" href="/styles/css/swanky-purse/jquery-ui-1.7.2.custom.css" rel="stylesheet" />	
+    <script type="text/javascript" src="/styles/js/jquery-1.3.2.min.js"></script>
+    <script type="text/javascript" src="/styles/js/jquery-ui-1.7.2.custom.min.js"></script>
+    {% endblock %}
+</head>
+<body onload="document.getElementById('get_focus').focus();">
+   <div id="header">
+     <h1 id="SiteTitle">{% block heading %}Gramps-Connect{% endblock %}</h1>
+   </div>
+   <div id="navigation">
+    {% block navigation %}
+    <ul>
+    <li {{ tview|currentSection:"home" }}><a href="/">Home</a></li>
+    {% for title in menu %}
+         {# (<Nice name>, /<path>/, <Model> | None, Need authentication ) #}
+         {% if title.3 %} 
+	   {% if user.is_authenticated %}
+                <li {{tview|currentSection:title.1 }}>
+	        {% if title.1 %}
+                   <a href="/{{title.1}}/">{{title.0}}</a></li>
+	        {% else %}
+                   <a href="/">{{title.0}}</a></li>
+	        {% endif %}
+	   {% else %}
+                {# don't show #}
+           {% endif %}
+        {% else %}
+                <li {{tview|currentSection:title.1 }}>
+	        {% if title.1 %}
+                   <a href="/{{title.1}}/">{{title.0}}</a></li>
+	        {% else %}
+                   <a href="/">{{title.0}}</a></li>
+	        {% endif %}
+	{% endif %}
+    {% endfor %}
+    {% if user.is_authenticated %}
+	 {% if next %}
+         <li><a href="/logout/?next={{next}}">Logout</a></li>
+	 {% else %}
+         <li><a href="/logout">Logout</a></li>
+	 {% endif %}         
+       {% if user.is_superuser %}
+         <li><a href="/admin">Admin</a></li>
+       {% endif %}
+    {% else %}
+	 {% if next %}
+         <li><a href="/login/?next={{next}}">Login</a></li>
+         {% else %}
+         <li><a href="/login/">Login</a></li>
+	 {% endif %}
+  {% endif %}
+    </ul>
+    {% endblock %}
+   </div>
+    <div class="grampsweb">
+     {% for message in messages %}
+        <font color="red">{{message}}</font>
+     {% endfor %}
+    {% block content %}
+    {% endblock %}
+   <div class="content">
+    </div>
+   </div>
+   <div id="footer">
+    {% block footer %}
+    <p id="createdate">
+      Gramps Connect, version {{gramps_version}}.
+    </p>
+    <p id="copyright">&copy; 2009-2011 <a href="http://www.gramps-project.org/">www.gramps-project.org</a> 
+    </p>
+    {% endblock %}
+   </div>
+</body>
+</html>
