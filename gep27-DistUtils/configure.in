@@ -32,7 +32,7 @@ AM_PACKAGER
 AC_SUBST(RELEASE)
 AC_SUBST(VERSIONSTRING)
 
-dnl Add the languages which your application suplocalerts here.
+dnl Add the languages which your application supports here.
 ALL_LINGUAS="hu zh_CN cs da de es fr it nb nl nn pl pt_BR pt_PT ru sv fi lt sk bg hr sl ca sq he uk ja vi"
 GETTEXT_PACKAGE=gramps
 AC_SUBST(GETTEXT_PACKAGE)
@@ -47,9 +47,9 @@ AC_PATH_PROG(BINSH, sh)
 
 pygtk_require="
 try:
-    imlocalert pygtk
+    import pygtk
     pygtk.require('2.0')
-except ImlocalertError:
+except ImportError:
     pass
 
 def out(line):
@@ -62,14 +62,14 @@ AC_MSG_CHECKING(Python bindings for gtk 2.10 (pygtk2>=2.10.0))
 cat > conftest.py <<EOF
 $pygtk_require
 try:
-    imlocalert gobject
+    import gobject
     version = gobject.pygtk_version
     if version >= (2,10,0):
         print_version = '.'.join([[str(i) for i in version]])
         out(print_version)
     else:
         out("NO")
-except ImlocalertError:
+except ImportError:
     out("NO")
 except AttributeError:
     out("NO")
@@ -86,81 +86,81 @@ fi
 AC_MSG_RESULT($has_pygtk)
 
 AC_CONFIG_FILES([
-locale/Makefile.in
+po/Makefile.in
 m4/Makefile
 Makefile
 gramps.sh
-gramps/const.py
-gramps/Makefile
-gramps/cli/Makefile
-gramps/cli/plug/Makefile
-gramps/gen/Makefile
-gramps/gen/db/Makefile
-gramps/gen/display/Makefile
-gramps/gen/lib/Makefile
-gramps/gen/mime/Makefile
-gramps/gen/plug/Makefile
-gramps/gen/plug/docbackend/Makefile
-gramps/gen/plug/docgen/Makefile
-gramps/gen/plug/menu/Makefile
-gramps/gen/plug/relocalert/Makefile
-gramps/gen/proxy/Makefile
-gramps/gen/utils/Makefile
-gramps/gui/Makefile
-gramps/gui/editors/Makefile
-gramps/gui/editors/displaytabs/Makefile
-gramps/gui/plug/Makefile
-gramps/gui/plug/relocalert/Makefile
-gramps/gui/selectors/Makefile
-gramps/gui/views/Makefile
-gramps/gui/views/treemodels/Makefile
-gramps/gui/widgets/Makefile
-gramps/GrampsLogger/Makefile
-gramps/Merge/Makefile
-gramps/docgen/Makefile
-gramps/Filters/Makefile
-gramps/Filters/Rules/Makefile
-gramps/Filters/Rules/Person/Makefile
-gramps/Filters/Rules/Family/Makefile
-gramps/Filters/Rules/Event/Makefile
-gramps/Filters/Rules/Source/Makefile
-gramps/Filters/Rules/Place/Makefile
-gramps/Filters/Rules/MediaObject/Makefile
-gramps/Filters/Rules/Relocalesitory/Makefile
-gramps/Filters/Rules/Note/Makefile
-gramps/Filters/Rules/Citation/Makefile
-gramps/Filters/SideBar/Makefile
-gramps/Simple/Makefile
-gramps/GrampsLocale/Makefile
-gramps/plugins/Makefile
-gramps/plugins/docgen/Makefile
-gramps/plugins/drawrelocalert/Makefile
-gramps/plugins/exlocalert/Makefile
-gramps/plugins/gramplet/Makefile
-gramps/plugins/graph/Makefile
-gramps/plugins/imlocalert/Makefile
-gramps/plugins/lib/Makefile
-gramps/plugins/lib/maps/Makefile
-gramps/plugins/mapservices/Makefile
-gramps/plugins/quickview/Makefile
-gramps/plugins/rel/Makefile
-gramps/plugins/sidebar/Makefile
-gramps/plugins/textrelocalert/Makefile
-gramps/plugins/tool/Makefile
-gramps/plugins/view/Makefile
-gramps/plugins/webrelocalert/Makefile
-gramps/plugins/webstuff/Makefile
-gramps/plugins/webstuff/css/Makefile
-gramps/plugins/webstuff/images/Makefile
-gramps/plugins/webstuff/javascript/Makefile
-gramps/DateHandler/Makefile
-gramps/data/Makefile
-gramps/glade/Makefile
-gramps/images/Makefile
-gramps/images/16x16/Makefile
-gramps/images/22x22/Makefile
-gramps/images/48x48/Makefile
-gramps/images/scalable/Makefile
+src/const.py
+src/Makefile
+src/cli/Makefile
+src/cli/plug/Makefile
+src/gen/Makefile
+src/gen/db/Makefile
+src/gen/display/Makefile
+src/gen/lib/Makefile
+src/gen/mime/Makefile
+src/gen/plug/Makefile
+src/gen/plug/docbackend/Makefile
+src/gen/plug/docgen/Makefile
+src/gen/plug/menu/Makefile
+src/gen/plug/report/Makefile
+src/gen/proxy/Makefile
+src/gen/utils/Makefile
+src/gui/Makefile
+src/gui/editors/Makefile
+src/gui/editors/displaytabs/Makefile
+src/gui/plug/Makefile
+src/gui/plug/report/Makefile
+src/gui/selectors/Makefile
+src/gui/views/Makefile
+src/gui/views/treemodels/Makefile
+src/gui/widgets/Makefile
+src/GrampsLogger/Makefile
+src/Merge/Makefile
+src/docgen/Makefile
+src/Filters/Makefile
+src/Filters/Rules/Makefile
+src/Filters/Rules/Person/Makefile
+src/Filters/Rules/Family/Makefile
+src/Filters/Rules/Event/Makefile
+src/Filters/Rules/Source/Makefile
+src/Filters/Rules/Place/Makefile
+src/Filters/Rules/MediaObject/Makefile
+src/Filters/Rules/Repository/Makefile
+src/Filters/Rules/Note/Makefile
+src/Filters/Rules/Citation/Makefile
+src/Filters/SideBar/Makefile
+src/Simple/Makefile
+src/GrampsLocale/Makefile
+src/plugins/Makefile
+src/plugins/docgen/Makefile
+src/plugins/drawreport/Makefile
+src/plugins/export/Makefile
+src/plugins/gramplet/Makefile
+src/plugins/graph/Makefile
+src/plugins/import/Makefile
+src/plugins/lib/Makefile
+src/plugins/lib/maps/Makefile
+src/plugins/mapservices/Makefile
+src/plugins/quickview/Makefile
+src/plugins/rel/Makefile
+src/plugins/sidebar/Makefile
+src/plugins/textreport/Makefile
+src/plugins/tool/Makefile
+src/plugins/view/Makefile
+src/plugins/webreport/Makefile
+src/plugins/webstuff/Makefile
+src/plugins/webstuff/css/Makefile
+src/plugins/webstuff/images/Makefile
+src/plugins/webstuff/javascript/Makefile
+src/DateHandler/Makefile
+src/data/Makefile
+src/glade/Makefile
+src/images/Makefile
+src/images/16x16/Makefile
+src/images/22x22/Makefile
+src/images/48x48/Makefile
+src/images/scalable/Makefile
 data/Makefile
 data/man/Makefile
 data/man/cs/Makefile
