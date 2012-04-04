@@ -1,4 +1,32 @@
-# determine if we have Distutils2 installed on this computer?
+
+# -*- coding: utf-8 -*-
+#!/usr/bin/env python
+#
+# Gramps - a GTK+/GNOME based genealogy program
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, 
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# testing a setup.py for Gramps
+#
+# for linux install: "python setup.py install --prefix=/usr -f"
+# for windows exe creation: "python setup.py py2exe"
+#
+# $ID$
+#
+import sys
+# determine if we have Distutils2 installed or not and exit if not?
 DISTUTILS2_URL = 'http://pypi.python.org/pypi/Distutils2'
 try:
     import distutils2
@@ -7,24 +35,27 @@ except:
              'You may download it from here: \n %s'
              % DISTUTILS2_URL)
 
-# determine if this computer has Python-2.6.x or later installed or not?
+# determine if we have Python 2.6 or later installed or not and exit if not?
 if sys.version < '2.6':
     sys.exit('Error: Python-2.6 or newer is required. Current version: \n %s'
              % sys.version)
 
-import os
+#------------------------------------------------
+#        Python modules
+#------------------------------------------------
+import os, sysconfig
 import re
 import imp
-import sys
-import glob
+import glob, shutil, posixpath
 import codecs
 from textwrap import dedent
-from ConfigParser import RawConfigParser
 
+#------------------------------------------------
+#        Distutils2 modules
+#------------------------------------------------
 from distutils2 import logger
 # importing this with an underscore as it should be replaced by the
 # dict form or another structures for all purposes
-from distutils2.version import is_valid_version
 from distutils2._backport import shutil, sysconfig
 from distutils2._backport.misc import any, detect_encoding
 try:
@@ -302,24 +333,45 @@ def _write_cfg(self):
             return
         shutil.move(_FILENAME, '%s.old' % _FILENAME)
 
-    fp = codecs.open(_FILENAME, 'w', encoding='utf-8')
-    try:
-        fp.write(u'[metadata]\n')
-        # TODO use metadata module instead of hard-coding field-specific
-        # behavior here
+    fp = codecs.open(_FILENAME, 'w', encoding = 'utf-8')
 
-        # simple string entries
-        for name in ('name', 'version', 'summary', 'download_url'):
-            fp.write(u'%s = %s\n' % (name, self.data.get(name, 'UNKNOWN')))
+    opts_to_args = {
+        'metadata': (
+            ('name',             'name', None),
+            ('version',          'version', None),
+            ('author',           'author', None),
+            ('author-email',     'author_email', None),
+            ('maintainer',       'maintainer', None),
+            ('maintainer-email', 'maintainer_email', None),
+            ('home-page',        'url', None),
+            ('summary',          'description', None),
+            ('description',      'long_description', None),
+            ('download-url',     'download_url', None),
+            ('classifier',       'classifiers', split_multiline),
+            ('platform',         'platforms', split_multiline),
+            ('license',          'license', None),
+            ('keywords',         'keywords', split_elements),
+            ),
+        'files': (
+            ('packages',         'packages', split_files),
+            ('modules',          'py_modules', split_files),
+            ('scripts',          'scripts', split_files),
+            ('package_data',     'package_data', split_files),
+            ),
+        }
+    for section in opts_to_args:
+        for optname, argname, xform in opts_to_args[section]:
+            if config.has_option(section, optname):
+                value = config.get(section, optname)
+                if xform:
+                    value = xform(value)
+        try:
+            fp.write(u'[%s]\n' % section)
 
-        # optional string entries
-        if 'keywords' in self.data and self.data['keywords']:
-            # XXX shoud use comma to separate, not space
-            fp.write(u'keywords = %s\n' % ' '.join(self.data['keywords']))
-        for name in ('home_page', 'author', 'author_email',
-                     'maintainer', 'maintainer_email', 'description-file'):
-            if name in self.data and self.data[name]:
-                fp.write(u'%s = %s\n' % (name.decode('utf-8'),
+            for optname, xform in opt_list:
+                if xform:
+
+
                                              self.data[name].decode('utf-8')))
         if 'description' in self.data:
             fp.write(
@@ -364,6 +416,54 @@ def _write_cfg(self):
 
     os.chmod(_FILENAME, 0644)
     logger.info('Wrote "%s".' % _FILENAME)
+
+def split_multiline(value):
+    return [element for element in (line.strip() for line in value.split('\n'))
+            if element]
+
+def split_elements(value):
+    return [v.strip() for v in value.split(',')]
+
+def split_files(value):
+    return [str(v) for v in split_multiline(value)]
+
+def cfg_to_args(path='setup.cfg'):
+    config = RawConfigParser()
+    config.optionxform = lambda x: x.lower().replace('_', '-')
+    fp = codecs.open(path, encoding='utf-8')
+    try:
+        config.readfp(fp)
+    finally:
+        fp.close()
+    kwargs = {}
+    for section in opts_to_args:
+        for optname, argname, xform in opts_to_args[section]:
+            if config.has_option(section, optname):
+                value = config.get(section, optname)
+                if xform:
+                    value = xform(value)
+                kwargs[argname] = value
+    # Handle `description-file`
+    if ('long_description' not in kwargs and
+            config.has_option('metadata', 'description-file')):
+        filenames = config.get('metadata', 'description-file')
+        for filename in split_multiline(filenames):
+            descriptions = []
+            fp = open(filename)
+            try:
+                descriptions.append(fp.read())
+            finally:
+                fp.close()
+        kwargs['long_description'] = '\n\n'.join(descriptions)
+    # Handle `package_data`
+    if 'package_data' in kwargs:
+        package_data = {}
+        for data in kwargs['package_data']:
+            key, value = data.split('=', 1)
+            globs = package_data.setdefault(key.strip(), [])
+            globs.extend(split_elements(value))
+        kwargs['package_data'] = package_data
+    return kwargs
 
 [build_ext]
 # needed so that tests work without mucking with sys.path
