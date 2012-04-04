@@ -1,6 +1,3 @@
-import os, sys, glob
-import codecs
-
 # determine if we have Distutils2 installed on this computer?
 DISTUTILS2_URL = 'http://pypi.python.org/pypi/Distutils2'
 try:
@@ -14,6 +11,28 @@ except:
 if sys.version < '2.6':
     sys.exit('Error: Python-2.6 or newer is required. Current version: \n %s'
              % sys.version)
+
+import os
+import re
+import imp
+import sys
+import glob
+import codecs
+from textwrap import dedent
+from ConfigParser import RawConfigParser
+
+from distutils2 import logger
+# importing this with an underscore as it should be replaced by the
+# dict form or another structures for all purposes
+from distutils2.version import is_valid_version
+from distutils2._backport import shutil, sysconfig
+from distutils2._backport.misc import any, detect_encoding
+try:
+    from hashlib import md5
+except ImportError:
+    from distutils2._backport.hashlib import md5
+
+_FILENAME = 'setup.cfg'
 
 # if the setup.cfg file already exists, delete it?
 _existing_file = os.path.join(os.getcwd(), 'setup.cfg')
@@ -100,7 +119,18 @@ CLASSIFIERS = '''
     Topic :: Scientific/Engineering :: Visualization
     Topic :: Sociology :: Genealogy
 '''
-CLASSIFIERS = [x for x in CLASSIFIERS.split('\n')]
+
+def _build_classifiers_dict(classifiers):
+    d = {}
+    for key in classifiers:
+        subdict = d
+        for subkey in key.split(' :: '):
+            if subkey not in subdict:
+                subdict[subkey] = {}
+            subdict = subdict[subkey]
+    return d
+
+CLASSIFIERS = _build_classifiers_dict(CLASSIFIERS)
 
 [files]
 package_dir = {'gramps' : 'gramps'},
@@ -261,6 +291,79 @@ resources = '''
     README = {data}/share/doc/gramps
     TODO = {data}/share/doc/gramps
 '''
+
+def _write_cfg(self):
+    if os.path.exists(_FILENAME):
+        if os.path.exists('%s.old' % _FILENAME):
+            message = ("ERROR: %(name)s.old backup exists, please check "
+                       "that current %(name)s is correct and remove "
+                       "%(name)s.old" % {'name': _FILENAME})
+            logger.error(message)
+            return
+        shutil.move(_FILENAME, '%s.old' % _FILENAME)
+
+    fp = codecs.open(_FILENAME, 'w', encoding='utf-8')
+    try:
+        fp.write(u'[metadata]\n')
+        # TODO use metadata module instead of hard-coding field-specific
+        # behavior here
+
+        # simple string entries
+        for name in ('name', 'version', 'summary', 'download_url'):
+            fp.write(u'%s = %s\n' % (name, self.data.get(name, 'UNKNOWN')))
+
+        # optional string entries
+        if 'keywords' in self.data and self.data['keywords']:
+            # XXX shoud use comma to separate, not space
+            fp.write(u'keywords = %s\n' % ' '.join(self.data['keywords']))
+        for name in ('home_page', 'author', 'author_email',
+                     'maintainer', 'maintainer_email', 'description-file'):
+            if name in self.data and self.data[name]:
+                fp.write(u'%s = %s\n' % (name.decode('utf-8'),
+                                             self.data[name].decode('utf-8')))
+        if 'description' in self.data:
+            fp.write(
+                u'description = %s\n'
+                % u'\n       |'.join(self.data['description'].split('\n')))
+
+        # multiple use string entries
+        for name in ('platform', 'supported-platform', 'classifier',
+                     'requires-dist', 'provides-dist', 'obsoletes-dist',
+                     'requires-external'):
+            if not(name in self.data and self.data[name]):
+                continue
+            fp.write(u'%s = ' % name)
+            fp.write(u''.join('    %s\n' % val
+                             for val in self.data[name]).lstrip())
+
+        fp.write(u'\n[files]\n')
+
+        for name in ('packages', 'modules', 'scripts', 'extra_files'):
+            if not(name in self.data and self.data[name]):
+                continue
+            fp.write(u'%s = %s\n'
+                     % (name, u'\n    '.join(self.data[name]).strip()))
+
+        if self.data.get('package_data'):
+            fp.write(u'package_data =\n')
+            for pkg, spec in sorted(self.data['package_data'].items()):
+                # put one spec per line, indented under the package name
+                indent = u' ' * (len(pkg) + 7)
+                spec = (u'\n' + indent).join(spec)
+                fp.write(u'    %s = %s\n' % (pkg, spec))
+            fp.write(u'\n')
+
+        if self.data.get('resources'):
+            fp.write(u'resources =\n')
+            for src, dest in self.data['resources']:
+                fp.write(u'    %s = %s\n' % (src, dest))
+            fp.write(u'\n')
+
+    finally:
+        fp.close()
+
+    os.chmod(_FILENAME, 0644)
+    logger.info('Wrote "%s".' % _FILENAME)
 
 [build_ext]
 # needed so that tests work without mucking with sys.path
