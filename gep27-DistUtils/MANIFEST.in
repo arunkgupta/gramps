@@ -1,0 +1,30 @@
+include acinclude.m4
+include AUTHORS
+include autogen.sh
+include config.rpath
+include configure.in
+include COPYING
+include FAQ
+include gramps-autogen.sh
+include gramps.sh.in
+include .intltool-extract
+include .intltool-merge
+include .intltool-update
+include INSTALL
+include LICENSE
+include log
+include Makefile.am
+include MANIFEST.in
+include NEWS
+include RELEASE_NOTES
+include TODO
+
+# README and setup.py are automatically added by default
+
+recursive-include autom4te.cache *
+recursive-include docs *
+recursive-include example *
+recursive-include help *
+recursive-include m4 *
+recursive-include po *
+recursive-include src *
