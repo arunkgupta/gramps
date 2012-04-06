@@ -1,0 +1,23 @@
+include AUTHORS
+include COPYING
+include FAQ
+include gramps.sh.in
+include INSTALL
+include LICENSE
+include log
+include MANIFEST.in
+include NEWS
+include RELEASE_NOTES
+include TODO
+include TestPlan.txt
+
+# README and setup.py are automatically added by default
+
+recursive-include data *
+recursive-include docs *
+recursive-include example *
+recursive-include gramps *
+recursive-include help *
+recursive-include po *
+recursive-include test *
+recursive-include windows *
