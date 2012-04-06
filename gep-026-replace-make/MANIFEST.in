@@ -21,3 +21,5 @@ recursive-include help *
 recursive-include po *
 recursive-include test *
 recursive-include windows *
+
+global-exclude Makefile.am
