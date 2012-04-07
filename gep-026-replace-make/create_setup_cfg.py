@@ -1,30 +1,59 @@
+# -*- coding: utf-8 -*-
+#!/usr/bin/env python
+
+#
+# Gramps - a GTK+/GNOME based genealogy program
+#
+# Copyright (C) 2009-2011 Rob G. Healey <robhealey1@gmail.com>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+# $Id$
+
+# ***********************************************
+# Python Modules
+# ***********************************************
 import os, sys, sysconfig
 import imp
 import glob, shutil
 import codecs
 
+#------------------------------------------------
+#        Distutils/ Distutils2 modules
+#------------------------------------------------
 from distutils2 import logger
 
+const_file_in = os.path.join('gramps', 'const.py.in')
+const_file = os.path.join('gramps', 'const.py')
+if (os.path.exists(const_file_in) and not os.path.exists(const_file)):
+    shutil.copy(const_file_in, const_file)
+from gramps.const import VERSION as GRAMPS_VERSION
+
+#------------------------------------------------
+#        Constants
+#------------------------------------------------
 _FILENAME = 'setup.cfg'
 
-platform = Linux
-    FreeBSD
-    MacOS
-    Windows
-requires-dist = pygtk
-    pycairo
-    pygobject
-Keywords = Genealogy
-    Pedigree
-    Ancestry
-    Birth
-    Marriage
-    Death
-    Family
-    Family-tree
-    GEDCOM 
+platform = ('Linux', 'FreeBSD', 'Mac OSX', 'Windows')
 
-classifier =
+requires = ('pygtk2', 'pycairo', 'pygobject2')
+
+Keywords = ('Genealogy', 'Pedigree', 'Ancestry', 'Birth', 'Marriage',
+            'Death', 'Family', 'Family-tree', 'GEDCOM')
+
+classifier = '''
     Development Status :: 5 - Production/Stable
     Environment :: Console
     Environment :: MacOS X
@@ -81,83 +110,104 @@ classifier =
     Topic :: Other/Nonlisted Topic
     Topic :: Scientific/Engineering :: Visualization
     Topic :: Sociology :: Genealogy
+'''
 
-packages = gramps
-    gramps.cli
-    gramps.data
-    gramps.gen
-    gramps.glade
-    gramps.gui
-    gramps.images
-    gramps.plugins
-    gramps.webapp
+packages = ['gramps', 'gramps.cli', 'gramps.data', 'gramps.gen', 'gramps.glade',
+            'gramps.gui', 'gramps.images', 'gramps.plugins', 'gramps.webapp']
+package_data = dict((section, list()) for section in packages if section not in ['gramps.images', 'gramps.plugins'])
+extra_files = dict(section, list()) for section in packages if section in ['gramps.images', 'gramps.plugins'])
 
-package_data =
-    gramps = *.py
-             DateHandler/*.py
-             docgen/*.py
-             Filters/*.py
-             Filters/*/*.py
-             Filters/Rules/*/*.py
-             GrampsLocale/*.py
-             GrampsLogger/*.py
-             Merge/*.py
-             Simple/*.py
-    gramps.cli = *.py
-                 plug/*.py
-    gramps.data = *.txt
-                  *.xml
-    gramps.gen = *.py
-                 db/*.py
-                 display/*.py
-                 lib/*.py
-                 mime/*.py
-                 plug/*.py
-                 plug/*/*.py
-                 proxy/*.py
-                 utils/*.py
-    gramps.glade = *.glade
-                   glade/catalog/*.py
-                   catalog/*.xml
-    gramps.gui = *.py
-                 editors/*.py
-                 editors/*/*.py
-                 plug/*.py
-                 plug/*/*.py
-                 selectors/*.py
-                 views/*.py
-                 views/treemodels/*.py
-                 widgets/*.py
-    gramps.images = */*.png
-                    */*.svg
-                    *.png
-                    *.jpg
-                    *.ico
-                    *.gif
-    gramps.plugins = *.py
-                     */*.py
-                     lib/*.xml
-                     lib/maps/*.py
-                     webstuff/css/*.css
-                     webstuff/images/*.svg
-                     webstuff/images/*.png
-                     webstuff/images/*.gif
-                     *.glade
-                     */*.glade
-    gramps.webapp = *.py
-                    webstuff/css/*.css
-                    webstuff/images/*.svg
-                    webstuff/images/*.png
-                    webstuff/images/*.gif
-                    grampsdb/fixtures/initial_data.json
-                    */*.py
-                    sqlite.db
-                    grampsdb/*.py
-                    fixtures/initial_data.json
-                    templatetags/*py
+all_files = {
+    'gramps' : [
+        '*.py',
+        'DateHandler/*.py',
+        'docgen/*.py',
+        'Filters/*.py',
+        'Filters/*/*.py',
+        'Filters/Rules/*/*.py',
+        'GrampsLocale/*.py',
+        'GrampsLogger/*.py',
+        'Merge/*.py',
+        'Simple/*.py',
+        'TestPlan.txt',
+        'test/*.py'],
+    'gramps.cli': [
+        '*.py',
+        'plug/*.py'],
+    'gramps.data': [
+        '*.txt',
+        '*.xml'],
+    'gramps.gen': [
+        '*.py',
+        'db/*.py',
+        'display/*.py',
+        'lib/*.py',
+        'mime/*.py',
+        'plug/*.py',
+        'plug/*/*.py',
+        'proxy/*.py',
+        'test/*.py',
+        'utils/*.py'],
+    'gramps.glade': [
+        '*.glade',
+        'glade/catalog/*.py',
+        'catalog/*.xml'],
+    'gramps.gui': [
+        '*.py',
+        'editors/*.py',
+        'editors/*/*.py',
+        'plug/*.py',
+        'plug/*/*.py',
+        'selectors/*.py',
+        'views/*.py',
+        'views/treemodels/*.py',
+        'widgets/*.py'],
+    'gramps.images': [
+        '*/*.png',
+        '*/*.svg',
+        '*.png',
+        '*.jpg',
+        '*.ico',
+        '*.gif'],
+    'gramps.plugins': [
+        '*.py',
+        '*/*.py',
+        'lib/*.xml',
+        'lib/maps/*.py',
+        'webstuff/css/*.css',
+        'webstuff/images/*.svg',
+        'webstuff/images/*.png',
+        'webstuff/images/*.gif',            
+        '*.glade',
+        '*/*.glade'],
+    'gramps.webapp': [
+        '*.py',
+        'webstuff/css/*.css',
+        'webstuff/images/*.svg',
+        'webstuff/images/*.png',
+        'webstuff/images/*.gif',
+        'grampsdb/fixtures/initial_data.json',
+        '*/*.py',
+        'sqlite.db',
+        'grampsdb/*.py',
+        'fixtures/initial_data.json',
+        'templatetags/*py'],
+    }
 
-resources =
-    data/ gramps.desktop = {data}/share/applications
+for section in all_files:
+    directory = section
+    if '.' in directory:
+        directory = '/'.join(directory.split('.'))
+
+    tmp_filenames = []
+    for file_match in all_files[section]:
+        tmp_filenames.append((glob.glob(os.path.join(directory, file_match))))
+        if section in package_data:
+            package_data[section] = tmp_filenames
+        else:
+            extra_files[section] = tmp_filenames
+
+resources = '''data/ gramps.desktop = {data}/share/applications
     gramps/images/ gramps.png = {data}/share/pixmaps
     data/ gramps.xml = {data}/share/mime/packages
     data/ gramps.mime = {data}/share/mime-info
@@ -184,22 +234,18 @@ resources =
     NEWS = {data}/share/doc/gramps
     README = {data}/share/doc/gramps
     TODO = {data}/share/doc/gramps
+'''
 
-const_file_in = os.path.join('gramps', 'const.py.in')
-const_file = os.path.join('gramps', 'const.py')
-if (os.path.exists(const_file_in) and not os.path.exists(const_file)):
-    shutil.copy(const_file_in, const_file)
-from gramps.const import VERSION as GRAMPS_VERSION
-
-data_opts = {'name': '',
+data_opts = {'name': 'gramps',
              'version': GRAMPS_VERSION,
-             'author' : '',
-             'author_email' : '',
-             'maintainer' : '',
-             'maintainer_email' : '',
-             'classifier': self.classifiers,
-             'packages': [],
-             'modules': [],
+             'author' : 'Donald N. Allingham',
+             'author_email' : 'UNKNOWN',
+             'maintainer' : 'Gramps Development Team',
+             'maintainer_email' : 'benny.malengier@gmail.com',
+             'classifier': classifiers,
+             'packages': packages,
+             'package_data' : package_data,
+             'modules': ,
              'platform': [],
              'resources': [],
              'extra_files': [],
@@ -207,18 +253,14 @@ data_opts = {'name': '',
          }
 
 
-    def _write_cfg(self):
-        if os.path.exists(_FILENAME):
-            if os.path.exists('%s.old' % _FILENAME):
-                message = ("ERROR: %(name)s.old backup exists, please check "
-                           "that current %(name)s is correct and remove "
-                           "%(name)s.old" % {'name': _FILENAME})
-                logger.error(message)
-                return
-            shutil.move(_FILENAME, '%s.old' % _FILENAME)
+def _write_cfg(self):
+    if os.path.exists(_FILENAME):
+        if os.path.exists('%s.old' % _FILENAME):
+            message = ("ERROR: %(name)s.old backup exists, please check "
+                       "that current %(name)s is correct and remove "
+                       "%(name)s.old" % {'name': _FILENAME})
+            logger.error(message)
+            return
+        shutil.move(_FILENAME, '%s.old' % _FILENAME)
 
-        fp = codecs.open(_FILENAME, 'w', encoding='utf-8')
-
-
-
-
+    fp = codecs.open(_FILENAME, 'w', encoding='utf-8')
