@@ -46,11 +46,10 @@ from gramps.const import VERSION as GRAMPS_VERSION
 #------------------------------------------------
 _FILENAME = 'setup.cfg'
 
-def write_cfg():
+def main():
     '''
     create all the data files and writes them out to setup.cfg
     '''
-
     opt_data['name'] = 'gramps'
 
     opt_data['version'] = GRAMPS_VERSION
@@ -175,7 +174,7 @@ System) is a GNOME based genealogy program supporting a Python based plugin syst
     opt_data['package_data'] = dict((section, list()) for section in _packages
         if section not in ['gramps.images', 'gramps.plugins'])
 
-    opt_data['extra_files'] = dict(section, list()) for section in _packages
+    opt_data['extra_files'] = dict((section, list()) for section in _packages
         if section in ['gramps.images', 'gramps.plugins'])
 
     all_files = {
@@ -293,12 +292,11 @@ System) is a GNOME based genealogy program supporting a Python based plugin syst
         'INSTALL = {data}/share/doc/gramps',
         'NEWS = {data}/share/doc/gramps',
         'README = {data}/share/doc/gramps',
-        'TODO = {data}/share/doc/gramps'
-]
+        'TODO = {data}/share/doc/gramps',
+    ]
 
-        opt_data['scripts'] = 'gramps.sh'
+    opt_data['scripts'] = 'gramps.sh'
 
-def _write_cfg(self):
     if os.path.exists(_FILENAME):
         if os.path.exists('%s.old' % _FILENAME):
             message = ("ERROR: %(name)s.old backup exists, please check "
@@ -308,8 +306,10 @@ def _write_cfg(self):
             return
         shutil.move(_FILENAME, '%s.old' % _FILENAME)
 
+    try: 
         fp = codecs.open(_FILENAME, 'w', encoding='utf-8')
-        try: 
+
+        try:
             fp.write(u'[metadata]\n')
             # TODO use metadata module instead of hard-coding field-specific
             # behavior here
@@ -326,13 +326,13 @@ def _write_cfg(self):
             for name in ('Home-page', 'author', 'author_email',
                          'maintainer', 'maintainer_email', 'description-file'):
                 if (name in opt_data and opt_data[name]):
-                    fp.write(u'%s = %s\n' % (name.decode('utf-8'),
+                   fp.write(u'%s = %s\n' % (name.decode('utf-8'),
                                              opt_data[name].decode('utf-8')))
 
             if ('description' in opt_data and opt_data['description']):
                 fp.write(
-                    u'description = %s\n'
-                    % u'\n       |'.join(opt_data['description'].split('\n')))
+                         u'description = %s\n'
+                         % u'\n       |'.join(opt_data['description'].split('\n')))
 
             # multiple use string entries
             for name in ('platform', 'supported-platform', 'classifier',
@@ -341,7 +341,31 @@ def _write_cfg(self):
                     continue
                 fp.write(u'%s = ' % name)
                 fp.write(u''.join('    %s\n' % val
-                                 for val in opt_data[name]).lstrip())
+                                  for val in opt_data[name]).lstrip())
+
+            fp.write(u'\n[files]\n')
+
+            for name in ('packages', 'modules', 'scripts', 'extra_files'):
+                if not(name in self.data and self.data[name]):
+                    continue
+                fp.write(u'%s = %s\n'
+                         % (name, u'\n    '.join(self.data[name]).strip()))
+
+            if self.data.get('package_data'):
+                fp.write(u'package_data =\n')
+                for pkg, spec in sorted(self.data['package_data'].items()):
+                    # put one spec per line, indented under the package name
+                    indent = u' ' * (len(pkg) + 7)
+                    spec = (u'\n' + indent).join(spec)
+                    fp.write(u'    %s = %s\n' % (pkg, spec))
+                fp.write(u'\n')
+
+            if self.data.get('resources'):
+                fp.write(u'resources =\n')
+                for src, dest in self.data['resources']:
+                    fp.write(u'    %s = %s\n' % (src, dest))
+                fp.write(u'\n')
+
         finally:
             fp.close()
 
