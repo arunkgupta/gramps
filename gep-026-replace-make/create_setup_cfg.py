@@ -46,73 +46,66 @@ from gramps.const import VERSION as GRAMPS_VERSION
 #------------------------------------------------
 _FILENAME = 'setup.cfg'
 
-def main():
-    '''
-    create all the data files and writes them out to setup.cfg
-    '''
-    opt_data['name'] = 'gramps'
+opt_data['name'] = 'gramps'
 
-    opt_data['version'] = GRAMPS_VERSION
+opt_data['version'] = GRAMPS_VERSION
 
-    opt_data['Home-page'] = 'http://gramps-project.org/'
+opt_data['Home-page'] = 'http://gramps-project.org/'
 
-    opt_data['download-url'] = 'http://gramps-project.org/download/'
+opt_data['download-url'] = 'http://gramps-project.org/download/'
 
-    opt_data['author'] = 'Donald N. Allingham'
+opt_data['author'] = 'Donald N. Allingham'
 
-    opt_data['author_email'] = ''
+opt_data['author_email'] = 'don@gramps-project.org
 
-    opt_data['maintainer'] = 'Gramps Development Team'
+opt_data['maintainer'] = 'Gramps Development Team'
 
-    opt_data['maintainer_email'] = 'benny.malengier@gmail.com'
+opt_data['maintainer_email'] = 'benny.malengier@gmail.com'
 
-    opt_data['description'] = '''gramps (Genealogical Research and Analysis Management Programming
+opt_data['description'] = '''gramps (Genealogical Research and Analysis Management Programming
 System) is a GNOME based genealogy program supporting a Python based plugin system.
 '''
 
-    opt_data['summary'] = 'Gramps (Genealogical Research and Analysis Management Programming System)'
+opt_data['summary'] = 'Gramps (Genealogical Research and Analysis Management Programming System)'
 
-    opt_data['license'] = 'GPL v2 or greater'
+opt_data['license'] = 'GPL v2 or greater'
 
-    opt_data['platform'] = [
-        'Linux',
-        'FreeBSD',
-        'Mac OSX',
-        'Windows'
-    ]
+opt_data['platform'] = [
+    'Linux',
+    'FreeBSD',
+    'Mac OSX',
+    'Windows']
 
-    opt_data['requires-dist'] = [
-        'pygtk2',
-        'pycairo',
-        'pygobject2'
-    ]
+opt_data['requires-dist'] = [
+    'pygtk2',
+    'pycairo',
+    'pygobject2']
 
-    opt_data['keywords'] = [
-        'Genealogy',
-        'Pedigree',
-        'Ancestry',
-        'Birth',
-        'Marriage',
-        'Death',
-        'Family',
-        'Family-tree',
-        'GEDCOM'
-    ]
+opt_data['keywords'] = [
+    'Genealogy',
+    'Pedigree',
+    'Ancestry',
+    'Birth',
+    'Marriage',
+    'Death',
+    'Family',
+    'Family-tree',
+    'GEDCOM']
 
-    opt_data['classifier'] = [
-        'Development Status :: 5 - Production/Stable',
-        'Environment :: Console',
-        'Environment :: MacOS X',
-        'Environment :: Plugins',
-        'Environment :: Web Environment',
-        'Environment :: Win32 (MS Windows)',
-        'Environment :: X11 Applications :: GTK',
-        'Framework :: Django',
-        'Intended Audience :: Education',
-        'Intended Audience :: End Users/Desktop',
-        'Intended Audience :: Other Audience',
-        'Intended Audience :: Science/Research',
-        'License :: OSI Approved :: GNU General Public License (GPL)',
+opt_data['classifier'] = [
+    'Development Status :: 5 - Production/Stable',
+    'Environment :: Console',
+    'Environment :: MacOS X',
+    'Environment :: Plugins',
+    'Environment :: Web Environment',
+    'Environment :: Win32 (MS Windows)',
+    'Environment :: X11 Applications :: GTK',
+    'Framework :: Django',
+     'Intended Audience :: Education',
+    'Intended Audience :: End Users/Desktop',
+    'Intended Audience :: Other Audience',
+    'Intended Audience :: Science/Research',
+    'License :: OSI Approved :: GNU General Public License (GPL)',
         'Natural Language :: Bulgarian',
         'Natural Language :: Catalan',
         'Natural Language :: Chinese (Simplified)',
