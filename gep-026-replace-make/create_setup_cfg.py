@@ -75,7 +75,7 @@ class CreateSetup(object):
 
         self.data['version'] = VERSION
 
-        self.data['Home-page'] = URL_HOMEPAGE
+        self.data['url'] = URL_HOMEPAGE
 
         self.data['download-url'] = 'http://gramps-project.org/download/'
 
@@ -95,7 +95,7 @@ class CreateSetup(object):
 
         self.data['license'] = 'GPL v2 or greater'
 
-        self.data['platform'] = [
+        self.data['platforms'] = [
             'Linux',
             'FreeBSD',
             'Mac OSX',
@@ -282,7 +282,7 @@ class CreateSetup(object):
 
         self.data['scripts'] = ['gramps.sh']
 
-        self.data['requires-dist'] = [
+        self.data['requires_dist'] = [
             'pygtk2',
             'pycairo',
             'pygobject2']
