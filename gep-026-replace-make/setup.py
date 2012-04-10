@@ -1,69 +1,82 @@
 #!/usr/bin/env python
+# -*- encoding: utf-8 -*-
+import codecs
+from distutils.core import setup
+from ConfigParser import RawConfigParser
 
-from distutils.core import setup 
 
-setup(
-        platforms=['Linux', 'FreeBSD', 'MacOS', 'Windows'],
-        license='GPL v2 or greater',
-        package_dir={'gramps' : 'gramps'},
-        packages=['gramps', 'gramps.cli', 'gramps.data', 'gramps.gen', 'gramps.glade', 'gramps.gui', 'gramps.images', 'gramps.plugins', 'gramps.webapp'],
-        package__data={
-            'gramps.data': [
-                '*.txt',
-                '*.xml'],
-            'gramps.glade': [
-                '*.glade',
-                'glade/catalog/*.py',
-                'catalog/*.xml'],
-            'gramps.images': [
-                '*/*.png',
-                 '*/*.svg',
-                '*.png',
-                '*.jpg',
-                '*.ico',
-                 '*.gif'],
-            'gramps.plugins': [
-                '*.py',
-                '*/*.py',
-                'lib/*.xml',
-                'lib/maps/*.py',
-                'webstuff/css/*.css',
-                'webstuff/images/*.svg',
-                'webstuff/images/*.png',
-                'webstuff/images/*.gif',            
-                '*.glade',
-                '*/*.glade']
-        },
-        scripts=['gramps.sh'],
-#        extra_files=os_files() + trans_files(),
-        requires_dist=['pygtk2', 'pycairo', 'pygobject2'],
-        resources=[
-            'data/ gramps.desktop = {data}/share/applications',
-            'gramps/images/ gramps.png = {data}/share/pixmaps',
-            'data/ gramps.xml = {data}/share/mime/packages',
-            'data/ gramps.mime = {data}/share/mime-info',
-            'data/ gramps.keys = {data}/share/mime-info',
-            'data/ gnome-mime-application-x-gedcom.png = {data}/share/icons/gnome/48x48/mimetypes',
-            'data/ gnome-mime-application-x-geneweb.png = {data}/share/icons/gnome/48x48/mimetypes',
-            'data/ gnome-mime-application-x-gramps.png = {data}/share/icons/gnome/48x48/mimetypes',
-            'data/ gnome-mime-application-x-gramps-package.png = {data}/share/icons/gnome/48x48/mimetypes',
-            'data/ gnome-mime-application-x-gramps-xml.png = {data}/share/icons/gnome/48x48/mimetypes',
-            'data/ gnome-mime-application-x-gedcom.svg = {data}/share/icons/gnome/scalable/mimetypes',
-            'data/ gnome-mime-application-x-geneweb.svg = {data}/share/icons/gnome/scalable/mimetypes',
-            'data/ gnome-mime-application-x-gramps.svg = {data}/share/icons/gnome/scalable/mimetypes',
-            'data/ gnome-mime-application-x-gramps-package.svg = {data}/share/icons/gnome/scalable/mimetypes',
-            'data/ gnome-mime-application-x-gramps-xml.svg = {data}/share/icons/gnome/scalable/mimetypes',
-            'data/man/ gramps.1.in = {data}/share/man/man1',
-            'data/man/cs/ gramps.1.in = {data}/share/man/cs/man1',
-            'data/man/fr/ gramps.1.in = {data}/share/man/fr/man1',
-            'data/man/nl/ gramps.1.in = {data}/share/man/nl/man1',
-            'data/man/pl/ gramps.1.in = {data}/share/man/pl/man1',
-            'data/man/sv/ gramps.1.in = {data}/share/man/sv/man1',
-            'COPYING = {data}/share/doc/gramps',
-            'FAQ = {data}/share/doc/gramps',
-            'INSTALL = {data}/share/doc/gramps',
-            'NEWS = {data}/share/doc/gramps',
-            'README = {data}/share/doc/gramps',
-            'TODO = {data}/share/doc/gramps',
-        ],
-)
+def split_multiline(value):
+    return [element for element in (line.strip() for line in value.split('\n'))
+            if element]
+
+def split_elements(value):
+    return [v.strip() for v in value.split(',')]
+
+def split_files(value):
+    return [str(v) for v in split_multiline(value)]
+
+
+def cfg_to_args(path='setup.cfg'):
+    opts_to_args = {
+        'metadata': (
+            ('name', 'name', None),
+            ('version', 'version', None),
+            ('author', 'author', None),
+            ('author-email', 'author_email', None),
+            ('maintainer', 'maintainer', None),
+            ('maintainer-email', 'maintainer_email', None),
+            ('home-page', 'url', None),
+            ('summary', 'description', None),
+            ('description', 'long_description', None),
+            ('download-url', 'download_url', None),
+            ('classifier', 'classifiers', split_multiline),
+            ('platform', 'platforms', split_multiline),
+            ('license', 'license', None),
+            ('keywords', 'keywords', split_elements),
+            ),
+        'files': (
+            ('packages', 'packages', split_files),
+            ('modules', 'py_modules', split_files),
+            ('scripts', 'scripts', split_files),
+            ('package_data', 'package_data', split_files),
+            ),
+        }
+    config = RawConfigParser()
+    config.optionxform = lambda x: x.lower().replace('_', '-')
+    fp = codecs.open(path, encoding='utf-8')
+    try:
+        config.readfp(fp)
+    finally:
+        fp.close()
+    kwargs = {}
+    for section in opts_to_args:
+        for optname, argname, xform in opts_to_args[section]:
+            if config.has_option(section, optname):
+                value = config.get(section, optname)
+                if xform:
+                    value = xform(value)
+                kwargs[argname] = value
+    # Handle `description-file`
+    if ('long_description' not in kwargs and
+            config.has_option('metadata', 'description-file')):
+        filenames = config.get('metadata', 'description-file')
+        for filename in split_multiline(filenames):
+            descriptions = []
+            fp = open(filename)
+            try:
+                descriptions.append(fp.read())
+            finally:
+                fp.close()
+        kwargs['long_description'] = '\n\n'.join(descriptions)
+    # Handle `package_data`
+    if 'package_data' in kwargs:
+        package_data = {}
+        for data in kwargs['package_data']:
+            key, value = data.split('=', 1)
+            globs = package_data.setdefault(key.strip(), [])
+            globs.extend(split_elements(value))
+        kwargs['package_data'] = package_data
+    return kwargs
+
+setup_kwargs = cfg_to_args('setup.cfg')
+setup(**setup_kwargs)

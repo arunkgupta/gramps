@@ -25,9 +25,14 @@
 # ***********************************************
 # Python Modules
 # ***********************************************
-import os
+import os, sys, sysconfig
 import glob, shutil
 import codecs
+
+#------------------------------------------------
+#        Gramps modules
+#------------------------------------------------
+from classifiers import all_classifiers
 
 #------------------------------------------------
 #        Distutils/ Distutils2 modules
@@ -47,37 +52,34 @@ _FILENAME = 'setup.cfg'
 
 class CreateSetup(object):
     def __init__(self):
-        self.classifiers = set()
-        self.data = {'name': '',
+        # turn off warnings when deprecated modules are imported
+        import warnings
+        warnings.filterwarnings("ignore",category=DeprecationWarning)
+
+        self.data = {'name': PROGRAM_NAME.lower(),
                      'version': VERSION,
-                     'Home-page' : '',
-                     'download-url' : '',
                      'author' : '', 
                      'author_email' : '',
                      'maintainter' : '',
                      'maintainer_email' : '',
-                     'classifier': self.classifiers,
-                     'keywords' : [],
+                     'home_page' : URL_HOMEPAGE,
                      'summary' : '',
-                     'license' : '',
                      'description' : '',
-                     'long-description' : [],
+                     'download_url' : '',
+                     'classifiers': [x for x in all_classifiers.split('\n')],
+                     'platforms': [],
+                     'license' : 'GPL v2 or greater',
+                     'keywords' : [],
                      'packages': [],
                      'package_data' : dict(),
                      'modules': [],
-                     'platform': [],
                      'resources': [],
                      'extra_files': [],
+                     'data_files' : [],
                      'scripts': [],
                      }
 
-        self.data['name'] = PROGRAM_NAME.lower()
-
-        self.data['version'] = VERSION
-
-        self.data['Home-page'] = URL_HOMEPAGE
-
-        self.data['download-url'] = 'http://gramps-project.org/download/'
+        self.data['download_url'] = 'http://gramps-project.org/download/'
 
         self.data['author'] = 'Donald N. Allingham'
 
@@ -87,22 +89,18 @@ class CreateSetup(object):
 
         self.data['maintainer_email'] = 'benny.malengier@gmail.com'
 
-        self.data['description'] = 'Gramps (Genealogical Research and Analysis Management Programming System)'
+        self.data['summary'] = 'Gramps (Genealogical Research and Analysis Management Programming System)'
 
-        self.data['long_description'] = '''gramps (Genealogical Research and Analysis Management Programming
+        self.data['description'] = '''gramps (Genealogical Research and Analysis Management Programming
         System) is a GNOME based genealogy program supporting a Python based plugin system.
         '''
 
-        self.data['license'] = 'GPL v2 or greater'
-
-        self.data['platforms'] = [
-            'Linux',
+        self.data['platforms'] = ['Linux',
             'FreeBSD',
-            'Mac OSX',
+            'MacOS',
             'Windows']
 
-        self.data['keywords'] = [
-            'Genealogy',
+        self.data['keywords'] = ['Genealogy',
             'Pedigree',
             'Ancestry',
             'Birth',
@@ -112,67 +110,7 @@ class CreateSetup(object):
             'Family-tree',
             'GEDCOM']
 
-        self.classifiers.update([
-            'Development Status :: 5 - Production/Stable',
-            'Environment :: Console',
-            'Environment :: MacOS X',
-            'Environment :: Plugins',
-            'Environment :: Web Environment',
-            'Environment :: Win32 (MS Windows)',
-            'Environment :: X11 Applications :: GTK',
-            'Framework :: Django',
-             'Intended Audience :: Education',
-            'Intended Audience :: End Users/Desktop',
-            'Intended Audience :: Other Audience',
-            'Intended Audience :: Science/Research',
-            'License :: OSI Approved :: GNU General Public License (GPL)',
-            'Natural Language :: Bulgarian',
-            'Natural Language :: Catalan',
-            'Natural Language :: Chinese (Simplified)',
-            'Natural Language :: Croatian',
-            'Natural Language :: Czech',
-            'Natural Language :: Danish',
-            'Natural Language :: Dutch',
-            'Natural Language :: English',
-            'Natural Language :: Esperanto',
-            'Natural Language :: Finnish',
-            'Natural Language :: French',
-            'Natural Language :: German',
-            'Natural Language :: Hebrew',
-            'Natural Language :: Hungarian',
-            'Natural Language :: Italian',
-            'Natural Language :: Japanese',
-            'Natural Language :: Norwegian',
-            'Natural Language :: Polish',
-            'Natural Language :: Portuguese (Brazilian)',
-            'Natural Language :: Portuguese',
-            'Natural Language :: Russian',
-            'Natural Language :: Slovak',
-            'Natural Language :: Slovenian',
-            'Natural Language :: Spanish',
-            'Natural Language :: Swedish',
-            'Natural Language :: Ukranian',
-            'Natural Language :: Vietnamese',
-            'Operating System :: MacOS',
-            'Operating System :: Microsoft :: Windows',
-            'Operating System :: Other OS',
-            'Operating System :: POSIX :: BSD',
-            'Operating System :: POSIX :: Linux',
-            'Operating System :: POSIX :: SunOS/Solaris',
-            'Operating System :: Unix',
-            'Programming Language :: Python',
-            'Programming Language :: Python :: 2.7',
-            'Topic :: Database',
-            'Topic :: Desktop Environment :: Gnome',
-            'Topic :: Education',
-            'Topic :: Multimedia',
-            'Topic :: Other/Nonlisted Topic',
-            'Topic :: Scientific/Engineering :: Visualization',
-            'Topic :: Sociology :: Genealogy'
-        ])
-
-        _packages = [
-            'gramps',
+        _packages = ['gramps',
             'gramps.cli',
             'gramps.DateHandler',
             'gramps.docgen',
@@ -260,7 +198,7 @@ class CreateSetup(object):
                 'fixtures/initial_data.json',
                 'templatetags/*py'],
         }
-        self.data['packages'] = find_packages()
+        self.data['packages'] = sorted(find_packages())
 
         file_data = dict((section, list()) for section in _packages
                 if section not in ['gramps.data', 'gramps.images', 'gramps.plugins'])
@@ -338,22 +276,17 @@ class CreateSetup(object):
 
         try: 
             fp = codecs.open(_FILENAME, 'w', encoding='utf-8')
+            sys.stdout.write(u'Writing %s\n' % _FILENAME)
         except IOError:
-            print "ERROR: Failed to open file."
+            logger.error(u'ERROR: Failed to open file.')
             return
             
         fp.write(u'[metadata]\n')
-        # TODO use metadata module instead of hard-coding field-specific
-        # behavior here
+        sys.stdout.write(u'Writing [metadata] section...\n')
 
         # simple string entries
         for name in ('name', 'version', 'summary', 'download_url'):
             fp.write(u'%s = %s\n' % (name, self.data.get(name, 'UNKNOWN')))
-
-        # optional string entries
-        if ('keywords' in self.data and self.data['keywords']):
-            # XXX shoud use comma to separate, not space
-            fp.write(u'keywords = %s\n' % ' '.join(self.data['keywords']))
 
         for name in ('Home-page', 'author', 'author_email',
                      'maintainer', 'maintainer_email', 'description-file'):
@@ -364,10 +297,10 @@ class CreateSetup(object):
         if ('description' in self.data and self.data['description']):
             fp.write(
                      u'description = %s\n'
-                     % u'\n       |'.join(self.data['description'].split('\n')))
+                     % u'\n       '.join(self.data['description'].split('\n')))
 
         # multiple use string entries
-        for name in ('platform', 'supported-platform', 'classifier',
+        for name in ('platforms', 'supported-platform', 'classifiers', 'keywords',
                      'requires-dist', 'provides-dist', 'obsoletes-dist', 'requires-external'):
             if not(name in self.data and self.data[name]):
                 continue
@@ -376,6 +309,7 @@ class CreateSetup(object):
                               for val in self.data[name]).lstrip())
 
         fp.write(u'\n[files]\n')
+        sys.stdout.write(u'Writing [files] section...\n')
 
         for name in ('packages', 'modules', 'scripts', 'extra_files'):
             if not(name in self.data and self.data[name]):
@@ -401,6 +335,7 @@ class CreateSetup(object):
             fp.write(u'\n')
 
         fp.close()
+        sys.stdout.write(u' Setup configuration file has been successfully created.\n')
 
 if __name__ == "__main__":
     cs = CreateSetup()
