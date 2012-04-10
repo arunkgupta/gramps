@@ -25,8 +25,7 @@
 # ***********************************************
 # Python Modules
 # ***********************************************
-import os, sys, sysconfig
-import imp
+import os
 import glob, shutil
 import codecs
 
@@ -34,6 +33,7 @@ import codecs
 #        Distutils/ Distutils2 modules
 #------------------------------------------------
 from distutils2 import logger
+from distutils2.util import find_packages
 
 const_file_in = os.path.join('gramps', 'const.py.in')
 const_file = os.path.join('gramps', 'const.py')
@@ -52,7 +52,7 @@ class CreateSetup(object):
                      'version': VERSION,
                      'Home-page' : '',
                      'download-url' : '',
-                     ']author' : '', 
+                     'author' : '', 
                      'author_email' : '',
                      'maintainter' : '',
                      'maintainer_email' : '',
@@ -71,11 +71,11 @@ class CreateSetup(object):
                      'scripts': [],
                      }
 
-        self.data['name'] = PROGRAM_NAME
+        self.data['name'] = PROGRAM_NAME.lower()
 
         self.data['version'] = VERSION
 
-        self.data['url'] = URL_HOMEPAGE
+        self.data['Home-page'] = URL_HOMEPAGE
 
         self.data['download-url'] = 'http://gramps-project.org/download/'
 
@@ -174,7 +174,9 @@ class CreateSetup(object):
         _packages = [
             'gramps',
             'gramps.cli',
-            'gramps.data',
+            'gramps.DateHandler',
+            'gramps.docgen',
+            'gramps.DateHandler',
             'gramps.gen',
             'gramps.glade',
             'gramps.gui',
@@ -258,7 +260,7 @@ class CreateSetup(object):
                 'fixtures/initial_data.json',
                 'templatetags/*py'],
         }
-        self.data['packages'] = _packages
+        self.data['packages'] = find_packages()
 
         file_data = dict((section, list()) for section in _packages
                 if section not in ['gramps.data', 'gramps.images', 'gramps.plugins'])
@@ -277,8 +279,19 @@ class CreateSetup(object):
                     file_data[section] = tmp_filenames
                 else:
                     extra_data[section] = tmp_filenames
-        self.data['modules']     = file_data
-        self.data['extra_files'] = extra_data
+        #self.data['modules']     = file_data
+        self.data['extra_files'] = [
+            'debian/*',
+            'docs/*',
+            'docs/*/*',
+            'help/*',
+            'mac/*',
+            'po/*',
+            'po/*/*',
+            'test/*',
+            'test/*/*',
+            'windows/*',
+            'windows/*/*']
 
         self.data['scripts'] = ['gramps.sh']
 
@@ -288,33 +301,29 @@ class CreateSetup(object):
             'pygobject2']
 
         self.data['resources'] = [
+            'example/**/*.* = {purelib}/gramps',
+            'gramps/glade/**/*.* = {purelib}',
+            'gramps/images/**/*.* = {purelib}',
+            'gramps/plugins/**/*.* = {purelib}',
             'data/ gramps.desktop = {data}/share/applications',
-            'gramps/images/ gramps.png = {data}/share/pixmaps',
+            'gramps/images/ gramps.png = {icon}',
             'data/ gramps.xml = {data}/share/mime/packages',
             'data/ gramps.mime = {data}/share/mime-info',
             'data/ gramps.keys = {data}/share/mime-info',
-            'data/ gnome-mime-application-x-gedcom.png = {data}/share/icons/gnome/48x48/mimetypes',
-            'data/ gnome-mime-application-x-geneweb.png = {data}/share/icons/gnome/48x48/mimetypes',
-            'data/ gnome-mime-application-x-gramps.png = {data}/share/icons/gnome/48x48/mimetypes',
-            'data/ gnome-mime-application-x-gramps-package.png = {data}/share/icons/gnome/48x48/mimetypes',
-            'data/ gnome-mime-application-x-gramps-xml.png = {data}/share/icons/gnome/48x48/mimetypes',
-            'data/ gnome-mime-application-x-gedcom.svg = {data}/share/icons/gnome/scalable/mimetypes',
-            'data/ gnome-mime-application-x-geneweb.svg = {data}/share/icons/gnome/scalable/mimetypes',
-            'data/ gnome-mime-application-x-gramps.svg = {data}/share/icons/gnome/scalable/mimetypes',
-            'data/ gnome-mime-application-x-gramps-package.svg = {data}/share/icons/gnome/scalable/mimetypes',
-            'data/ gnome-mime-application-x-gramps-xml.svg = {data}/share/icons/gnome/scalable/mimetypes',
-            'data/man/ gramps.1.in = {data}/share/man/man1',
-            'data/man/cs/ gramps.1.in = {data}/share/man/cs/man1',
-            'data/man/fr/ gramps.1.in = {data}/share/man/fr/man1',
-            'data/man/nl/ gramps.1.in = {data}/share/man/nl/man1',
-            'data/man/pl/ gramps.1.in = {data}/share/man/pl/man1',
-            'data/man/sv/ gramps.1.in = {data}/share/man/sv/man1',
-            'COPYING = {data}/share/doc/gramps',
-            'FAQ = {data}/share/doc/gramps',
-            'INSTALL = {data}/share/doc/gramps',
-            'NEWS = {data}/share/doc/gramps',
-            'README = {data}/share/doc/gramps',
-            'TODO = {data}/share/doc/gramps']
+            'data/ *.png = {data}/share/icons/gnome/48x48/mimetypes',
+            'data/ *.svg = {data}/share/icons/gnome/scalable/mimetypes',
+            'data/man/ gramps.1.in = {man}/man1',
+            'data/man/cs/ gramps.1.in = {man}/cs/man1',
+            'data/man/fr/ gramps.1.in = {man}/fr/man1',
+            'data/man/nl/ gramps.1.in = {man}/nl/man1',
+            'data/man/pl/ gramps.1.in = {man}/pl/man1',
+            'data/man/sv/ gramps.1.in = {man}/sv/man1',
+            'COPYING = {doc}',
+            'FAQ = {doc}',
+            'INSTALL = {doc}',
+            'NEWS = {doc}',
+            'README = {doc}',
+            'TODO = {doc}']
 
     def main(self):
         if os.path.exists(_FILENAME):
@@ -324,69 +333,75 @@ class CreateSetup(object):
                            "%(name)s.old" % {'name': _FILENAME})
                 logger.error(message)
                 return
-        shutil.move(_FILENAME, '%s.old' % _FILENAME)
+            else:
+                shutil.move(_FILENAME, '%s.old' % _FILENAME)
 
         try: 
             fp = codecs.open(_FILENAME, 'w', encoding='utf-8')
-            fp.write(u'[metadata]\n')
-            # TODO use metadata module instead of hard-coding field-specific
-            # behavior here
+        except IOError:
+            print "ERROR: Failed to open file."
+            return
+            
+        fp.write(u'[metadata]\n')
+        # TODO use metadata module instead of hard-coding field-specific
+        # behavior here
 
-            # simple string entries
-            for name in ('name', 'version', 'summary', 'download_url'):
-                fp.write(u'%s = %s\n' % (name, self.data.get(name, 'UNKNOWN')))
+        # simple string entries
+        for name in ('name', 'version', 'summary', 'download_url'):
+            fp.write(u'%s = %s\n' % (name, self.data.get(name, 'UNKNOWN')))
 
-            # optional string entries
-            if ('keywords' in self.data and self.data['keywords']):
-                # XXX shoud use comma to separate, not space
-                fp.write(u'keywords = %s\n' % ' '.join(self.data['keywords']))
+        # optional string entries
+        if ('keywords' in self.data and self.data['keywords']):
+            # XXX shoud use comma to separate, not space
+            fp.write(u'keywords = %s\n' % ' '.join(self.data['keywords']))
 
-            for name in ('Home-page', 'author', 'author_email',
-                         'maintainer', 'maintainer_email', 'description-file'):
-                if (name in self.data and self.data[name]):
-                   fp.write(u'%s = %s\n' % (name.decode('utf-8'),
-                                            self.data[name].decode('utf-8')))
+        for name in ('Home-page', 'author', 'author_email',
+                     'maintainer', 'maintainer_email', 'description-file'):
+            if (name in self.data and self.data[name]):
+               fp.write(u'%s = %s\n' % (name.decode('utf-8'),
+                                        self.data[name].decode('utf-8')))
 
-            if ('description' in self.data and self.data['description']):
-                fp.write(
-                         u'description = %s\n'
-                         % u'\n       |'.join(self.data['description'].split('\n')))
+        if ('description' in self.data and self.data['description']):
+            fp.write(
+                     u'description = %s\n'
+                     % u'\n       |'.join(self.data['description'].split('\n')))
 
-            # multiple use string entries
-            for name in ('platform', 'supported-platform', 'classifier',
-                         'requires-dist', 'provides-dist', 'obsoletes-dist', 'requires-external'):
-                if not(name in self.data and self.data[name]):
-                    continue
-                fp.write(u'%s = ' % name)
-                fp.write(u''.join('    %s\n' % val
-                                  for val in self.data[name]).lstrip())
+        # multiple use string entries
+        for name in ('platform', 'supported-platform', 'classifier',
+                     'requires-dist', 'provides-dist', 'obsoletes-dist', 'requires-external'):
+            if not(name in self.data and self.data[name]):
+                continue
+            fp.write(u'%s = ' % name)
+            fp.write(u''.join('    %s\n' % val
+                              for val in self.data[name]).lstrip())
 
-            fp.write(u'\n[files]\n')
+        fp.write(u'\n[files]\n')
 
-            for name in ('packages', 'modules', 'scripts', 'extra_files'):
-                if not(name in self.data and self.data[name]):
-                    continue
-                fp.write(u'%s = %s\n'
-                         % (name, u'\n    '.join(self.data[name]).strip()))
+        for name in ('packages', 'modules', 'scripts', 'extra_files'):
+            if not(name in self.data and self.data[name]):
+                continue
+            fp.write(u'%s = %s\n'
+                     % (name, u'\n    '.join(self.data[name]).strip()))
 
-            if self.data.get('package_data'):
-                fp.write(u'package_data =\n')
-                for pkg, spec in sorted(self.data['package_data'].items()):
-                    # put one spec per line, indented under the package name
-                    indent = u' ' * (len(pkg) + 7)
-                    spec = (u'\n' + indent).join(spec)
-                    fp.write(u'    %s = %s\n' % (pkg, spec))
-                fp.write(u'\n')
+        if self.data.get('package_data'):
+            fp.write(u'package_data =\n')
+            for pkg, spec in sorted(self.data['package_data'].items()):
+                # put one spec per line, indented under the package name
+                indent = u' ' * (len(pkg) + 7)
+                spec = (u'\n' + indent).join(spec)
+                fp.write(u'    %s = %s\n' % (pkg, spec))
+            fp.write(u'\n')
 
-            if self.data.get('resources'):
-                fp.write(u'resources =\n')
-                for src, dest in self.data['resources']:
-                    fp.write(u'    %s = %s\n' % (src, dest))
-                fp.write(u'\n')
+        if self.data.get('resources'):
+            fp.write(u'resources =\n')
+            #for src, dest in self.data['resources']:
+                #fp.write(u'    %s = %s\n' % (src, dest))
+            for entry in self.data['resources']:
+                fp.write(u'    %s\n' % entry)                
+            fp.write(u'\n')
 
-        finally:
-            fp.close()
+        fp.close()
 
 if __name__ == "__main__":
-    CreateSetup()
-    main()
+    cs = CreateSetup()
+    cs.main()
