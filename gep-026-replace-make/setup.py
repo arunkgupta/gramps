@@ -1,8 +1,29 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
+
+#------------------------------------------------
+#        Python modules
+#------------------------------------------------
+import os, shutil
 import codecs
-from distutils.core import setup
 from ConfigParser import RawConfigParser
+
+#------------------------------------------------
+#        Distutils/ Distutils2 modules
+#------------------------------------------------
+from distutils.core import setup
+
+# copy const file from gramps/const.py.in to gramps/const.py
+const_in_file = os.path.join('gramps', 'const.py.in')
+const_file    = os.path.join('gramps', 'const.py')
+if (os.path.exists(const_in_file) and not os.path.exists(const_file)):
+    shutil.copy(const_in_file, const_file)
+
+# copy gramps script launcher from gramps.sh.in to gramps.sh
+gramps_script_in   = 'gramps.sh.in'
+gramps_script_file = 'gramps.sh'
+if (os.path.exists(gramps_script_in) and not os.path.exists(gramps_script_file)):
+    shutil.copy(gramps_script_in, gramps_script_file)
 
 
 def split_multiline(value):

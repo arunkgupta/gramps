@@ -25,14 +25,9 @@
 # ***********************************************
 # Python Modules
 # ***********************************************
-import os, sys, sysconfig
+import os
 import glob, shutil
 import codecs
-
-#------------------------------------------------
-#        Gramps modules
-#------------------------------------------------
-from classifiers import all_classifiers
 
 #------------------------------------------------
 #        Distutils/ Distutils2 modules
@@ -40,39 +35,43 @@ from classifiers import all_classifiers
 from distutils2 import logger
 from distutils2.util import find_packages
 
-const_file_in = os.path.join('gramps', 'const.py.in')
-const_file = os.path.join('gramps', 'const.py')
-if (os.path.exists(const_file_in) and not os.path.exists(const_file)):
-    shutil.copy(const_file_in, const_file)
-from gramps.const import PROGRAM_NAME, VERSION, URL_HOMEPAGE
+#------------------------------------------------
+#        Gramps modules
+#------------------------------------------------
+from classifiers import all_classifiers
+
 #------------------------------------------------
 #        Constants
 #------------------------------------------------
 _FILENAME = 'setup.cfg'
 
+'''
+    This will create the setup.cfg for use in setup.py.
+
+    Use case:
+        * to be used before you do anything in gramps to build, compile, or install Gramps...
+
+$ python create_setup_cfg.py ...
+'''
 class CreateSetup(object):
     def __init__(self):
-        # turn off warnings when deprecated modules are imported
-        import warnings
-        warnings.filterwarnings("ignore",category=DeprecationWarning)
-
-        self.data = {'name': PROGRAM_NAME.lower(),
-                     'version': VERSION,
+        self.data = {'name': 'gramps',
+                     'version': '3.5.0',
+                     'Home-page' : 'http://gramps-project.org/',
+                     'download_url' : '',
                      'author' : '', 
                      'author_email' : '',
                      'maintainter' : '',
                      'maintainer_email' : '',
-                     'home_page' : URL_HOMEPAGE,
+                     'classifiers': [x for x in all_classifiers.split('\n')],
+                     'keywords' : [],
                      'summary' : '',
                      'description' : '',
-                     'download_url' : '',
-                     'classifiers': [x for x in all_classifiers.split('\n')],
+                     'license' : '',
                      'platforms': [],
-                     'license' : 'GPL v2 or greater',
-                     'keywords' : [],
-                     'packages': [],
+                     'packages': sorted(find_packages()),
                      'package_data' : dict(),
-                     'modules': [],
+                     'py_modules': [],
                      'resources': [],
                      'extra_files': [],
                      'data_files' : [],
@@ -95,12 +94,16 @@ class CreateSetup(object):
         System) is a GNOME based genealogy program supporting a Python based plugin system.
         '''
 
-        self.data['platforms'] = ['Linux',
+        self.data['license'] = 'GPL v2 or greater'
+
+        self.data['platforms'] = [
+            'Linux',
             'FreeBSD',
-            'MacOS',
+            'Mac OSX',
             'Windows']
 
-        self.data['keywords'] = ['Genealogy',
+        self.data['keywords'] = [
+            'Genealogy',
             'Pedigree',
             'Ancestry',
             'Birth',
@@ -109,18 +112,6 @@ class CreateSetup(object):
             'Family',
             'Family-tree',
             'GEDCOM']
-
-        _packages = ['gramps',
-            'gramps.cli',
-            'gramps.DateHandler',
-            'gramps.docgen',
-            'gramps.DateHandler',
-            'gramps.gen',
-            'gramps.glade',
-            'gramps.gui',
-            'gramps.images',
-            'gramps.plugins',
-            'gramps.webapp']
 
         all_files = {
             'gramps' : [
@@ -198,13 +189,12 @@ class CreateSetup(object):
                 'fixtures/initial_data.json',
                 'templatetags/*py'],
         }
-        self.data['packages'] = sorted(find_packages())
 
-        file_data = dict((section, list()) for section in _packages
-                if section not in ['gramps.data', 'gramps.images', 'gramps.plugins'])
+        file_data = dict((section, list()) for section in all_files
+                if section not in ['gramps.data', 'gramps.glade', 'gramps.images', 'gramps.plugins'])
 
-        extra_data = dict((section, list()) for section in _packages
-               if section in ['gramps.data', 'gramps.images', 'gramps.plugins'])
+        extra_data = dict((section, list()) for section in all_files
+                if section in ['gramps.data', 'gramps.glade', 'gramps.images', 'gramps.plugins'])
 
         for section in all_files:
             directory = section
@@ -217,7 +207,7 @@ class CreateSetup(object):
                     file_data[section] = tmp_filenames
                 else:
                     extra_data[section] = tmp_filenames
-        #self.data['modules']     = file_data
+        #self.data['py_modules'] = file_data
         self.data['extra_files'] = [
             'debian/*',
             'docs/*',
@@ -276,17 +266,22 @@ class CreateSetup(object):
 
         try: 
             fp = codecs.open(_FILENAME, 'w', encoding='utf-8')
-            sys.stdout.write(u'Writing %s\n' % _FILENAME)
         except IOError:
-            logger.error(u'ERROR: Failed to open file.')
+            print "ERROR: Failed to open file."
             return
             
         fp.write(u'[metadata]\n')
-        sys.stdout.write(u'Writing [metadata] section...\n')
+        # TODO use metadata module instead of hard-coding field-specific
+        # behavior here
 
         # simple string entries
         for name in ('name', 'version', 'summary', 'download_url'):
             fp.write(u'%s = %s\n' % (name, self.data.get(name, 'UNKNOWN')))
+
+        # optional string entries
+        if ('keywords' in self.data and self.data['keywords']):
+            # XXX shoud use comma to separate, not space
+            fp.write(u'keywords = %s\n' % '\n        '.join(self.data['keywords']))
 
         for name in ('Home-page', 'author', 'author_email',
                      'maintainer', 'maintainer_email', 'description-file'):
@@ -297,10 +292,10 @@ class CreateSetup(object):
         if ('description' in self.data and self.data['description']):
             fp.write(
                      u'description = %s\n'
-                     % u'\n       '.join(self.data['description'].split('\n')))
+                     % u'\n       |'.join(self.data['description'].split('\n')))
 
         # multiple use string entries
-        for name in ('platforms', 'supported-platform', 'classifiers', 'keywords',
+        for name in ('platforms', 'supported-platform', 'classifiers',
                      'requires-dist', 'provides-dist', 'obsoletes-dist', 'requires-external'):
             if not(name in self.data and self.data[name]):
                 continue
@@ -309,9 +304,8 @@ class CreateSetup(object):
                               for val in self.data[name]).lstrip())
 
         fp.write(u'\n[files]\n')
-        sys.stdout.write(u'Writing [files] section...\n')
 
-        for name in ('packages', 'modules', 'scripts', 'extra_files'):
+        for name in ('packages', 'py_modules', 'scripts', 'extra_files', 'data_files'):
             if not(name in self.data and self.data[name]):
                 continue
             fp.write(u'%s = %s\n'
@@ -335,7 +329,6 @@ class CreateSetup(object):
             fp.write(u'\n')
 
         fp.close()
-        sys.stdout.write(u' Setup configuration file has been successfully created.\n')
 
 if __name__ == "__main__":
     cs = CreateSetup()
