@@ -45,6 +45,18 @@ from classifiers import all_classifiers
 #------------------------------------------------
 _FILENAME = 'setup.cfg'
 
+# make absolute sure that this file exists?
+gramps_sh_in   = 'gramps.sh.in'
+gramps_sh_file = 'gramps.sh'
+if (os.path.exists(gramps_sh_in) and not os.path.exists(gramps_sh_file)):
+    shutil.copy(gramps_sh_in, gramps_sh_file)
+
+# make absolute sure that this file exists?
+const_py_in   = os.path.join('gramps', 'const.py.in')
+const_py_file = os.path.join('gramps', 'const.py')
+if (os.path.exists(const_py_in) and not os.path.exists(const_py_file)):
+    shutil.copy(const_py_in, const_py_file)
+
 '''
     This will create the setup.cfg for use in setup.py.
 
