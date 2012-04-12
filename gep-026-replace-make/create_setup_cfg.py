@@ -75,11 +75,12 @@ class CreateSetup(object):
             'requires-externals' : [], 
             'requires-python'    : '>= 2.6',
             'packages'           : [],
+            'package_dir'        : {'gramps' : 'gramps'},
             'package_data'       : dict(),
             'modules'            : [],
             'resources'          : [],
             'extra_files'        : [],
-            'data_files'         : dict(),
+            'data_files'         : [],
             'scripts'            : [],
          }
 
@@ -151,16 +152,15 @@ class CreateSetup(object):
 
         self.data['scripts'] = ['gramps.sh']
 
-#        self.data['data_files'] = {
-#            '../debian'  : ['*.*'],
-#            '../data'    : ['*.*'],
-#            '../docs'    : ['*.*'],
-#            '../help'    : ['*.*'],
-#            '../mac'     : ['*.*'],
-#            '../po'      : ['*.*'],
-#            '../test'    : ['*.*'],
-#            '../windows' : ['*.*'],
-#        }
+        self.data['data_files'] = [
+            '../debian/**',
+            '../data/**',
+            '../docs/**' ,
+            '../help/**',
+            '../mac/**',
+            '../po/**',
+            '../test/**',
+            '../windows/**']
 
         self.data['requires-dist'] = [
             'pygtk2',
@@ -195,6 +195,10 @@ class CreateSetup(object):
     def multi_string(self, data):
         return (u''.join('    %s\n' % val
                          for val in data).lstrip())
+
+    def no_strip_multi(self, data):
+        return (u''.join('    %s\n' % val
+                         for val in data))
 
     def main(self):
         if os.path.exists(_FILENAME):
@@ -231,12 +235,15 @@ class CreateSetup(object):
 
         fp.write(u'[files]\n')
 
+        if ('package_dir' in self.data and self.data['package_dir']):
+            fp.write(u'package_dir = %s\n' % self.data['package_dir'])
+
         for name in ('packages', 'modules', 'scripts'):
             if (name in self.data and self.data[name]):
                 fp.write(u'%s = %s\n'
                          % (name, u'\n    '.join(self.data[name]).strip()))
 
-        if self.data.get('package_data'):
+        if ('package_data' in self.data and self.data['package_data']):
             fp.write(u'package_data =\n')
             for pkg, spec in sorted(self.data['package_data'].items()):
                 # put one spec per line, indented under the package name
@@ -246,12 +253,10 @@ class CreateSetup(object):
             fp.write(u'\n')
 
         if ('data_files' in self.data and self.data['data_files']):
-            fp.write(u'data_files = [\n')
-            for dir, filematch in sorted(self.data['data_files'].items()):
-                fp.write(u"    ('%s', %s),\n" % (dir, filematch))
-            fp.write(u']\n\n')
+            fp.write(u'data_files = \n')
+            fp.write(self.no_strip_multi(self.data['data_files']))
 
-        if self.data.get('resources'):
+        if ('resources' in self.data and self.data['resources']):
             fp.write(u'resources =\n')
             #for src, dest in self.data['resources']:
             #fp.write(u'    %s = %s\n' % (src, dest))
