@@ -167,6 +167,8 @@ class CreateSetup(object):
             'pycairo',
             'pygobject2']
 
+        # destination categories are: {config}, {appdata}, {appdata.arch}, {appdata.persistent},
+        # {appdata.disposable}, {help}, {icon}, {scripts}, {doc}, {info}, {man}, {distribution.name}
         self.data['resources'] = [
             '../example/* = {purelib}/gramps',
             'glade/* = {purelib}',
