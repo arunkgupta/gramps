@@ -22,61 +22,63 @@
 
 # $Id$
 
-all_classifiers = '''
-Development Status :: 5 - Production/Stable
-Environment :: Console
-Environment :: MacOS X
-Environment :: Plugins
-Environment :: Web Environment
-Environment :: Win32 (MS Windows)
-Environment :: X11 Applications :: GTK
-Framework :: Django
-Intended Audience :: Education
-Intended Audience :: End Users/Desktop
-Intended Audience :: Other Audience
-Intended Audience :: Science/Research
-License :: OSI Approved :: GNU General Public License (GPL)
-Natural Language :: Bulgarian
-Natural Language :: Catalan
-Natural Language :: Chinese (Simplified)
-Natural Language :: Croatian
-Natural Language :: Czech
-Natural Language :: Danish
-Natural Language :: Dutch
-Natural Language :: English
-Natural Language :: Esperanto
-Natural Language :: Finnish
-Natural Language :: French
-Natural Language :: German
-Natural Language :: Hebrew
-Natural Language :: Hungarian
-Natural Language :: Italian
-Natural Language :: Japanese
-Natural Language :: Norwegian
-Natural Language :: Polish
-Natural Language :: Portuguese (Brazilian)
-Natural Language :: Portuguese
-Natural Language :: Russian
-Natural Language :: Slovak
-Natural Language :: Slovenian
-Natural Language :: Spanish
-Natural Language :: Swedish
-Natural Language :: Ukranian
-Natural Language :: Vietnamese
-Operating System :: MacOS
-Operating System :: Microsoft :: Windows
-Operating System :: Other OS
-Operating System :: POSIX :: BSD
-Operating System :: POSIX :: Linux
-Operating System :: POSIX :: SunOS/Solaris
-Operating System :: Unix
-Programming Language :: Python
-Programming Language :: Python :: 2.7
-Topic :: Database
-Topic :: Desktop Environment :: Gnome
-Topic :: Education
-Topic :: Multimedia
-Topic :: Other/Nonlisted Topic
-Topic :: Scientific/Engineering :: Visualization
-Topic :: Sociology :: Genealogy
-'''
+all_classifiers = set()
+
+all_classifiers.update([
+    'Development Status :: 5 - Production/Stable',
+    'Environment :: Console',
+    'Environment :: MacOS X',
+    'Environment :: Plugins',
+    'Environment :: Web Environment',
+    'Environment :: Win32 (MS Windows)',
+    'Environment :: X11 Applications :: GTK',
+    'Framework :: Django',
+    'Intended Audience :: Education',
+    'Intended Audience :: End Users/Desktop',
+    'Intended Audience :: Other Audience',
+    'Intended Audience :: Science/Research',
+    'License :: OSI Approved :: GNU General Public License (GPL)',
+    'Natural Language :: Bulgarian',
+    'Natural Language :: Catalan',
+    'Natural Language :: Chinese (Simplified)',
+    'Natural Language :: Croatian',
+    'Natural Language :: Czech',
+    'Natural Language :: Danish',
+    'Natural Language :: Dutch',
+    'Natural Language :: English',
+    'Natural Language :: Esperanto',
+    'Natural Language :: Finnish',
+    'Natural Language :: French',
+    'Natural Language :: German',
+    'Natural Language :: Hebrew',
+    'Natural Language :: Hungarian',
+    'Natural Language :: Italian',
+    'Natural Language :: Japanese',
+    'Natural Language :: Norwegian',
+    'Natural Language :: Polish',
+    'Natural Language :: Portuguese (Brazilian)',
+   'Natural Language :: Portuguese',
+   'Natural Language :: Russian',
+   'Natural Language :: Slovak',
+   'Natural Language :: Slovenian',
+   'Natural Language :: Spanish',
+   'Natural Language :: Swedish',
+   'Natural Language :: Ukranian',
+   'Natural Language :: Vietnamese',
+   'Operating System :: MacOS',
+   'Operating System :: Microsoft :: Windows',
+   'Operating System :: Other OS',
+   'Operating System :: POSIX :: BSD',
+   'Operating System :: POSIX :: Linux',
+    'Operating System :: POSIX :: SunOS/Solaris',
+    'Operating System :: Unix',
+    'Programming Language :: Python',
+    'Programming Language :: Python :: 2.7',
+    'Topic :: Database',
+    'Topic :: Desktop Environment :: Gnome',
+    'Topic :: Education',
+    'Topic :: Multimedia',
+    'Topic :: Other/Nonlisted Topic',
+    'Topic :: Scientific/Engineering :: Visualization',
+    'Topic :: Sociology :: Genealogy'
+    ])

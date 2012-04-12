@@ -65,7 +65,7 @@ class CreateSetup(object):
             'maintainer-email'   : 'benny.malengier@gmail.com',
             'summary'            : '',
             'description'        : '',
-            'classifier'         : [x for x in all_classifiers.split('\n')],
+            'classifier'         : sorted([x for x in all_classifiers]),
             'keywords'           : [],
             'license'            : 'GPL v2 or greater',
             'platform'           : [],
@@ -84,6 +84,107 @@ class CreateSetup(object):
             'scripts'            : [],
          }
 
+    def create_data_files(self):
+        '''
+        creates translation_files, man, and gramps *.in files
+        '''
+
+        # add trans_string to these files and convert file...
+        os.system('.intltool-merge -d po/ data/gramps.desktop.in data/gramps.desktop')
+        os.system('.intltool-merge -x po/ data/gramps.xml.in data/gramps.xml')
+        os.system('.intltool-merge -k po/ data/gramps.keys.in data/gramps.keys')
+
+    def os_files(self):
+        # Windows or MacOSX
+        if (os.name == 'nt' or os.name == 'darwin'):
+            return [
+                # application icon
+                (os.path.join('share', 'pixmaps'), [os.path.join('gramps', 'images', 'ped24.ico')]),
+                (os.path.join('share', 'pixmaps'), [os.path.join('gramps', 'images', 'gramps.png')]),
+                (os.path.join('share', 'icons', 'scalable'),
+                        glob.glob(os.path.join('gramps', 'images', 'scalable', '*.svg'))),
+                (os.path.join('share', 'icons', '16x16'),
+                        glob.glob(os.path.join('gramps', 'images', '16x16', '*.png'))),
+                (os.path.join('share', 'icons', '22x22'),
+                        glob.glob(os.path.join('gramps', 'images', '22x22' ,'*.png'))),
+                (os.path.join('share', 'icons', '48x48'),
+                        glob.glob(os.path.join('gramps', 'images', '48x48', '*.png'))),
+                # doc
+                ('share', ['AUTHORS']),
+                ('share', ['COPYING']),
+                ('share', ['FAQ']),
+                ('share', ['INSTALL']),
+                ('share', ['LICENSE']),
+                ('share', ['NEWS']),
+                ('share', ['README']),
+                ('share', ['TODO'])
+            ]
+        else:
+            # Linux or FreeBSD
+            return [
+                # XDG application description
+                ('share/applications', ['data/gramps.desktop']),
+
+                # XDG application icon
+                ('share/pixmaps', ['gramps/images/gramps.png']),
+
+                # XDG desktop mime types cache
+                ('share/mime/packages', ['data/gramps.xml']),
+
+                # mime.types
+                ('share/mime-info', ['data/gramps.mime']),
+                ('share/mime-info', ['data/gramps.keys']),
+                ('share/icons/gnome/48x48/mimetypes', ['data/gnome-mime-application-x-gedcom.png']),
+                ('share/icons/gnome/48x48/mimetypes', ['data/gnome-mime-application-x-geneweb.png']),
+                ('share/icons/gnome/48x48/mimetypes', ['data/gnome-mime-application-x-gramps.png']),
+                ('share/icons/gnome/48x48/mimetypes', ['data/gnome-mime-application-x-gramps-package.png']),
+                ('share/icons/gnome/48x48/mimetypes', ['data/gnome-mime-application-x-gramps-xml.png']),
+                ('share/icons/gnome/scalable/mimetypes', ['data/gnome-mime-application-x-gedcom.svg']),
+                ('share/icons/gnome/scalable/mimetypes', ['data/gnome-mime-application-x-geneweb.svg']),
+                ('share/icons/gnome/scalable/mimetypes', ['data/gnome-mime-application-x-gramps.svg']),
+                ('share/icons/gnome/scalable/mimetypes', ['data/gnome-mime-application-x-gramps-package.svg']),
+                ('share/icons/gnome/scalable/mimetypes', ['data/gnome-mime-application-x-gramps-xml.svg']),
+
+                # man-page, /!\ should be gramps.1 with variables
+                # migration to sphinx/docutils/gettext environment ?
+                (os.path.join(MAN_DIR, 'man1'), ['data/man/gramps.1.in']),
+                (os.path.join(MAN_DIR, 'cs', 'man1'), ['data/man/cs/gramps.1.in']),
+                (os.path.join(MAN_DIR, 'fr', 'man1'), ['data/man/fr/gramps.1.in']),
+                (os.path.join(MAN_DIR, 'nl', 'man1'), ['data/man/nl/gramps.1.in']),
+                (os.path.join(MAN_DIR, 'pl', 'man1'), ['data/man/pl/gramps.1.in']),
+                (os.path.join(MAN_DIR, 'sv', 'man1'), ['data/man/sv/gramps.1.in']),
+                # icons 
+                ('share/icons/hicolor/scalable/apps', glob.glob('gramps/images/scalable/*.svg')),
+                ('share/icons/hicolor/16x16/apps', glob.glob('gramps/images/16x16/*.png')),
+                ('share/icons/hicolor/22x22/apps', glob.glob('gramps/images/22x22/*.png')),
+                ('share/icons/hicolor/48x48/apps', glob.glob('gramps/images/48x48/*.png')),
+                # doc
+                ('share/doc/gramps', ['COPYING']),
+                ('share/doc/gramps', ['FAQ']),
+                ('share/doc/gramps', ['INSTALL']),
+                ('share/doc/gramps', ['NEWS']),
+                ('share/doc/gramps', ['README']),
+                ('share/doc/gramps', ['TODO'])
+            ]
+
+    def trans_files(self):
+        '''
+        List of available compiled translations; ready for installation
+        '''
+        translation_files = []
+        for mo in glob.glob(os.path.join(MO_DIR, '*', 'gramps.mo')):
+            lang = os.path.basename(os.path.dirname(mo))
+            if os.name == 'posix':
+                dest = os.path.join('share', 'locale', lang, 'LC_MESSAGES')
+            else :
+                dest = os.path.join('locale', lang, 'LC_MESSAGES')
+            translation_files.append((dest, [mo]))
+        return translation_files
+
+    def define_data_fields(self):
+        '''
+        defines the data fields that are not already set
+        '''
         self.data['summary'] = 'Gramps (Genealogical Research and Analysis Management Programming System)'
 
         self.data['description'] = '''gramps (Genealogical Research and Analysis Management Programming
@@ -94,13 +195,13 @@ class CreateSetup(object):
             'Wiki, http://www.gramps-project.org/wiki/index.php?title=Main_page',
             'Bug tracker, http://bugs.gramps-project.org']
 
-        self.data['platform'] = [
+        self.data['platform'] = sorted([
             'Linux',
             'FreeBSD',
             'MacOS',
-            'Windows']
+            'Windows'])
 
-        self.data['keywords'] = [
+        self.data['keywords'] = sorted([
             'Genealogy',
             'Pedigree',
             'Ancestry',
@@ -109,17 +210,17 @@ class CreateSetup(object):
             'Death',
             'Family',
             'Family-tree',
-            'GEDCOM']
+            'GEDCOM'])
 
         # these packages have a __init__.py within them, so they are pure python packages,
         # the remaining four are data or extra files...
         # this list has been taken from, 
-        self.data['packages'] = [
+        self.data['packages'] = ([
             'gramps',
             'gramps.cli',
             'gramps.gen',
             'gramps.gui',
-            'gramps.webapp']
+            'gramps.webapp'])
 
         # these files coe from directories/ packages that do NOT have an __init__.py file...
         self.data['package_data'] = {
@@ -152,24 +253,29 @@ class CreateSetup(object):
 
         self.data['scripts'] = ['gramps.sh']
 
-        self.data['data_files'] = [
-            '../debian/**',
-            '../data/**',
-            '../docs/**' ,
-            '../help/**',
-            '../mac/**',
-            '../po/**',
-            '../test/**',
-            '../windows/**']
+        self.data['extra_files'] = sorted([
+            'debian/*',
+            'docs/*',
+            'docs/*/*',
+            'help/*',
+            'mac/*',
+            'po/*',
+            'po/*/*',
+            'test/*',
+            'test/*/*',
+            'windows/*',
+            'windows/*/*'])
 
-        self.data['requires-dist'] = [
+        self.data['extra_files'] = self.os_files() + self.trans_files()
+
+        self.data['requires-dist'] = sorted([
             'pygtk2',
             'pycairo',
-            'pygobject2']
+            'pygobject2'])
 
         # destination categories are: {config}, {appdata}, {appdata.arch}, {appdata.persistent},
         # {appdata.disposable}, {help}, {icon}, {scripts}, {doc}, {info}, {man}, {distribution.name}
-        self.data['resources'] = [
+        self.data['resources'] = sorted([
             '../example/* = {purelib}/gramps',
             'glade/* = {purelib}',
             'images/* = {purelib}',
@@ -192,15 +298,14 @@ class CreateSetup(object):
             '../INSTALL = {doc}',
             '../NEWS = {doc}',
             '../README = {doc}',
-            '../TODO = {doc}']
-
+            '../TODO = {doc}'])
+        
     def multi_string(self, data):
         return (u''.join('    %s\n' % val
                          for val in data).lstrip())
 
     def no_strip_multi(self, data):
-        return (u''.join('    %s\n' % val
-                         for val in data))
+        return (u''.join('    %s\n' % val for val in data))
 
     def main(self):
         if os.path.exists(_FILENAME):
@@ -217,7 +322,7 @@ class CreateSetup(object):
         fp.write(u'[metadata]\n')
 
         for name in ('name', 'version', 'summary', 'description', 'home-page', 'download-url',
-                     'author', 'author-email', 'maintainer', 'maintainer-email'):
+                     'author', 'author-email', 'maintainer', 'maintainer-email', 'license'):
             fp.write(u'%s = %s\n' % (name, self.data.get(name, 'UNKNOWN')))
 
         if ('project-url' in self.data and self.data['project-url']):
@@ -240,7 +345,7 @@ class CreateSetup(object):
         if ('package_dir' in self.data and self.data['package_dir']):
             fp.write(u'package_dir = %s\n' % self.data['package_dir'])
 
-        for name in ('packages', 'modules', 'scripts'):
+        for name in ('packages', 'modules'):
             if (name in self.data and self.data[name]):
                 fp.write(u'%s = %s\n'
                          % (name, u'\n    '.join(self.data[name]).strip()))
@@ -284,6 +389,8 @@ class CreateSetup(object):
 
 if __name__ == "__main__":
     cs = CreateSetup()
+    cs.create_data_files()
+    cs.define_data_fields()
     cs.main()
     cs.convert_gramps_sh()
     cs.convert_const_file()
