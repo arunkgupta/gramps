@@ -25,9 +25,28 @@
 # ***********************************************
 # Python Modules
 # ***********************************************
-import os, sys
-import glob, shutil
+import glob
+import sysconfig
+
+import sys
+import os
+import subprocess
+import platform
+import shutil
+
+try:
+    import py2exe
+except:
+    pass
 import codecs
+
+#------------------------------------------------
+#        Distutils/ Distutils2 modules
+#------------------------------------------------
+try:
+    from distutils2.util import newer
+except ImportError:
+    from distutils.util import newer
 
 #------------------------------------------------
 #        Gramps modules
@@ -43,6 +62,36 @@ curr_ver = 'You currently have Python-%d.%d.%d installed.' % sys.version_info[0:
 if sys.version_info < (2, 6):
     sys.exit('Error: Python-%d.%d.%d or newer is required.\n %s\n'
              % (2, 6, 0, curr_ver))
+
+# get the root directory so that everything can be absolute paths
+if os.name != "nt" and os.name != "darwin":
+    ROOT_DIR = os.path.dirname(__file__)
+else:
+    # test for sys.frozen to detect a py2exe executable on Windows
+    if hasattr(sys, "frozen"):
+        ROOT_DIR = os.path.abspath(os.path.dirname(
+            unicode(sys.executable, sys.getfilesystemencoding())))
+    else:
+        ROOT_DIR = os.path.abspath(os.path.dirname(
+            unicode(__file__, sys.getfilesystemencoding())))
+if ROOT_DIR != '':
+    os.chdir(ROOT_DIR)
+
+PO_DIR     = os.path.join(ROOT_DIR, 'po')
+MO_DIR     = os.path.join(ROOT_DIR, 'build', 'mo')
+
+if os.name == 'nt':
+    script = [os.path.join(ROOT_DIR, 'windows','gramps.pyw')]
+elif os.name == 'darwin':
+    script = [os.path.join(ROOT_DIR, 'mac','gramps.launcher.sh')]
+else:
+    # os.name == 'posix'
+    script = [os.path.join(ROOT_DIR, 'gramps.sh')]
+
+if platform.system() == 'FreeBSD':
+    MAN_DIR = 'man'
+else:
+    MAN_DIR = os.path.join('data', 'man')
 
 '''
     This will create the setup.cfg for use in setup.py.
@@ -81,18 +130,67 @@ class CreateSetup(object):
             'resources'          : [],
             'extra_files'        : [],
             'data_files'         : [],
-            'scripts'            : [],
+            'scripts'            : script,
          }
 
     def create_data_files(self):
         '''
         creates translation_files, man, and gramps *.in files
         '''
+        _INTLTOOL_MERGE = os.path.join(ROOT_DIR, '.intltool-merge')
 
         # add trans_string to these files and convert file...
-        os.system('.intltool-merge -d po/ data/gramps.desktop.in data/gramps.desktop')
-        os.system('.intltool-merge -x po/ data/gramps.xml.in data/gramps.xml')
-        os.system('.intltool-merge -k po/ data/gramps.keys.in data/gramps.keys')
+        if not os.path.exists(os.path.join(ROOT_DIR, 'data', 'gramps.desktop')):
+            sys.stdout.write('Merging language files into gramps.desktop...\n')
+            os.system('%s -d po/ data/gramps.desktop.in data/gramps.desktop' % _INTLTOOL_MERGE)
+
+        if not os.path.exists(os.path.join(ROOT_DIR, 'data', 'gramps.xml')):
+            sys.stdout.write('Merging languages into gramps.xml...\n')
+            os.system('%s -x po/ data/gramps.xml.in data/gramps.xml' % _INTLTOOL_MERGE)
+
+        if not os.path.exists(os.path.join(ROOT_DIR, 'data', 'gramps.keys')):
+            sys.stdout.write('Merging languages into gramps keys...\n')
+            os.system('%s -k po/ data/gramps.keys.in data/gramps.keys' _INTLTOOL_MERGE)
+
+        sys.stdout.write('Creating gramps manual files...\n')
+        gramps_man_in_file = os.path.join(MAN_DIR, 'gramps.1.in')
+        gramps_man_file    = os.path.join(MAN_DIR, 'gramps.1')
+        if (os.path.exists(gramps_man_in_file) and not os.path.exists(gramps_man_file)):
+            shutil.copy(gramps_man_in_file, gramps_man_file)
+
+        gramps_man_file_gz = os.path.join(MAN_DIR, 'gramps.1.gz')
+        if newer(gramps_man_file, gramps_man_file_gz):
+            if os.path.isfile(gramps_man_file_gz):
+                os.remove(gramps_man_file_gz)
+
+            import gzip
+
+            f_in = open(gramps_man_file, 'rb')
+            f_out = gzip.open(gramps_man_file_gz, 'wb')
+            f_out.writelines(f_in)
+            f_out.close()
+            f_in.close()
+            sys.stdout.write('Merging gramps man file into gzipped file.\n\n')
+
+        for po in glob.glob(os.path.join(PO_DIR, '*.po')):
+            lang = os.path.basename(po[:-3])
+            mo = os.path.join(MO_DIR, lang, 'gramps.mo')
+            directory = os.path.dirname(mo)
+            if not os.path.exists(directory):
+                sys.stdout.write('creating %s\n' % directory)
+                os.makedirs(directory)
+
+            if newer(po, mo):
+                sys.stdout.write('compiling %s -> %s\n' % (po, mo))
+                try:
+                    bash_string = 'msgfmt %s/%s.po -o %s' % (PO_DIR, lang, mo)
+                    result = subprocess.call(bash_string, shell=True)
+                    if result != 0:
+                        raise Warning, "msgfmt returned %d" % result
+                except Exception, e:
+                    sys.stdout.write("Building gettext files failed!\n")
+                    sys.stdout.write("Error: %s\n" % str(e))
+                    sys.exit(1)
 
     def os_files(self):
         # Windows or MacOSX
