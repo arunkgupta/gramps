@@ -40,11 +40,6 @@ from classifiers import all_classifiers
 from distutils2 import logger
 from distutils2.util import find_packages, convert_path
 
-const_file_in = os.path.join('gramps', 'const.py.in')
-const_file = os.path.join('gramps', 'const.py')
-if (os.path.exists(const_file_in) and not os.path.exists(const_file)):
-    shutil.copy(const_file_in, const_file)
-
 #------------------------------------------------
 #        Constants
 #------------------------------------------------
@@ -269,3 +264,5 @@ class CreateSetup(object):
 if __name__ == "__main__":
     cs = CreateSetup()
     cs.main()
+
+    os.system('gtk-update-icon-cache -q -f ${PREFIX}/share/icons/hicolor')
