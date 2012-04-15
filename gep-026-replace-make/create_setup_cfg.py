@@ -40,6 +40,16 @@ from classifiers import all_classifiers
 from distutils2 import logger
 from distutils2.util import find_packages, convert_path
 
+gramps_in   = 'gramps.sh.in'
+gramps_data = 'gramps.sh'
+if (not os.path.exists(gramps_data) and os.path.exists(gramps_in)):
+    shutil.copy(gramps_in, gramps_data)
+
+const_in   = os.path.join('gramps', 'const.py.in')
+const_data = os.path.join('gramps', 'const.py')
+if (not os.path.exists(const_data) and os.path.exists(const_in)):
+    shutil.copy(const_in, const_data)
+
 #------------------------------------------------
 #        Constants
 #------------------------------------------------
@@ -233,10 +243,10 @@ class CreateSetup(object):
             if self.data[name]:
                 cw.write_list(name, self.data[name])
 
-        for name in ('requires-Python'):
+        for name in ['requires-Python']:
             cw.write_colon_value(name, self.data[name])
 
-        for name in ('project-url'):
+        for name in ['project-url']:
             cw.write_colon_list(name, self.data[name])
 
         cw.write_section('files')
@@ -251,7 +261,7 @@ class CreateSetup(object):
         cw.write_value('setup_hooks', 'setup_custom.customize_config')
 
         cw.write_section('build')
-        cw.write_value('post-hook.intl', 'setup_custom.build_intl')
+        cw.write_value('post-hook.itnl', 'setup_custom.build_itnl')
 
         cw.write_section('install_scripts')
         cw.write_value('pre-hook.template', 'setup_custom.install_template')
@@ -264,5 +274,3 @@ class CreateSetup(object):
 if __name__ == "__main__":
     cs = CreateSetup()
     cs.main()
-
-    os.system('gtk-update-icon-cache -q -f ${PREFIX}/share/icons/hicolor')
