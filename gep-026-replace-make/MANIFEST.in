@@ -1,13 +1,15 @@
 include AUTHORS
+include classifiers.py
 include COPYING
+include create_setup_cfg.py
 include FAQ
 include gramps.sh
 include INSTALL
 include LICENSE
-include log
 include MANIFEST.in
 include NEWS
 include RELEASE_NOTES
+include setup_custom.py
 include TODO
 include TestPlan.txt
 
