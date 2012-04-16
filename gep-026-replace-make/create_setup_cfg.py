@@ -25,9 +25,8 @@
 # ***********************************************
 # Python Modules
 # ***********************************************
-import os
+import os, sys, glob, shutil
 import codecs
-import shutil
 
 #------------------------------------------------
 #        Gramps modules
@@ -40,15 +39,15 @@ from classifiers import all_classifiers
 from distutils2 import logger
 from distutils2.util import find_packages, convert_path
 
-gramps_in   = 'gramps.sh.in'
-gramps_data = 'gramps.sh'
-if (not os.path.exists(gramps_data) and os.path.exists(gramps_in)):
-    shutil.copy(gramps_in, gramps_data)
+gramps_sh_in   = 'gramps.sh.in'
+gramps_sh_data = 'gramps.sh'
+if not os.path.exists(gramps_sh_data):
+    shutil.copy(gramps_sh_in, gramps_sh_data)
 
-const_in   = os.path.join('gramps', 'const.py.in')
-const_data = os.path.join('gramps', 'const.py')
-if (not os.path.exists(const_data) and os.path.exists(const_in)):
-    shutil.copy(const_in, const_data)
+const_py_in    = os.path.join('gramps', 'const.py.in')
+const_py_data  = os.path.join('gramps', 'const.py')
+if not os.path.exists(const_py_data):
+    shutil.copy(const_py_in, const_py_data)
 
 #------------------------------------------------
 #        Constants
@@ -80,7 +79,7 @@ class ConfigWriter(object):
         try: 
             self.__file = codecs.open(filename, 'w', encoding='utf-8')
         except IOError:
-            print('Error: Failed to create setup.cfg')
+            print 'Error: Failed to create setup.cfg'
             self.__file = None
             
     def close(self):
@@ -97,7 +96,7 @@ class ConfigWriter(object):
         if not self.__file:
             return
         self.__file.write(u'%s = %s\n' % (name, value))
-
+        
     def write_list(self, name, value_list):
         if not self.__file:
             return
@@ -113,18 +112,6 @@ class ConfigWriter(object):
             self.__file.write(u'    %s = \n' % key)
             for value in value_dict[key]:
                 self.__file.write(u'        %s\n' % value)
-
-    def write_colon_value(self, name, value):
-        if not self.__file:
-            return
-        self.__file.write(u'%s: %s\n' % (name, value))
-
-    def write_colon_list(self, name, value_list):
-        if not self.__file:
-            return
-        self.__file.write(u'%s:\n' % name)
-        for value in value_list:
-            self.__file.write(u'    %s\n' % value)
         
 class CreateSetup(object):
     def __init__(self):
@@ -151,7 +138,7 @@ class CreateSetup(object):
         self.data['classifiers'] = sorted([x for x in all_classifiers])
         self.data['platforms'] = ['Linux', 'FreeBSD', 'MacOS', 'Windows']
         self.data['license'] = 'GPL v2 or greater'
-        self.data['keywords'] = sorted(['Genealogy',
+        self.data['keywords'] = ['Genealogy',
             'Pedigree',
             'Ancestry',
             'Birth',
@@ -159,23 +146,11 @@ class CreateSetup(object):
             'Death',
             'Family',
             'Family-tree',
-            'GEDCOM'])
-        self.data['requires-dist'] = sorted([
+            'GEDCOM']
+        self.data['requires-dist'] = [
             'pygtk2',
             'pycairo',
-            'pygobject2'])
-
-        self.data['provides-dist'] = None
-
-        self.data['obsoletes-dist'] = [
-            'gramps < %s' % VERSION]
-
-        self.data['requires-Python'] = '>= 2.6'
-
-        self.data['project-url'] = [
-            'Repository, https://gramps.svn.sourceforge.net/svnroot/gramps/trunk',
-            'Wiki, http://www.gramps-project.org/wiki/index.php?title=Main_page',
-            'Bug tracker, http://bugs.gramps-project.org']
+            'pygobject2']
 
         exclude_list = ['gramps.guiQML', 
                         'gramps.guiQML.*', 
@@ -194,7 +169,7 @@ class CreateSetup(object):
                                     for dir_name in package_data]}
         
         extra_list = ['debian', 'docs', 'help', 'mac', 'po', 'test', 'windows',
-                      'gramps/test', 'gramps/webapp']
+                      'gramps/guiQML', 'gramps/test', 'gramps/webapp']
         extra_files = []
         for top_dir in extra_list:
             extra_files += find_child_dir(top_dir)
@@ -221,7 +196,6 @@ class CreateSetup(object):
             'COPYING = {doc}',
             'FAQ = {doc}',
             'INSTALL = {doc}',
-            'LICENSE = {doc}',
             'NEWS = {doc}',
             'README = {doc}',
             'TODO = {doc}']
@@ -238,16 +212,8 @@ class CreateSetup(object):
                      'download-url', 'license'):
             cw.write_value(name, self.data[name])
 
-        for name in ('classifiers', 'platforms', 'keywords', 'requires-dist',
-                     'provides-dist', 'obsoletes-dist'):
-            if self.data[name]:
-                cw.write_list(name, self.data[name])
-
-        for name in ['requires-Python']:
-            cw.write_colon_value(name, self.data[name])
-
-        for name in ['project-url']:
-            cw.write_colon_list(name, self.data[name])
+        for name in ('classifiers', 'platforms', 'keywords', 'requires-dist'):
+            cw.write_list(name, self.data[name])
 
         cw.write_section('files')
 
@@ -257,11 +223,11 @@ class CreateSetup(object):
         for name in ('package_data',):
             cw.write_dict(name, self.data[name])
 
-        cw.write_section('global')
+        cw.write_section('Global')
         cw.write_value('setup_hooks', 'setup_custom.customize_config')
 
         cw.write_section('build')
-        cw.write_value('post-hook.itnl', 'setup_custom.build_itnl')
+        cw.write_value('post-hook.intl', 'setup_custom.build_intl')
 
         cw.write_section('install_scripts')
         cw.write_value('pre-hook.template', 'setup_custom.install_template')
