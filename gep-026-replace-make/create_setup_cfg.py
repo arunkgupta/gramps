@@ -39,6 +39,13 @@ from classifiers import all_classifiers
 from distutils2 import logger
 from distutils2.util import find_packages, convert_path
 
+try:
+    version_info = sys.version_info
+    assert version_info >= (2, 6, 0)
+except:
+    print >> sys.stderr, 'gramps needs Python >= 2.6.0'
+    sys.exit(1)
+
 gramps_sh_in   = 'gramps.sh.in'
 gramps_sh_data = 'gramps.sh'
 if not os.path.exists(gramps_sh_data):

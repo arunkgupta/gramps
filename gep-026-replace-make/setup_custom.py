@@ -63,6 +63,32 @@ def build_intl(build_cmd):
 
     if not os.path.exists(os.path.join('data', 'gramps.keys')):
         os.system('intltool-merge -k po/ data/gramps.keys.in data/gramps.keys')
+
+def compress_man_files(build_cmd):
+    '''
+    handles the compression of the man files including their different translations
+    '''
+
+    for dir, dirs, files in os.walk(os.path.join('data', 'man')):
+        for fname in files:
+            man_file = 'gramps.1'
+            man_file_data = 'gramps.1.in'
+            man_file_gz = 'gramps.12.gz'
+            if (fname == man_file_data and fname != man_file):
+                shutil.copy(man_file_data, man_file)
+
+            if newer(man_file, man_file_gz):
+                if os.path.isfile(man_file_gz):
+                    os.remove(man_file_gz)
+
+            import gzip
+
+            f_in = open(man_file, 'rb')
+            f_out = gzip.open(man_file_gz, 'wb')
+            f_out.writelines(f_in)
+            f_out.close()
+            f_in.close()
+            print >> sys.stdout, 'Compressing gramps man files into gzipped format.'
     
 def install_template(install_cmd):
     '''
