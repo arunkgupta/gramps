@@ -87,6 +87,11 @@ class ConfigWriter(object):
             self.__file.close()
             self.__file = None
 
+    def write(self, value):
+        if not self.__file:
+            return
+        self.__file.write(value)
+
     def write_section(self, name):
         if not self.__file:
             return
@@ -112,6 +117,18 @@ class ConfigWriter(object):
             self.__file.write(u'    %s = \n' % key)
             for value in value_dict[key]:
                 self.__file.write(u'        %s\n' % value)
+
+    def write_colon_value(self, name, value):
+        if not self.__file:
+            return
+        self.__file.write(u'%s: %s\n' % (name, value))
+
+    def write_colon_list(self, name, value_list):
+        if not self.__file:
+            return
+        self.__file.write(u'%s:\n' % name)
+        for value in value_list:
+            self.__file.write(u'       %s\n' % value)
         
 class CreateSetup(object):
     def __init__(self):
@@ -136,9 +153,9 @@ class CreateSetup(object):
                                     'supporting a Python based plugin system.')
         self.data['download-url'] = 'http://gramps-project.org/download/'
         self.data['classifiers'] = sorted([x for x in all_classifiers])
-        self.data['platforms'] = ['Linux', 'FreeBSD', 'MacOS', 'Windows']
+        self.data['platforms'] = sorted(['Linux', 'FreeBSD', 'MacOS', 'Windows'])
         self.data['license'] = 'GPL v2 or greater'
-        self.data['keywords'] = ['Genealogy',
+        self.data['keywords'] = sorted(['Genealogy',
             'Pedigree',
             'Ancestry',
             'Birth',
@@ -146,11 +163,25 @@ class CreateSetup(object):
             'Death',
             'Family',
             'Family-tree',
-            'GEDCOM']
-        self.data['requires-dist'] = [
+            'GEDCOM'])
+        self.data['requires-dist'] = sorted([
             'pygtk2',
-            'pycairo',
-            'pygobject2']
+            'python3-cairo',
+            'pygobject3',
+            'enchant-devel',
+            'exiv2-devel >= 0.22',
+            'pyexiv2 >= 0.3.0',
+            'osm-gps-map >= 0.7.3',
+            'python-osmgpsmap'])
+
+        self.data['obsoletes-dist'] = ['gramps < 3.5.0']
+
+        self.data['requires-Python'] = '>= 2.6.0'
+
+        self.data['project-url'] = [
+            'Bug Tracker, http://bugs.gramps-project.org/', 
+            'Documentation, http://www.gramps-project.org/wiki/index.php?title=Main_page',
+            'Downloads, http://gramps-project.org/download/']
 
         exclude_list = ['gramps.guiQML', 
                         'gramps.guiQML.*', 
@@ -168,8 +199,8 @@ class CreateSetup(object):
         self.data['package_data'] = {'gramps': [dir_name + '/*.*' 
                                     for dir_name in package_data]}
         
-        extra_list = ['debian', 'docs', 'help', 'mac', 'po', 'test', 'windows',
-                      'gramps/guiQML', 'gramps/test', 'gramps/webapp']
+        extra_list = ['debian', 'docs', 'help', 'mac', 'test', 'windows',
+                      'gramps/test', 'gramps/webapp']
         extra_files = []
         for top_dir in extra_list:
             extra_files += find_child_dir(top_dir)
@@ -178,13 +209,13 @@ class CreateSetup(object):
 
         self.data['scripts'] = ['gramps.sh']
 
-        self.data['resources'] = [
+        resources = [
             'data/ gramps.desktop = {data}/share/applications',
             'data/ gramps.xml = {data}/share/mime/packages',
             'data/ gramps.mime = {data}/share/mime-info',
             'data/ gramps.keys = {data}/share/mime-info',
-            'data/ *.png = {data}/share/icons/gnome/48x48/mimetypes',
-            'data/ *.svg = {data}/share/icons/gnome/scalable/mimetypes',
+            'data/ *.png = {datadir}/icons/gnome/48x48/mimetypes',
+            'data/ *.svg = {datadir}/icons/gnome/scalable/mimetypes',
             'gramps/images/ gramps.png = {icon}',
             'data/man/ gramps.1.in = {man}/man1',
             'data/man/cs/ gramps.1.in = {man}/cs/man1',
@@ -192,18 +223,38 @@ class CreateSetup(object):
             'data/man/nl/ gramps.1.in = {man}/nl/man1',
             'data/man/pl/ gramps.1.in = {man}/pl/man1',
             'data/man/sv/ gramps.1.in = {man}/sv/man1',
-            'example/**/*.* = {doc}',
-            'COPYING = {doc}',
-            'FAQ = {doc}',
-            'INSTALL = {doc}',
-            'NEWS = {doc}',
-            'README = {doc}',
-            'TODO = {doc}']
+            'example/**/*.* = {doc}/{distribution.name}',
+            'COPYING = {doc}/{distribution.name}',
+            'create_setup_cfg.py = {purelib}',
+            'FAQ = {doc}/{distribution.name}',
+            'INSTALL = {doc}/{distribution.name}',
+            'LICENSE = {doc}/{distribution.name}',
+            'MANIFEST = {doc}/{distribution.name}',
+            'NEWS = {doc}/{distribution.name}',
+            'README = {doc}/{distribution.name}',
+            'setup_custom.py = {purelib}',
+            'setup.cfg = {purelib}',
+            'setup.py = {purelib}',
+            'TestPlan.txt = {doc}/{distribution.name}',
+            'TODO = {doc}/{distribution.name}']
+
+        for po in glob.glob(os.path.join('po', '*.po')):
+            lang = os.path.basename(po[:-3])
+            mo = os.path.join('po', lang, 'gramps.mo')
+            _po, _trans, fname = mo.split(os.sep)
+            directory = os.path.join(_po, _trans) 
+            resources.append('%s/ %s = {datadir}/locale/%s/gramps.mo' % (
+               directory, fname, lang))
+        self.data['resources'] = sorted(resources)
 
     def main(self):
         
         cw = ConfigWriter()
-        cw.open(_FILENAME)
+
+        try:
+            cw.open(_FILENAME)
+        except (IOError, OSError):
+            self.__file = None
         
         cw.write_section('metadata')
         
@@ -212,8 +263,19 @@ class CreateSetup(object):
                      'download-url', 'license'):
             cw.write_value(name, self.data[name])
 
-        for name in ('classifiers', 'platforms', 'keywords', 'requires-dist'):
+        for name in ['classifiers']:
             cw.write_list(name, self.data[name])
+        cw.write('\n')
+
+        for name in ['platforms', 'keywords', 'requires-dist', 'obsoletes-dist']:
+            cw.write_list(name, self.data[name])
+
+        for name in ('requires-Python',):
+            cw.write_colon_value(name, self.data[name])
+
+        for name in ('project-url',):
+            cw.write_colon_list(name, self.data[name])
+        cw.write('\n')
 
         cw.write_section('files')
 
@@ -227,6 +289,7 @@ class CreateSetup(object):
         cw.write_value('setup_hooks', 'setup_custom.customize_config')
 
         cw.write_section('build')
+        cw.write_value('pre-hook.build_trans', 'setup_custom.build_trans')
         cw.write_value('post-hook.intl', 'setup_custom.build_intl')
 
         cw.write_section('install_scripts')
