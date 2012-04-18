@@ -300,7 +300,7 @@ class CreateSetup(object):
 
         cw.write_section('build')
         cw.write_value('pre-hook.trans', 'setup_custom.build_trans')
-        cw.write_value('pre-hook.man', 'setup_custo.compress_man_files')
+        cw.write_value('pre-hook.man', 'setup_custom.compress_man_files')
         cw.write_value('post-hook.intl', 'setup_custom.build.intl')
 
         cw.write_section('install_scripts')
