@@ -231,6 +231,8 @@ class CreateSetup(object):
             'data/man/pl/ gramps.1.in = {man}/pl/man1',
             'data/man/sv/ gramps.1.in = {man}/sv/man1',
             'example/**/*.* = {doc}/{distribution.name}',
+            'AUTHORS = {doc}/{distribution.name}',
+            'classifiers.py = {purelib}',
             'COPYING = {doc}/{distribution.name}',
             'create_setup_cfg.py = {purelib}',
             'FAQ = {doc}/{distribution.name}',
@@ -252,7 +254,7 @@ class CreateSetup(object):
             directory = os.path.join(_po, _trans) 
             resources.append('%s/ %s = {datadir}/locale/%s/gramps.mo' % (
                directory, fname, lang))
-        self.data['resources'] = sorted(resources)
+        self.data['resources'] = resources
 
     def main(self):
         
@@ -291,13 +293,15 @@ class CreateSetup(object):
 
         for name in ('package_data',):
             cw.write_dict(name, self.data[name])
+        cw.write('\n')
 
         cw.write_section('Global')
         cw.write_value('setup_hooks', 'setup_custom.customize_config')
 
         cw.write_section('build')
-        cw.write_value('pre-hook.build_trans', 'setup_custom.build_trans')
-        cw.write_value('post-hook.intl', 'setup_custom.build_intl')
+        cw.write_value('pre-hook.trans', 'setup_custom.build_trans')
+        cw.write_value('pre-hook.man', 'setup_custo.compress_man_files')
+        cw.write_value('post-hook.intl', 'setup_custom.build.intl')
 
         cw.write_section('install_scripts')
         cw.write_value('pre-hook.template', 'setup_custom.install_template')
