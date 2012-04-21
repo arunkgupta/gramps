@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #
 # Gramps - a GTK+/GNOME based genealogy program
 #
@@ -19,6 +21,17 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # $Id$
+
+#------------------------------------------------
+#        python modules
+#------------------------------------------------
+import os, sys, glob, shutil
+sys.path.append(os.getcwd())
+
+#------------------------------------------------
+#        Distutils2 modules
+#------------------------------------------------
+from distutils2.util import newer
 
 def customize_config(metadata):
     '''
@@ -50,7 +63,7 @@ def build_trans(build_cmd):
                 sys.stdout.write("Error: %s" % str(e))
                 sys.exit(1)
 
-def compress_man_files(build_cmd):
+def build_man(build_cmd):
     '''
     Pre-build hook to compress man files into gzipped format
     '''

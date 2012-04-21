@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
 #!/usr/bin/env python
-
+# -*- coding: utf-8 -*-
 #
 # Gramps - a GTK+/GNOME based genealogy program
 #
@@ -26,6 +25,8 @@
 # Python Modules
 # ***********************************************
 import os, sys, glob, shutil
+sys.path.append(os.getcwd())
+
 import codecs
 
 #------------------------------------------------
@@ -274,7 +275,7 @@ class CreateSetup(object):
 
         for name in ['classifiers']:
             cw.write_list(name, self.data[name])
-        cw.write('\n')
+#        cw.write('\n')
 
         for name in ['platforms', 'keywords', 'requires-dist', 'obsoletes-dist']:
             cw.write_list(name, self.data[name])
@@ -284,7 +285,7 @@ class CreateSetup(object):
 
         for name in ('project-url',):
             cw.write_colon_list(name, self.data[name])
-        cw.write('\n')
+#        cw.write('\n')
 
         cw.write_section('files')
 
@@ -300,8 +301,8 @@ class CreateSetup(object):
 
         cw.write_section('build')
         cw.write_value('pre-hook.trans', 'setup_custom.build_trans')
-        cw.write_value('pre-hook.man', 'setup_custom.compress_man_files')
-        cw.write_value('post-hook.intl', 'setup_custom.build.intl')
+        cw.write_value('pre-hook.man', 'setup_custom.build_man')
+        cw.write_value('post-hook.intl', 'setup_custom.build_intl')
 
         cw.write_section('install_scripts')
         cw.write_value('pre-hook.template', 'setup_custom.install_template')
