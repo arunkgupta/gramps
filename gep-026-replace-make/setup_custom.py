@@ -111,7 +111,6 @@ def build_intl(build_cmd):
     if not os.path.exists(os.path.join('data', 'gramps.keys')):
         os.system('intltool-merge -k po/ data/gramps.keys.in data/gramps.keys')
 
-
 def install_template(install_cmd):
     '''
     Pre-install hook to populate template files.

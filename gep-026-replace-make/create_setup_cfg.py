@@ -24,28 +24,39 @@
 # ***********************************************
 # Python Modules
 # ***********************************************
-import os, sys, glob, shutil
-sys.path.append(os.getcwd())
+import os, sys, glob, shutil, subprocess
 
+# if hasattr(os, 'uname'):
+#    (osname, host, release, version, machine) = os.uname()
+
+# verify Python version first, and import modules from either (distutils, distutils2, or packaging)?
+version_info = sys.version_info
+try:
+    assert version_info >= (2, 6, 0)
+except AssertionError:
+    sys.exit('gramps needs Python >= 2.6.0.  You currently have: \n%s' % version_info)
+
+try:
+    from packaging import logger
+    from packaging.util import find_packages, convert_path, newer
+except ImportError:
+    try:
+        from distutils2 import logger
+        from distutils2.util import find_packages, convert_path, newer
+    except ImportError:
+        try:
+            from distutils import log as logger
+            from distutils.util import find_packages, convert_path, newer
+        except ImportError:
+           # no Distutils, Distutils2, packaging is NOT installed!
+           sys.exit('Distutils, Distutils2, Packaging is REQUIRED!')
 import codecs
 
 #------------------------------------------------
 #        Gramps modules
 #------------------------------------------------
+# get list of classifiers 
 from classifiers import all_classifiers
-
-#------------------------------------------------
-#        Distutils/ Distutils2 modules
-#------------------------------------------------
-from distutils2 import logger
-from distutils2.util import find_packages, convert_path
-
-try:
-    version_info = sys.version_info
-    assert version_info >= (2, 6, 0)
-except:
-    print >> sys.stderr, 'gramps needs Python >= 2.6.0'
-    sys.exit(1)
 
 gramps_sh_in   = 'gramps.sh.in'
 gramps_sh_data = 'gramps.sh'
@@ -63,6 +74,9 @@ if not os.path.exists(const_py_data):
 _FILENAME = 'setup.cfg'
 VERSION = '3.5.0'
 
+#-----------------------
+#    Helper function
+#-----------------------
 def find_child_dir(top, root=''):
     top = convert_path(top)
     if not os.path.isdir(os.path.join(root, top)):
@@ -79,6 +93,69 @@ def find_child_dir(top, root=''):
                     dir_list.append(os.path.join(where, name))
     return dir_list
 
+class SetupFiles(object):
+    def __init__(self):
+        file = False
+
+    def build_trans(self):
+        print('Preparing language translations for use in gramps...')
+        for po in glob.glob(os.path.join('po', '*.po')):
+            lang = os.path.basename(po[:-3])
+            mo = os.path.join('po', lang, 'gramps.mo')
+            directory = os.path.dirname(mo)
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+
+            if newer(po, mo):
+                try:
+                    bash_string = 'msgfmt %s/%s.po -o %s' % ('po', lang, mo)
+                    result = subprocess.call(bash_string, shell=True)
+                    if result != 0:
+                        raise Warning('msgfmt returned %d' % result)
+                except Exception as e:
+                    print('Building language translation files failed.')
+                    print('Error: %s' % str(e))
+                    sys.exit(1)
+
+    def build_man(self):
+        for dir, dirs, files in os.walk(os.path.join('data', 'man')):
+            for f in files:
+                file = os.path.join(dir, f)
+                if f == 'gramps.1.in':
+                    break
+            if file:
+                newfile = os.path.join(dir, 'gramps.1')
+                shutil.copy(file, newfile)
+
+                import gzip
+                man_file_gz = os.path.join(dir, 'gramps.1.gz')
+                if man_file_gz in files:
+                    if newer(newfile, man_file_gz):
+                        os.remove(man_file_gz)
+                    else:
+                        file = False
+                        os.remove(newfile)
+                while file:
+                    f_in = open(newfile, 'rb')
+                    f_out = gzip.open(man_file_gz, 'wb')
+                    f_out.writelines(f_in)
+                    f_out.close()
+                    f_in.close()
+                    print('Compressing gramps man files into gzipped format.')
+
+                    os.remove(newfile)
+                    file = False
+
+    def build_intl(self):
+        if not os.path.exists(os.path.join('data', 'gramps.desktop')):
+            os.system('intltool-merge -d po/ data/gramps.desktop.in data/gramps.desktop')
+
+        if not os.path.exists(os.path.join('data', 'gramps.xml')):
+            os.system('intltool-merge -x po/ data/gramps.xml.in data/gramps.xml')
+
+        if not os.path.exists(os.path.join('data', 'gramps.keys')):
+            os.system('intltool-merge -k po/ data/gramps.keys.in data/gramps.keys')
+
 class ConfigWriter(object):
     def __init__(self):
         self.__file = None
@@ -87,7 +164,7 @@ class ConfigWriter(object):
         try: 
             self.__file = codecs.open(filename, 'w', encoding='utf-8')
         except IOError:
-            print 'Error: Failed to create setup.cfg'
+            print('Error: Failed to create setup.cfg')
             self.__file = None
             
     def close(self):
@@ -103,46 +180,46 @@ class ConfigWriter(object):
     def write_section(self, name):
         if not self.__file:
             return
-        self.__file.write(u'[%s]\n' % name)
+        self.__file.write('[%s]\n' % name)
 
     def write_value(self, name, value):
         if not self.__file:
             return
-        self.__file.write(u'%s = %s\n' % (name, value))
+        self.__file.write('%s = %s\n' % (name, value))
         
     def write_list(self, name, value_list):
         if not self.__file:
             return
-        self.__file.write(u'%s =\n' % name)
+        self.__file.write('%s =\n' % name)
         for value in value_list:
-            self.__file.write(u'    %s\n' % value)
+            self.__file.write('    %s\n' % value)
         
     def write_dict(self, name, value_dict):
         if not self.__file:
             return
-        self.__file.write(u'%s =\n' % name)
-        for key in value_dict.keys():
-            self.__file.write(u'    %s = \n' % key)
+        self.__file.write('%s =\n' % name)
+        for key in list(value_dict.keys()):
+            self.__file.write('    %s = \n' % key)
             for value in value_dict[key]:
-                self.__file.write(u'        %s\n' % value)
+                self.__file.write('        %s\n' % value)
 
     def write_colon_value(self, name, value):
         if not self.__file:
             return
-        self.__file.write(u'%s: %s\n' % (name, value))
+        self.__file.write('%s: %s\n' % (name, value))
 
     def write_colon_list(self, name, value_list):
         if not self.__file:
             return
-        self.__file.write(u'%s:\n' % name)
+        self.__file.write('%s:\n' % name)
         for value in value_list:
-            self.__file.write(u'       %s\n' % value)
+            self.__file.write('       %s\n' % value)
         
 class CreateSetup(object):
     def __init__(self):
         # turn off warnings when deprecated modules are imported
         import warnings
-        warnings.filterwarnings("ignore",category=DeprecationWarning)
+        warnings.filterwarnings('ignore',category=DeprecationWarning)
 
         self.data = {}
 
@@ -231,22 +308,22 @@ class CreateSetup(object):
             'data/man/nl/ gramps.1.in = {man}/nl/man1',
             'data/man/pl/ gramps.1.in = {man}/pl/man1',
             'data/man/sv/ gramps.1.in = {man}/sv/man1',
-            'example/**/*.* = {doc}/{distribution.name}',
-            'AUTHORS = {doc}/{distribution.name}',
+            'example/**/*.* = {doc}',
+            'AUTHORS = {doc}',
             'classifiers.py = {purelib}',
-            'COPYING = {doc}/{distribution.name}',
+            'COPYING = {doc}',
             'create_setup_cfg.py = {purelib}',
-            'FAQ = {doc}/{distribution.name}',
-            'INSTALL = {doc}/{distribution.name}',
-            'LICENSE = {doc}/{distribution.name}',
-            'MANIFEST = {doc}/{distribution.name}',
-            'NEWS = {doc}/{distribution.name}',
-            'README = {doc}/{distribution.name}',
+            'FAQ = {doc}',
+            'INSTALL = {doc}',
+            'LICENSE = {doc}',
+            'MANIFEST = {doc}',
+            'NEWS = {doc}',
+            'README = {doc}',
             'setup_custom.py = {purelib}',
             'setup.cfg = {purelib}',
             'setup.py = {purelib}',
-            'TestPlan.txt = {doc}/{distribution.name}',
-            'TODO = {doc}/{distribution.name}']
+            'TestPlan.txt = {doc}',
+            'TODO = {doc}']
 
         for po in glob.glob(os.path.join('po', '*.po')):
             lang = os.path.basename(po[:-3])
@@ -259,8 +336,12 @@ class CreateSetup(object):
 
     def main(self):
         
-        cw = ConfigWriter()
+        sf = SetupFiles()
+        sf.build_trans()
+        sf.build_man()
+        sf.build_intl()
 
+        cw = ConfigWriter()
         try:
             cw.open(_FILENAME)
         except (IOError, OSError):
@@ -275,7 +356,7 @@ class CreateSetup(object):
 
         for name in ['classifiers']:
             cw.write_list(name, self.data[name])
-#        cw.write('\n')
+        cw.write('\n')
 
         for name in ['platforms', 'keywords', 'requires-dist', 'obsoletes-dist']:
             cw.write_list(name, self.data[name])
@@ -285,7 +366,7 @@ class CreateSetup(object):
 
         for name in ('project-url',):
             cw.write_colon_list(name, self.data[name])
-#        cw.write('\n')
+        cw.write('\n')
 
         cw.write_section('files')
 
@@ -296,22 +377,22 @@ class CreateSetup(object):
             cw.write_dict(name, self.data[name])
         cw.write('\n')
 
-        cw.write_section('Global')
-        cw.write_value('setup_hooks', 'setup_custom.customize_config')
+#        cw.write_section('Global')
+#        cw.write_value('setup_hooks', 'setup_custom.customize_config')
 
-        cw.write_section('build')
-        cw.write_value('pre-hook.trans', 'setup_custom.build_trans')
-        cw.write_value('pre-hook.man', 'setup_custom.build_man')
-        cw.write_value('post-hook.intl', 'setup_custom.build_intl')
+#        cw.write_section('build')
+#        cw.write_value('pre-hook.trans', 'setup_custom.build_trans')
+#        cw.write_value('pre-hook.man', 'setup_custom.build_man')
+#        cw.write_value('post-hook.intl', 'setup_custom.build_intl')
 
-        cw.write_section('install_scripts')
-        cw.write_value('pre-hook.template', 'setup_custom.install_template')
+#        cw.write_section('install_scripts')
+#        cw.write_value('pre-hook.template', 'setup_custom.install_template')
 
-        cw.write_section('sdist')
-        cw.write_value('manifest-builders', 'setup_custom.manifest_builder')
+#        cw.write_section('sdist')
+#        cw.write_value('manifest-builders', 'setup_custom.manifest_builder')
 
         cw.close()
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     cs = CreateSetup()
     cs.main()
