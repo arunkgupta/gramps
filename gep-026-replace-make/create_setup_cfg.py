@@ -98,7 +98,7 @@ class SetupFiles(object):
         file = False
 
     def build_trans(self):
-        print('Preparing language translations for use in gramps...')
+        print('Preparing language translation mo files for use in gramps...')
         for po in glob.glob(os.path.join('po', '*.po')):
             lang = os.path.basename(po[:-3])
             mo = os.path.join('po', lang, 'gramps.mo')
@@ -118,6 +118,8 @@ class SetupFiles(object):
                     sys.exit(1)
 
     def build_man(self):
+        print('Compressing gramps man files into gzipped format for use in gramps.')
+
         for dir, dirs, files in os.walk(os.path.join('data', 'man')):
             for f in files:
                 file = os.path.join(dir, f)
@@ -141,19 +143,21 @@ class SetupFiles(object):
                     f_out.writelines(f_in)
                     f_out.close()
                     f_in.close()
-                    print('Compressing gramps man files into gzipped format.')
 
                     os.remove(newfile)
                     file = False
 
     def build_intl(self):
         if not os.path.exists(os.path.join('data', 'gramps.desktop')):
+            print('Compiling gramps.desktop file...\n')
             os.system('intltool-merge -d po/ data/gramps.desktop.in data/gramps.desktop')
 
         if not os.path.exists(os.path.join('data', 'gramps.xml')):
+            print('Compiling gramps.xml file...\n')
             os.system('intltool-merge -x po/ data/gramps.xml.in data/gramps.xml')
 
         if not os.path.exists(os.path.join('data', 'gramps.keys')):
+            print('Compiling gramps.keys...')
             os.system('intltool-merge -k po/ data/gramps.keys.in data/gramps.keys')
 
 class ConfigWriter(object):
@@ -379,15 +383,15 @@ class CreateSetup(object):
 
 #        cw.write_section('Global')
 #        cw.write_value('setup_hooks', 'setup_custom.customize_config')
-
+#
 #        cw.write_section('build')
 #        cw.write_value('pre-hook.trans', 'setup_custom.build_trans')
 #        cw.write_value('pre-hook.man', 'setup_custom.build_man')
 #        cw.write_value('post-hook.intl', 'setup_custom.build_intl')
-
+#
 #        cw.write_section('install_scripts')
 #        cw.write_value('pre-hook.template', 'setup_custom.install_template')
-
+#
 #        cw.write_section('sdist')
 #        cw.write_value('manifest-builders', 'setup_custom.manifest_builder')
 

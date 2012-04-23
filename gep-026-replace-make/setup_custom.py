@@ -22,17 +22,6 @@
 #
 # $Id$
 
-#------------------------------------------------
-#        python modules
-#------------------------------------------------
-import os, sys, glob, shutil
-sys.path.append(os.getcwd())
-
-#------------------------------------------------
-#        Distutils2 modules
-#------------------------------------------------
-from distutils2.util import newer
-
 def customize_config(metadata):
     '''
     Global hook.
@@ -54,13 +43,13 @@ def build_trans(build_cmd):
 
         if newer(po, mo):
             try:
-                bash_string = 'msgfmt %s/%s.po -o %s' % (PO_DIR, lang, mo)
+                bash_string = 'msgfmt %s/%s.po -o %s' % ('po', lang, mo)
                 result = subprocess.call(bash_string, shell=True)
                 if result != 0:
-                    raise Warning, "msgfmt returned %d" % result
+                    sys.stdout.write('msgfmt returned %d' % result)
             except Exception, e:
-                sys.stdout.write("Building language translation files failed.")
-                sys.stdout.write("Error: %s" % str(e))
+                print('Building language translation files failed.')
+                print(('Error: %s' % str(e)))
                 sys.exit(1)
 
 def build_man(build_cmd):
@@ -92,7 +81,7 @@ def build_man(build_cmd):
                 f_out.writelines(f_in)
                 f_out.close()
                 f_in.close()
-                print >> sys.stdout, 'Compressing gramps man files into gzipped format.'
+                print('Compressing gramps man files into gzipped format.')
 
                 os.remove(newfile)
                 file = False
@@ -115,10 +104,10 @@ def install_template(install_cmd):
     '''
     Pre-install hook to populate template files.
     '''
-    print('INSTALL', install_cmd.install_dir)
+    print(('INSTALL', install_cmd.install_dir))
 
 def manifest_builder(distribution, manifest):
     '''
     Manifest builder.
     '''
-    print("manifest_builder", manifest.files)
+    print(("manifest_builder", manifest.files))
