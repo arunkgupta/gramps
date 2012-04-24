@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
@@ -74,6 +75,9 @@ if not os.path.exists(const_py_data):
 _FILENAME = 'setup.cfg'
 VERSION = '3.5.0'
 
+PO_DIR = 'po'
+MO_DIR = os.path.join('build', 'mo')
+
 #-----------------------
 #    Helper function
 #-----------------------
@@ -98,17 +102,17 @@ class SetupFiles(object):
         file = False
 
     def build_trans(self):
-        print('Preparing language translation mo files for use in gramps...')
-        for po in glob.glob(os.path.join('po', '*.po')):
+        for po in glob.glob(os.path.join(PO_DIR, '*.po')):
             lang = os.path.basename(po[:-3])
-            mo = os.path.join('po', lang, 'gramps.mo')
+            mo = os.path.join(MO_DIR, lang, 'gramps.mo')
             directory = os.path.dirname(mo)
             if not os.path.exists(directory):
+                print('Creating directory: %s' % directory)
                 os.makedirs(directory)
 
             if newer(po, mo):
                 try:
-                    bash_string = 'msgfmt %s/%s.po -o %s' % ('po', lang, mo)
+                    bash_string = 'msgfmt %s/%s.po -o %s' % (PO_DIR, lang, mo)
                     result = subprocess.call(bash_string, shell=True)
                     if result != 0:
                         raise Warning('msgfmt returned %d' % result)
@@ -116,6 +120,7 @@ class SetupFiles(object):
                     print('Building language translation files failed.')
                     print('Error: %s' % str(e))
                     sys.exit(1)
+                print('Compiling %s >> %s...' % (po, mo))
 
     def build_man(self):
         print('Compressing gramps man files into gzipped format for use in gramps.')
@@ -148,17 +153,17 @@ class SetupFiles(object):
                     file = False
 
     def build_intl(self):
+        # merge gramps desktop
         if not os.path.exists(os.path.join('data', 'gramps.desktop')):
-            print('Compiling gramps.desktop file...\n')
             os.system('intltool-merge -d po/ data/gramps.desktop.in data/gramps.desktop')
 
-        if not os.path.exists(os.path.join('data', 'gramps.xml')):
-            print('Compiling gramps.xml file...\n')
-            os.system('intltool-merge -x po/ data/gramps.xml.in data/gramps.xml')
-
+        # merge gramps keys
         if not os.path.exists(os.path.join('data', 'gramps.keys')):
-            print('Compiling gramps.keys...')
             os.system('intltool-merge -k po/ data/gramps.keys.in data/gramps.keys')
+
+        # merge gramps xml
+        if not os.path.exists(os.path.join('data', 'gramps.xml')):
+            os.system('intltool-merge -x po/ data/gramps.xml.in data/gramps.xml')
 
 class ConfigWriter(object):
     def __init__(self):
@@ -253,19 +258,20 @@ class CreateSetup(object):
             'Family',
             'Family-tree',
             'GEDCOM'])
+
+        self.data['requires-Python'] = '>= 2.6.0'
+
         self.data['requires-dist'] = sorted([
             'pygtk2',
             'python3-cairo',
             'pygobject3',
-            'enchant-devel',
-            'exiv2-devel >= 0.22',
+            'librsvg2', 
             'pyexiv2 >= 0.3.0',
             'osm-gps-map >= 0.7.3',
-            'python-osmgpsmap'])
+            'python-osmgpsmap >= 0.7.3'])
+        self.data['requires-external'] = 'exiv2-devel (>=0.22)'
 
         self.data['obsoletes-dist'] = ['gramps < 3.5.0']
-
-        self.data['requires-Python'] = '>= 2.6.0'
 
         self.data['project-url'] = [
             'Bug Tracker, http://bugs.gramps-project.org/', 
@@ -329,14 +335,14 @@ class CreateSetup(object):
             'TestPlan.txt = {doc}',
             'TODO = {doc}']
 
-        for po in glob.glob(os.path.join('po', '*.po')):
+        for po in glob.glob(os.path.join(PO_DIR, '*.po')):
             lang = os.path.basename(po[:-3])
-            mo = os.path.join('po', lang, 'gramps.mo')
-            _po, _trans, fname = mo.split(os.sep)
-            directory = os.path.join(_po, _trans) 
+            mo = os.path.join(MO_DIR, lang, 'gramps.mo')
+            directory = os.path.dirname(mo)
+            mach_obj_fname = os.path.basename(mo)
             resources.append('%s/ %s = {datadir}/locale/%s/gramps.mo' % (
-               directory, fname, lang))
-        self.data['resources'] = resources
+                    directory, mach_obj_fname, lang))
+        self.data['resources'] = sorted(resources)
 
     def main(self):
         
@@ -362,10 +368,16 @@ class CreateSetup(object):
             cw.write_list(name, self.data[name])
         cw.write('\n')
 
-        for name in ['platforms', 'keywords', 'requires-dist', 'obsoletes-dist']:
+        for name in ('platforms', 'keywords',):
             cw.write_list(name, self.data[name])
 
         for name in ('requires-Python',):
+            cw.write_colon_value(name, self.data[name])
+
+        for name in ['requires-dist', 'obsoletes-dist']:
+            cw.write_list(name, self.data[name])
+
+        for name in ('requires-external',):
             cw.write_colon_value(name, self.data[name])
 
         for name in ('project-url',):

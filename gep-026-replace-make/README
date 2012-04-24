@@ -7,6 +7,7 @@ Requirements
 The following packages *MUST* be installed in order for Gramps to work:
    Python 2.6 or greater
    PyGTK2 2.16 or greater
+   distutils2 >= 1.0, download from http://pypi.python.org/pypi/Distutils2 
    librsvg2 (svg icon view)
    xdg-utils
 
@@ -25,12 +26,20 @@ The following packages are *STRONGLY RECOMMENDED* to be installed:
                     http://gramps-project.org/wiki/index.php?title=Gramps_3.3_Wiki_Manual_-_Main_Window#Geography_Category
                     The package is named osmgpsmap, osm-gps-map
                     or python-osmgpsmap. Or obtain it from: http://nzjrs.github.com/osm-gps-map/
+
    GraphViz         Enable creation of graphs using GraphViz engine.
                     Without this no beautiful graphs can be created.
                     Obtain it from: http://www.graphviz.org
+
    pyexiv2          Enables Gramps to manage Exif metadata embedded in your
                     media. Gramps needs version 0.1.3 or greater.
-                    Obtain it from: http://tilloy.net/dev/pyexiv2/download.html  
+                    Obtain it from: http://tilloy.net/dev/pyexiv2/download.html
+
+  exiv2-devel      Works with pyexiv2, it can be downloaded from here:
+                   http://www.exiv2.org/
+  python-imaging   Works with pyexiv2.  Allows the copying and converting of image types that python-imaging
+                   supports.  Can be downloaded from here:
+                   http://www.pythonware.com/products/pil/
 
 The following packages are optional
    python gtkspell  Enable spell checking in the notes, gtkspell contains the
@@ -61,7 +70,7 @@ The following packages are optional
                     depending on distributions.
 
    python-pygoocanvas:
-                    Required for the experimental Graphview plugin
+                    Required for the Graphview third-party plugin
 
 No longer needed in 3.3:
    python-enchant Enchant
