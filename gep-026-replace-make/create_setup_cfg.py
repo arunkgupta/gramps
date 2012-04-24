@@ -269,7 +269,8 @@ class CreateSetup(object):
             'pyexiv2 >= 0.3.0',
             'osm-gps-map >= 0.7.3',
             'python-osmgpsmap >= 0.7.3'])
-        self.data['requires-external'] = 'exiv2-devel (>=0.22)'
+
+        self.data['Requires-External'] = 'exiv2-devel (>=0.23)'
 
         self.data['obsoletes-dist'] = ['gramps < 3.5.0']
 
@@ -377,7 +378,7 @@ class CreateSetup(object):
         for name in ['requires-dist', 'obsoletes-dist']:
             cw.write_list(name, self.data[name])
 
-        for name in ('requires-external',):
+        for name in ('Requires-External',):
             cw.write_colon_value(name, self.data[name])
 
         for name in ('project-url',):
