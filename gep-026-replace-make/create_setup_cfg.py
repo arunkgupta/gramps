@@ -26,38 +26,43 @@
 # Python Modules
 # ***********************************************
 import os, sys, glob, shutil, subprocess
+import codecs
 
 # if hasattr(os, 'uname'):
 #    (osname, host, release, version, machine) = os.uname()
 
-# verify Python version first, and import modules from either (distutils, distutils2, or packaging)?
-version_info = sys.version_info
+# verify Python version first, and import modules
+version_info = sys.version_info[0:3]
 try:
-    assert version_info >= (2, 6, 0)
+    assert version_info >= (2,6, 0)
 except AssertionError:
     sys.exit('gramps needs Python >= 2.6.0.  You currently have: \n%s' % version_info)
 
+#------------------------------------------------
+#        Distutils2, Packaging, Distutils modules
+#------------------------------------------------
 try:
-    from packaging import logger
-    from packaging.util import find_packages, convert_path, newer
+    from distutils2 import logger as _LOG
+    from distutils2.util import find_packages, convert_path, newer
 except ImportError:
     try:
-        from distutils2 import logger
-        from distutils2.util import find_packages, convert_path, newer
+        from packaging import logger as _LOG
+        from packaging.util import find_packages, convert_path, newer
     except ImportError:
         try:
-            from distutils import log as logger
+            from distutils import log as _LOG
             from distutils.util import find_packages, convert_path, newer
         except ImportError:
            # no Distutils, Distutils2, packaging is NOT installed!
-           sys.exit('Distutils, Distutils2, Packaging is REQUIRED!')
-import codecs
+           sys.exit('Distutils2, Packaging, or Distutils is Required!\n',
+                    'You need to have one of these installed.')
 
 #------------------------------------------------
 #        Gramps modules
 #------------------------------------------------
 # get list of classifiers 
-from classifiers import all_classifiers
+from setup_custom import (all_classifiers, create_gramps_trans, create_gramps_man,
+                          create_gramps_intl)   
 
 gramps_sh_in   = 'gramps.sh.in'
 gramps_sh_data = 'gramps.sh'
@@ -74,12 +79,13 @@ if not os.path.exists(const_py_data):
 #------------------------------------------------
 _FILENAME = 'setup.cfg'
 VERSION = '3.5.0'
+BUILD_DIR = 'build'
 
 PO_DIR = 'po'
-MO_DIR = os.path.join('build', 'mo')
+MO_DIR = os.path.join(BUILD_DIR, 'mo')
 
 #-----------------------
-#    Helper function
+#        Helper functions
 #-----------------------
 def find_child_dir(top, root=''):
     top = convert_path(top)
@@ -92,79 +98,15 @@ def find_child_dir(top, root=''):
         for name in os.listdir(os.path.join(root, where)):
             fn = os.path.join(root, where, name)
             if os.path.isdir(fn):
+
                 if '.' not in name: # exclude hidden subversion directories
                     to_do.append(os.path.join(where, name))
                     dir_list.append(os.path.join(where, name))
     return dir_list
 
-class SetupFiles(object):
-    def __init__(self):
-        file = False
-
-    def build_trans(self):
-        for po in glob.glob(os.path.join(PO_DIR, '*.po')):
-            lang = os.path.basename(po[:-3])
-            mo = os.path.join(MO_DIR, lang, 'gramps.mo')
-            directory = os.path.dirname(mo)
-            if not os.path.exists(directory):
-                print('Creating directory: %s' % directory)
-                os.makedirs(directory)
-
-            if newer(po, mo):
-                try:
-                    bash_string = 'msgfmt %s/%s.po -o %s' % (PO_DIR, lang, mo)
-                    result = subprocess.call(bash_string, shell=True)
-                    if result != 0:
-                        raise Warning('msgfmt returned %d' % result)
-                except Exception as e:
-                    print('Building language translation files failed.')
-                    print('Error: %s' % str(e))
-                    sys.exit(1)
-                print('Compiling %s >> %s...' % (po, mo))
-
-    def build_man(self):
-        print('Compressing gramps man files into gzipped format for use in gramps.')
-
-        for dir, dirs, files in os.walk(os.path.join('data', 'man')):
-            for f in files:
-                file = os.path.join(dir, f)
-                if f == 'gramps.1.in':
-                    break
-            if file:
-                newfile = os.path.join(dir, 'gramps.1')
-                shutil.copy(file, newfile)
-
-                import gzip
-                man_file_gz = os.path.join(dir, 'gramps.1.gz')
-                if man_file_gz in files:
-                    if newer(newfile, man_file_gz):
-                        os.remove(man_file_gz)
-                    else:
-                        file = False
-                        os.remove(newfile)
-                while file:
-                    f_in = open(newfile, 'rb')
-                    f_out = gzip.open(man_file_gz, 'wb')
-                    f_out.writelines(f_in)
-                    f_out.close()
-                    f_in.close()
-
-                    os.remove(newfile)
-                    file = False
-
-    def build_intl(self):
-        # merge gramps desktop
-        if not os.path.exists(os.path.join('data', 'gramps.desktop')):
-            os.system('intltool-merge -d po/ data/gramps.desktop.in data/gramps.desktop')
-
-        # merge gramps keys
-        if not os.path.exists(os.path.join('data', 'gramps.keys')):
-            os.system('intltool-merge -k po/ data/gramps.keys.in data/gramps.keys')
-
-        # merge gramps xml
-        if not os.path.exists(os.path.join('data', 'gramps.xml')):
-            os.system('intltool-merge -x po/ data/gramps.xml.in data/gramps.xml')
-
+'''
+    Creates the setup configuration file, 'setup.cfg'
+'''
 class ConfigWriter(object):
     def __init__(self):
         self.__file = None
@@ -224,6 +166,9 @@ class ConfigWriter(object):
         for value in value_list:
             self.__file.write('       %s\n' % value)
         
+'''
+    Sets up the data argument fields and sends them out to be written
+'''
 class CreateSetup(object):
     def __init__(self):
         # turn off warnings when deprecated modules are imported
@@ -347,10 +292,9 @@ class CreateSetup(object):
 
     def main(self):
         
-        sf = SetupFiles()
-        sf.build_trans()
-        sf.build_man()
-        sf.build_intl()
+        create_gramps_trans()
+        create_gramps_man()
+        create_gramps_intl()
 
         cw = ConfigWriter()
         try:
