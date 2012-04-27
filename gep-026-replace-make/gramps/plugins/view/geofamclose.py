@@ -20,10 +20,10 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 
-# $Id: geoperson.py 18338 2011-10-16 20:21:22Z paul-franklin $
+# $Id:$
 
 """
-Geography for two persons
+Geography for two families
 """
 #-------------------------------------------------------------------------
 #
@@ -41,7 +41,7 @@ from math import *
 #
 #-------------------------------------------------------------------------
 import logging
-_LOG = logging.getLogger("GeoGraphy.geoclose")
+_LOG = logging.getLogger("GeoGraphy.geofamilyclose")
 
 #-------------------------------------------------------------------------
 #
@@ -89,7 +89,7 @@ _UI_DEF = '''\
   <toolitem action="Back"/>  
   <toolitem action="Forward"/>  
   <toolitem action="HomePerson"/>
-  <toolitem action="RefPerson"/>
+  <toolitem action="reffamily"/>
 </placeholder>
 </toolbar>
 </ui>
@@ -100,9 +100,9 @@ _UI_DEF = '''\
 # GeoView
 #
 #-------------------------------------------------------------------------
-class GeoClose(GeoGraphyView):
+class GeoFamClose(GeoGraphyView):
     """
-    The view used to render person map.
+    The view used to render family's map.
     """
     CONFIGSETTINGS = (
         ('geography.path', constants.GEOGRAPHY_PATH),
@@ -125,10 +125,10 @@ class GeoClose(GeoGraphyView):
         )
 
     def __init__(self, pdata, dbstate, uistate, nav_group=0):
-        GeoGraphyView.__init__(self, _("Have they been able to meet?"),
+        GeoGraphyView.__init__(self, _("Have these two families been able to meet?"),
                                       pdata, dbstate, uistate, 
                                       dbstate.db.get_bookmarks(), 
-                                      Bookmarks.PersonBookmarks,
+                                      Bookmarks.FamilyBookmarks,
                                       nav_group)
         self.dbstate = dbstate
         self.uistate = uistate
@@ -138,13 +138,13 @@ class GeoClose(GeoGraphyView):
         self.minlat = self.maxlat = self.minlon = self.maxlon = 0.0
         self.minyear = 9999
         self.maxyear = 0
-        self.refperson = None
+        self.reffamily = None
         self.nbplaces = 0
         self.nbmarkers = 0
         self.sort = []
         self.tracks = []
         self.additional_uis.append(self.additional_ui())
-        self.ref_person = None
+        self.ref_family = None
         self.skip_list = []
         self.track = []
         self.place_list_active = []
@@ -155,7 +155,7 @@ class GeoClose(GeoGraphyView):
         """
         Used to set the titlebar in the configuration window.
         """
-        return _('GeoClose')
+        return _('GeoFamClose')
 
     def get_stock(self):
         """
@@ -182,7 +182,7 @@ class GeoClose(GeoGraphyView):
         Indicates the navigation type. Navigation type can be the string
         name of any of the primary objects.
         """
-        return 'Person'
+        return 'Family'
 
     def get_bookmarks(self):
         """
@@ -192,7 +192,7 @@ class GeoClose(GeoGraphyView):
 
     def goto_handle(self, handle=None):
         """
-        Rebuild the tree with the given person handle as the root.
+        Rebuild the tree with the given family handle as reference.
         """
         self.place_list_active = []
         self.place_list_ref = []
@@ -202,43 +202,43 @@ class GeoClose(GeoGraphyView):
         self.remove_all_gps()
         self.remove_all_markers()
         self.lifeway_layer.clear_ways()
-        if self.refperson:
+        if self.reffamily:
             color = self._config.get('geography.color1')
-            self._createmap(self.refperson, color, self.place_list_ref, True)
+            self._createmap(self.reffamily, color, self.place_list_ref, True)
         active = self.get_active()
+        f1 = None
         if active:
-            p1 = self.dbstate.db.get_person_from_handle(active)
+            f1 = self.dbstate.db.get_family_from_handle(active)
             self.change_active(active)
             color = self._config.get('geography.color2')
-            self._createmap(p1, color, self.place_list_active, False)
-        self.possible_meeting(self.place_list_ref, self.place_list_active)
+            self._createmap(f1, color, self.place_list_active, False)
+        if f1 is not None:
+            self._possible_family_meeting(self.reffamily, f1)
         self.uistate.modify_statusbar(self.dbstate)
 
     def define_actions(self):
         """
-        Define action for the reference person button.
+        Define action for the reference family button.
         """
         NavigationView.define_actions(self)
 
-        self.ref_person = gtk.ActionGroup(self.title + '/Selection')
-        self.ref_person.add_actions([
-            ('RefPerson', 'gramps-person', _('_RefPerson'), None ,
-            _("Select the person which is the reference for life ways"),
-            self.selectPerson),
+        self.ref_family = gtk.ActionGroup(self.title + '/Selection')
+        self.ref_family.add_actions([
+            ('reffamily', 'gramps-family', _('_reffamily'), None ,
+            _("Select the family which is the reference for life ways"),
+            self.selectFamily),
             ])
-        self._add_action_group(self.ref_person)
+        self._add_action_group(self.ref_family)
 
-    def selectPerson(self, obj):
+    def selectFamily(self, obj):
         """
-        Open a selection box to choose the ref person.
+        Open a selection box to choose the ref family.
         """
         self.track = []
         self.skip_list = []
-        SelectPerson = SelectorFactory('Person')
-        sel = SelectPerson(self.dbstate, self.uistate, self.track,
-                           _("Select the person which will be our reference."),
-                           skip=self.skip_list)
-        self.refperson = sel.run()
+        selectFamily = SelectorFactory('Family')
+        sel = selectFamily(self.dbstate, self.uistate)
+        self.reffamily = sel.run()
         self.goto_handle(None)
 
     def build_tree(self):
@@ -248,9 +248,9 @@ class GeoClose(GeoGraphyView):
         information.
         """
         active = self.get_active()
-        person = self.dbstate.db.get_person_from_handle(active)
+        family = self.dbstate.db.get_family_from_handle(active)
         self.lifeway_layer.clear_ways()
-        self.goto_handle(handle=person)
+        self.goto_handle(handle=family)
 
     def draw(self, menu, marks, color, reference):
         """
@@ -275,14 +275,26 @@ class GeoClose(GeoGraphyView):
             self.lifeway_layer.add_text(points, mark[1])
         return False
 
-    def possible_meeting(self, place_list_ref, place_list_active):
+    def _place_list_for_person(self, person):
+        """
+        get place list for one person
+        """
+        list = []
+        for event in self.sort:
+            if ( event[1] == _nd.display(person)):
+                list.append(event)
+        return list
+
+    def possible_meeting(self, ref_person, person):
         """
         Try to see if two persons can be to the same place during their life.
-        If yes, show a marker with the dates foe each person.
+        If yes, show a marker with the dates for each person.
         """
+        self.place_list_ref = self._place_list_for_person(ref_person)
+        self.place_list_active = self._place_list_for_person(person)
         radius = float(self._config.get("geography.maximum_meeting_zone")/10.0)
-        for ref in place_list_ref:
-            for act in place_list_active:
+        for ref in self.place_list_ref:
+            for act in self.place_list_active:
                 if (hypot(float(act[3])-float(ref[3]),
                           float(act[4])-float(ref[4])) <= radius) == True:
                     # we are in the meeting zone
@@ -291,20 +303,84 @@ class GeoClose(GeoGraphyView):
                     self.add_marker(None, None, ref[3], ref[4], ref[7], True)
                     self.all_place_list.append(ref)
 
-    def _createmap(self, person, color, place_list, reference):
+    def _expose_persone_to_family(self, ref_person, family):
+        """
+        try to search one or more meeting zone for all persons of one family
+        with one reference person
+        """
+        dbstate = self.dbstate
+        try:
+            person = dbstate.db.get_person_from_handle(family.get_father_handle())
+        except:
+            return
+        if person is None: # family without father ?
+            person = dbstate.db.get_person_from_handle(family.get_mother_handle())
+        if person is not None:
+            family_list = person.get_family_handle_list()
+            if len(family_list) > 0:
+                fhandle = family_list[0] # first is primary
+                fam = dbstate.db.get_family_from_handle(fhandle)
+                handle = fam.get_father_handle()
+                father = dbstate.db.get_person_from_handle(handle)
+                if father:
+                    self.possible_meeting(father, ref_person)
+                handle = fam.get_mother_handle()
+                mother = dbstate.db.get_person_from_handle(handle)
+                if mother:
+                    self.possible_meeting(mother, ref_person)
+                child_ref_list = fam.get_child_ref_list()
+                if child_ref_list:
+                    for child_ref in child_ref_list:
+                        child = dbstate.db.get_person_from_handle(child_ref.ref)
+                        if child:
+                            self.possible_meeting(child, ref_person)
+            else:
+                self.possible_meeting(person, ref_person)
+       
+
+    def _possible_family_meeting(self, reference, family):
+        """
+        try to expose each person of the reference family to the second family
+        """
+        dbstate = self.dbstate
+        try:
+            person = dbstate.db.get_person_from_handle(reference.get_father_handle())
+        except:
+            return
+        if person is None: # family without father ?
+            person = dbstate.db.get_person_from_handle(reference.get_mother_handle())
+        if person is None:
+            person = dbstate.db.get_person_from_handle(self.uistate.get_active('Person'))
+        if person is not None:
+            family_list = person.get_family_handle_list()
+            if len(family_list) > 0:
+                fhandle = family_list[0] # first is primary
+                fam = dbstate.db.get_family_from_handle(fhandle)
+                handle = fam.get_father_handle()
+                father = dbstate.db.get_person_from_handle(handle)
+                if father:
+                    self._expose_persone_to_family(father, family)
+                handle = fam.get_mother_handle()
+                mother = dbstate.db.get_person_from_handle(handle)
+                if mother:
+                    self._expose_persone_to_family(mother, family)
+                child_ref_list = fam.get_child_ref_list()
+                if child_ref_list:
+                    for child_ref in child_ref_list:
+                        child = dbstate.db.get_person_from_handle(child_ref.ref)
+                        if child:
+                            self._expose_persone_to_family(child, family)
+            else:
+                self._expose_persone_to_family(person, family)
+       
+
+    def _createmap_for_one_person(self, person, color, place_list, reference):
         """
         Create all markers for each people's event in the database which has 
         a lat/lon.
         """
+        self.place_list = []
         dbstate = self.dbstate
-        self.cal = config.get('preferences.calendar-format-report')
-        self.place_list = place_list
-        self.place_without_coordinates = []
-        self.minlat = self.maxlat = self.minlon = self.maxlon = 0.0
-        self.minyear = 9999
-        self.maxyear = 0
-        latitude = ""
-        longitude = ""
         if person is not None:
             # For each event, if we have a place, set a marker.
             for event_ref in person.get_event_ref_list():
@@ -406,12 +482,96 @@ class GeoClose(GeoGraphyView):
             for the_list in self.sort, sort1 : merge_list += the_list
             self.sort = sorted(merge_list, key=operator.itemgetter(6))
 
+    def _createmap_for_one_family(self, family, color, place_list, reference):
+        """
+        Create all markers for one family : all event's places with a lat/lon.
+        """
+        dbstate = self.dbstate
+        try:
+            person = dbstate.db.get_person_from_handle(family.get_father_handle())
+        except:
+            return
+        family_id = family.gramps_id
+        if person is None: # family without father ?
+            person = dbstate.db.get_person_from_handle(family.get_mother_handle())
+        if person is None:
+            person = dbstate.db.get_person_from_handle(self.uistate.get_active('Person'))
+        if person is not None:
+            family_list = person.get_family_handle_list()
+            if len(family_list) > 0:
+                fhandle = family_list[0] # first is primary
+                fam = dbstate.db.get_family_from_handle(fhandle)
+                handle = fam.get_father_handle()
+                father = dbstate.db.get_person_from_handle(handle)
+                if father:
+                    comment = _("Father : %s : %s") % ( father.gramps_id,
+                                                        _nd.display(father) )
+                    self._createmap_for_one_person(father, color, place_list, reference)
+                handle = fam.get_mother_handle()
+                mother = dbstate.db.get_person_from_handle(handle)
+                if mother:
+                    comment = _("Mother : %s : %s") % ( mother.gramps_id,
+                                                        _nd.display(mother) )
+                    self._createmap_for_one_person(mother, color, place_list, reference)
+                index = 0
+                child_ref_list = fam.get_child_ref_list()
+                if child_ref_list:
+                    for child_ref in child_ref_list:
+                        child = dbstate.db.get_person_from_handle(child_ref.ref)
+                        if child:
+                            index += 1
+                            comment = _("Child : %(id)s - %(index)d "
+                                        ": %(name)s") % {
+                                            'id'    : child.gramps_id,
+                                            'index' : index,
+                                            'name'  : _nd.display(child)
+                                         }
+                            self._createmap_for_one_person(child, color, place_list, reference)
+            else:
+                comment = _("Person : %(id)s %(name)s has no family.") % {
+                                'id' : person.gramps_id ,
+                                'name' : _nd.display(person)
+                                }
+                self._createmap_for_one_person(person, color, place_list, reference)
+
+    def _createmap(self, family_x, color, place_list, reference):
+        """
+        Create all markers for each family's person in the database which has 
+        a lat/lon.
+        """
+        dbstate = self.dbstate
+        self.cal = config.get('preferences.calendar-format-report')
+        self.place_list = place_list
+        self.place_without_coordinates = []
+        self.minlat = self.maxlat = self.minlon = self.maxlon = 0.0
+        #self.minyear = 9999
+        #self.maxyear = 0
+        latitude = ""
+        longitude = ""
+        self.place_list = []
+        self.place_without_coordinates = []
+        self.minlat = self.maxlat = self.minlon = self.maxlon = 0.0
+        #family = self.dbstate.db.get_family_from_handle(family_x)
+        family = family_x
+        if family is None:
+            person = self.dbstate.db.get_family_from_handle(self.uistate.get_active('Person'))
+            if not person:
+                return
+            family_list = person.get_family_handle_list()
+            for family_hdl in family_list:
+                family = self.dbstate.db.get_family_from_handle(family_hdl)
+                if family is not None:
+                    self._createmap_for_one_family(family, color, place_list, reference)
+        else:
+            self._createmap_for_one_family(family, color, place_list, reference)
+        #self._create_markers()
+
     def bubble_message(self, event, lat, lon, marks):
         """
         Create the menu for the selected marker
         """
         menu = gtk.Menu()
-        menu.set_title("person")
+        menu.set_title("family")
         events = []
         message = ""
         oldplace = ""
@@ -477,8 +637,8 @@ class GeoClose(GeoGraphyView):
         add_item = gtk.MenuItem()
         add_item.show()
         menu.append(add_item)
-        add_item = gtk.MenuItem(_("Choose the reference person"))
-        add_item.connect("activate", self.selectPerson)
+        add_item = gtk.MenuItem(_("Choose the reference family"))
+        add_item.connect("activate", self.selectFamily)
         add_item.show()
         menu.append(add_item)
         return
