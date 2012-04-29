@@ -191,22 +191,27 @@ def create_gramps_intl():
     for searchfile in ['gramps.desktop', 'gramps.keys', 'gramps.xml']:
         data_file = os.path.join('data', searchfile) + '.in'
 
-        newfile = newdir + searchfile
+        newfile = os.path.join(newdir, searchfile)
         if not os.path.exists(newfile):
             bash_string = None
+
+            # gramps desktop icon
             if searchfile.endswith('.desktop'):
                 bash_string = 'intltool-merge -d %s/ %s %s' % (PO_DIR, data_file, newfile)
+
+            # gramps mime
             elif searchfile.endswith('.keys'):
                 bash_string = 'intltool-merge -k %s/ %s %s' % (PO_DIR, data_file, newfile)
+
+            # gramps mime
             elif searchfile.endswith('.xml'):
                 bash_string = 'intltool-merge -x %s/ %s %s' % (PO_DIR, data_file, newfile)
+
             if bash_string:
                 result = subprocess.call(bash_string, shell=True)
                 if result != 0:
                     print('ERROR: %s was not merged into the translation files!' % searchfile)
                     sys.exit(1)
-                else:
-                    print('Merging %s into translation files.' % searchfile)
 
 #------------------------------------------------
 #        Setup/ Command Hooks

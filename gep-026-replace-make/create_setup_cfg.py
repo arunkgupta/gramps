@@ -251,35 +251,34 @@ class CreateSetup(object):
         self.data['scripts'] = ['gramps.sh']
 
         resources = [
-            'data/ gramps.desktop = {data}/share/applications',
-            'data/ gramps.xml = {data}/share/mime/packages',
+            'build/data/ gramps.desktop = {data}/share/applications',
+            'build/data/ gramps.xml = {data}/share/mime/packages',
+            'build/data/ gramps.keys = {data}/share/mime-info',
             'data/ gramps.mime = {data}/share/mime-info',
-            'data/ gramps.keys = {data}/share/mime-info',
             'data/ *.png = {datadir}/icons/gnome/48x48/mimetypes',
             'data/ *.svg = {datadir}/icons/gnome/scalable/mimetypes',
             'gramps/images/ gramps.png = {icon}',
-            'data/man/ gramps.1.in = {man}/man1',
-            'data/man/cs/ gramps.1.in = {man}/cs/man1',
-            'data/man/fr/ gramps.1.in = {man}/fr/man1',
-            'data/man/nl/ gramps.1.in = {man}/nl/man1',
-            'data/man/pl/ gramps.1.in = {man}/pl/man1',
-            'data/man/sv/ gramps.1.in = {man}/sv/man1',
+            'build/data/man/ gramps.1.gz = {man}/man1',
+            'build/data/man/cs/ gramps.1.gz = {man}/cs/man1',
+            'build/data/man/fr/ gramps.1.gz = {man}/fr/man1',
+            'build/data/man/nl/ gramps.1.gz = {man}/nl/man1',
+            'build/data/man/pl/ gramps.1.gz = {man}/pl/man1',
+            'build/data/man/sv/ gramps.1.gz = {man}/sv/man1',
             'example/**/*.* = {doc}',
             'AUTHORS = {doc}',
-            'classifiers.py = {purelib}',
             'COPYING = {doc}',
-            'create_setup_cfg.py = {purelib}',
             'FAQ = {doc}',
             'INSTALL = {doc}',
             'LICENSE = {doc}',
             'MANIFEST = {doc}',
             'NEWS = {doc}',
             'README = {doc}',
-            'setup_custom.py = {purelib}',
+            'TODO = {doc}',
+            'TestPlan.txt = {doc}',
+            'create_setup_cfg.py = {purelib}',
             'setup.cfg = {purelib}',
             'setup.py = {purelib}',
-            'TestPlan.txt = {doc}',
-            'TODO = {doc}']
+            'setup_custom.py = {purelib}']
 
         for po in glob.glob(os.path.join(PO_DIR, '*.po')):
             lang = os.path.basename(po[:-3])
@@ -288,7 +287,7 @@ class CreateSetup(object):
             mach_obj_fname = os.path.basename(mo)
             resources.append('%s/ %s = {datadir}/locale/%s/gramps.mo' % (
                     directory, mach_obj_fname, lang))
-        self.data['resources'] = sorted(resources)
+        self.data['resources'] = resources
 
     def main(self):
         

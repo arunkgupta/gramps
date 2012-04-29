@@ -1,17 +1,16 @@
 include AUTHORS
-include classifiers.py
 include COPYING
-include create_setup_cfg.py
 include FAQ
-include gramps.sh
 include INSTALL
 include LICENSE
-include MANIFEST.in
 include NEWS
 include RELEASE_NOTES
-include setup_custom.py
 include TODO
 include TestPlan.txt
+include create_setup_cfg.py
+include gramps.sh.in
+include MANIFEST.in
+include setup_custom.py
 
 # README and setup.py are automatically added by default
 
