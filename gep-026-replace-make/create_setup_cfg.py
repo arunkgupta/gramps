@@ -233,7 +233,7 @@ class CreateSetup(object):
         packages = find_packages(exclude=exclude_list)
         self.data['packages'] = sorted(packages)
         
-        data_list = ['data', 'glade', 'images', 'plugins']
+        data_list = ['data', 'glade', 'images', 'plugins', 'webapp']
         package_data = []
         for top_dir in data_list:
             package_data += find_child_dir(top_dir, root='gramps')
@@ -241,7 +241,7 @@ class CreateSetup(object):
                                     for dir_name in package_data]}
         
         extra_list = ['debian', 'docs', 'help', 'mac', 'test', 'windows',
-                      'gramps/test', 'gramps/webapp']
+                      'gramps/test']
         extra_files = []
         for top_dir in extra_list:
             extra_files += find_child_dir(top_dir)
