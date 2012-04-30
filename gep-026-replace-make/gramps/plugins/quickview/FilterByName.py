@@ -59,8 +59,8 @@ fname_map = {'all': _('Filtering_on|all'),
              'females': _('Filtering_on|females'),
              'people with unknown gender': 
                 _('Filtering_on|people with unknown gender'), 
-             'people with incomplete names': 
-                _('Filtering_on|people with incomplete names'),
+             'incomplete names': 
+                _('Filtering_on|incomplete names'),
              'people with missing birth dates': 
                 _('Filtering_on|people with missing birth dates'), 
              'disconnected people': _('Filtering_on|disconnected people'),
@@ -277,14 +277,25 @@ def run(database, document, filter_name, *args, **kwargs):
                          str(person.get_primary_name().get_type()))
                 matches += 1
 
-    elif (filter_name == 'people with incomplete names'):
+    elif (filter_name == 'incomplete names'):
         stab.columns(_("Name"), _("Birth Date"), _("Name type"))
         for person in database.iter_people():
             for name in [person.get_primary_name()] + person.get_alternate_names():
-                if name.get_group_name() == "" or name.get_first_name() == "":
+                if name.get_first_name().strip() == "":
                     stab.row([name.get_name(), "Person", person.handle], sdb.birth_or_fallback(person),
                              str(name.get_type()))
                     matches += 1
+                else:
+                    if name.get_surname_list():
+                        for surname in name.get_surname_list():
+                            if surname.get_surname().strip() == "":
+                                stab.row([name.get_first_name(), "Person", person.handle], sdb.birth_or_fallback(person),
+                                         str(name.get_type()))
+                                matches += 1
+                    else:
+                        stab.row([name.get_first_name(), "Person", person.handle], sdb.birth_or_fallback(person),
+                                 str(name.get_type()))
+                        matches += 1
 
     elif (filter_name == 'people with missing birth dates'):
         stab.columns(_("Person"), _("Type"))
