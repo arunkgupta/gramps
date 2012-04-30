@@ -233,7 +233,7 @@ class CreateSetup(object):
         packages = find_packages(exclude=exclude_list)
         self.data['packages'] = sorted(packages)
         
-        data_list = ['glade', 'images', 'plugins']
+        data_list = ['data', 'glade', 'images', 'plugins']
         package_data = []
         for top_dir in data_list:
             package_data += find_child_dir(top_dir, root='gramps')
