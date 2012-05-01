@@ -54,9 +54,7 @@ BUILD_DIR = 'build'
 PO_DIR = 'po'
 MO_DIR = os.path.join(BUILD_DIR, 'mo')
 
-all_classifiers = set()
-
-all_classifiers.update([
+all_classifiers = set([
     'Development Status :: 5 - Production/Stable',
     'Environment :: Console',
     'Environment :: MacOS X',
@@ -127,7 +125,6 @@ def create_gramps_trans():
         mo = os.path.join(MO_DIR, lang, 'gramps.mo')
         directory = os.path.dirname(mo)
         if not(os.path.isdir(directory) or os.path.islink(directory)):
-            print('Creating directory: %s' % directory)
             os.makedirs(directory)
 
         if newer(po, mo):
@@ -177,6 +174,8 @@ def create_gramps_man():
                 f_out.close()
                 f_in.close()
 
+                print('Compiling manual file, %s...' % man_file_gz)
+
                 os.remove(newfile)
                 file = False
 
@@ -184,34 +183,32 @@ def create_gramps_intl():
     '''
     merge translation files into desktop and mime files
     '''
-    newdir = os.path.join(BUILD_DIR, 'data')
-    if not(os.path.isdir(newdir) or os.path.islink(newdir)):
-        os.makedirs(newdir)
 
-    for searchfile in ['gramps.desktop', 'gramps.keys', 'gramps.xml']:
-        data_file = os.path.join('data', searchfile) + '.in'
+    for filename, option in [
+        (os.path.join('data', 'gramps.desktop'),                   '-d'),
+        (os.path.join('data', 'gramps.keys'),                      '-k'),
+        (os.path.join('data', 'gramps.xml'),                       '-x'),
+        (os.path.join('gramps', 'data', 'tips.xml'),               '-x'),
+        (os.path.join('gramps', 'plugins', 'lib', 'holidays.xml'), '-x')]:
 
-        newfile = os.path.join(newdir, searchfile)
-        if not os.path.exists(newfile):
-            bash_string = None
+        newfile = os.path.join(BUILD_DIR, filename)
+        newdir = os.path.dirname(newfile)
+        if not(os.path.isdir(newdir) or os.path.islink(newdir)):
+            os.makedirs(newdir)
 
-            # gramps desktop icon
-            if searchfile.endswith('.desktop'):
-                bash_string = 'intltool-merge -d %s/ %s %s' % (PO_DIR, data_file, newfile)
-
-            # gramps mime
-            elif searchfile.endswith('.keys'):
-                bash_string = 'intltool-merge -k %s/ %s %s' % (PO_DIR, data_file, newfile)
-
-            # gramps mime
-            elif searchfile.endswith('.xml'):
-                bash_string = 'intltool-merge -x %s/ %s %s' % (PO_DIR, data_file, newfile)
-
-            if bash_string:
-                result = subprocess.call(bash_string, shell=True)
-                if result != 0:
-                    print('ERROR: %s was not merged into the translation files!' % searchfile)
-                    sys.exit(1)
+        datafile = filename + '.in'
+        if (not os.path.exists(newfile) and os.path.exists(datafile)):
+            if 'holiday' in filename:
+                bash_string = ('LC_ALL=C /usr/bin/intltool-merge %s --no-translations %s %s' % (
+                        option, datafile, newfile)
+            else:
+                bash_string = '/usr/bin/intltool-merge %s po/ %s %s' % (
+                        option, datafile, newfile)
+            result = subprocess.call(bash_string, shell=True)
+            if result != 0:
+                print('ERROR: %s was not merged into the translation files!\n' % newfile)
+                print('ERROR: %s\n' % str(result))
+                sys.exit(1)
 
 #------------------------------------------------
 #        Setup/ Command Hooks
@@ -249,6 +246,14 @@ def install_template(install_cmd):
     Pre-install hook to populate template files.
     '''
     print(('INSTALL', install_cmd.install_dir))
+
+def upd_mime_cache(install_cmd):
+    '''
+    Post-install hook to Update the XDG Mime-Info Database Cache
+    '''
+    if os.name == 'posix':
+        print('Updating the Shared MIME-Info database cache.\n')
+        subprocess.call(["update-mime-database", os.path.join(sys.prefix, 'share', 'mime')])
 
 def manifest_builder(distribution, manifest):
     '''
