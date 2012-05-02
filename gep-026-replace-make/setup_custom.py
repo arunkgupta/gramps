@@ -199,7 +199,7 @@ def create_gramps_intl():
         datafile = filename + '.in'
         if (not os.path.exists(newfile) and os.path.exists(datafile)):
             if 'holiday' in filename:
-                bash_string = ('LC_ALL=C /usr/bin/intltool-merge %s --no-translations %s %s' % (
+                bash_string = 'LC_ALL=C /usr/bin/intltool-merge %s --no-translations %s %s' % (
                         option, datafile, newfile)
             else:
                 bash_string = '/usr/bin/intltool-merge %s po/ %s %s' % (
@@ -231,15 +231,15 @@ def build_man(build_cmd):
     '''
     Pre-build hook to compress man files into gzipped format
     '''
-
-    create_gramps_man()
+    if os.name == 'posix':
+        create_gramps_man()
 
 def build_intl(build_cmd):
     '''
     Post-build hook to run internationisation scripts.
     '''
-
-    create_gramps_intl()
+    if os.name == 'posix':
+        create_gramps_intl()
 
 def install_template(install_cmd):
     '''
