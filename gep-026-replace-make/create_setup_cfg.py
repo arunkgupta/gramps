@@ -348,6 +348,9 @@ class CreateSetup(object):
 #        cw.write_section('install_scripts')
 #        cw.write_value('pre-hook.template', 'setup_custom.install_template')
 #
+#        cw.write_section('install')
+#        cw.write_value('post-hook.update', 'setup_custom.update_mime')
+#
 #        cw.write_section('sdist')
 #        cw.write_value('manifest-builders', 'setup_custom.manifest_builder')
 

@@ -247,12 +247,12 @@ def install_template(install_cmd):
     '''
     print(('INSTALL', install_cmd.install_dir))
 
-def upd_mime_cache(install_cmd):
+def update_mime(install_cmd):
     '''
     Post-install hook to Update the XDG Mime-Info Database Cache
     '''
     if os.name == 'posix':
-        print('Updating the Shared MIME-Info database cache.\n')
+        print('Updating the Shared MIME-Info database cache...\n')
         subprocess.call(["update-mime-database", os.path.join(sys.prefix, 'share', 'mime')])
 
 def manifest_builder(distribution, manifest):
