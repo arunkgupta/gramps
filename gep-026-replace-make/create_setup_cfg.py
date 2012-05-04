@@ -207,15 +207,14 @@ class CreateSetup(object):
         self.data['requires-Python'] = '>= 2.6.0'
 
         self.data['requires-dist'] = sorted([
-            'pygtk2',
-            'python3-cairo',
-            'pygobject3',
+            'distutils2',
+            'pygtk2 >= 2.0',
             'librsvg2', 
             'pyexiv2 >= 0.3.0',
             'osm-gps-map >= 0.7.3',
             'python-osmgpsmap >= 0.7.3'])
 
-        self.data['Requires-External'] = 'exiv2-devel (>=0.23)'
+        self.data['Requires-External'] = 'exiv2-devel (>=0.22)'
 
         self.data['obsoletes-dist'] = ['gramps < 3.5.0']
 
@@ -233,7 +232,8 @@ class CreateSetup(object):
         packages = find_packages(exclude=exclude_list)
         self.data['packages'] = sorted(packages)
         
-        data_list = ['data', 'glade', 'images', 'plugins', 'webapp']
+        # excludes webapp, gramps-connect, as this will be packaged as gramps-connect...
+        data_list = ['data', 'glade', 'images', 'plugins']
         package_data = []
         for top_dir in data_list:
             package_data += find_child_dir(top_dir, root='gramps')
@@ -270,7 +270,6 @@ class CreateSetup(object):
             'FAQ = {doc}',
             'INSTALL = {doc}',
             'LICENSE = {doc}',
-            'MANIFEST = {doc}',
             'NEWS = {doc}',
             'README = {doc}',
             'TODO = {doc}',
@@ -303,9 +302,8 @@ class CreateSetup(object):
         
         cw.write_section('metadata')
         
-        for name in ('name', 'version', 'author', 'author-email', 'maintainer', 
-                     'maintainer-email', 'Home-page', 'summary', 'description',
-                     'download-url', 'license'):
+        for name in ('name', 'version', 'summary', 'description', 'Home-page', 'download-url',
+                     'author', 'author-email', 'maintainer', 'maintainer-email', 'license'):
             cw.write_value(name, self.data[name])
 
         for name in ['classifiers']:
