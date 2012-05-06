@@ -144,7 +144,7 @@ class ConfigWriter(object):
         self.__file.write('%s =\n' % name)
         for value in value_list:
             self.__file.write('    %s\n' % value)
-        
+
     def write_dict(self, name, value_dict):
         if not self.__file:
             return
@@ -251,19 +251,19 @@ class CreateSetup(object):
         self.data['scripts'] = ['gramps.sh']
 
         resources = [
-            'build/data/ gramps.desktop = {data}/share/applications',
-            'build/data/ gramps.xml = {data}/share/mime/packages',
-            'build/data/ gramps.keys = {data}/share/mime-info',
-            'data/ gramps.mime = {data}/share/mime-info',
-            'data/ *.png = {datadir}/icons/gnome/48x48/mimetypes',
-            'data/ *.svg = {datadir}/icons/gnome/scalable/mimetypes',
-            'gramps/images/ gramps.png = {icon}',
-            'build/data/man/ gramps.1.gz = {man}/man1',
-            'build/data/man/cs/ gramps.1.gz = {man}/cs/man1',
-            'build/data/man/fr/ gramps.1.gz = {man}/fr/man1',
-            'build/data/man/nl/ gramps.1.gz = {man}/nl/man1',
-            'build/data/man/pl/ gramps.1.gz = {man}/pl/man1',
-            'build/data/man/sv/ gramps.1.gz = {man}/sv/man1',
+            'build/data/ gramps.desktop = {data}/local/share/applications',
+            'build/data/ gramps.xml = {data}/local/share/mime/packages',
+            'build/data/ gramps.keys = {data}/local/share/mime-info',
+            'data/ gramps.mime = {data}/local/share/mime-info',
+            'data/ *.png = {data}/local/share/icons/gnome/48x48/mimetypes',
+            'data/ *.svg = {data}/local/share/icons/gnome/scalable/mimetypes',
+            'gramps/images/ gramps.png = {data}/local/share/icons',
+            'build/data/man/ gramps.1 = {dat}/local/share/man/man1',
+            'build/data/man/cs/ gramps.1 = {data}/local/share/man/cs/man1',
+            'build/data/man/fr/ gramps.1.gz = {data}/local/share/man/fr/man1',
+            'build/data/man/nl/ gramps.1 = {data}/local/share/man/nl/man1',
+            'build/data/man/pl/ gramps.1 = {data}/local/share/man/pl/man1',
+            'build/data/man/sv/ gramps.1 = {data}/local/share/man/sv/man1',
             'example/**/*.* = {doc}',
             'AUTHORS = {doc}',
             'COPYING = {doc}',
@@ -284,8 +284,9 @@ class CreateSetup(object):
             mo = os.path.join(MO_DIR, lang, 'gramps.mo')
             directory = os.path.dirname(mo)
             mach_obj_fname = os.path.basename(mo)
-            resources.append('%s/ %s = {datadir}/locale/%s/gramps.mo' % (
-                    directory, mach_obj_fname, lang))
+            resources.append(('%(dir)s/ %(mo_file)s = {data}/local/share/locale/%(lang)s/LC_MESSAGES/gramps.mo') % {
+                    'dir' : directory, 'mo_file' : mach_obj_fname, 'lang' : lang}
+            )
         self.data['resources'] = resources
 
     def main(self):
