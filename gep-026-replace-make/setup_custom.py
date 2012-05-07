@@ -49,80 +49,25 @@ except ImportError:
 #------------------------------------------------
 #        Constants
 #------------------------------------------------
-BUILD_DIR = 'build'
-
 PO_DIR = 'po'
-MO_DIR = os.path.join(BUILD_DIR, 'mo')
-
-all_classifiers = set([
-    'Development Status :: 5 - Production/Stable',
-    'Environment :: Console',
-    'Environment :: MacOS X',
-    'Environment :: Plugins',
-    'Environment :: Web Environment',
-    'Environment :: Win32 (MS Windows)',
-    'Environment :: X11 Applications :: GTK',
-    'Framework :: Django',
-    'Intended Audience :: Education',
-    'Intended Audience :: End Users/Desktop',
-    'Intended Audience :: Other Audience',
-    'Intended Audience :: Science/Research',
-    'License :: OSI Approved :: GNU General Public License (GPL)',
-    'Natural Language :: Bulgarian',
-    'Natural Language :: Catalan',
-    'Natural Language :: Chinese (Simplified)',
-    'Natural Language :: Croatian',
-    'Natural Language :: Czech',
-    'Natural Language :: Danish',
-    'Natural Language :: Dutch',
-    'Natural Language :: English',
-    'Natural Language :: Esperanto',
-    'Natural Language :: Finnish',
-    'Natural Language :: French',
-    'Natural Language :: German',
-    'Natural Language :: Hebrew',
-    'Natural Language :: Hungarian',
-    'Natural Language :: Italian',
-    'Natural Language :: Japanese',
-    'Natural Language :: Norwegian',
-     'Natural Language :: Polish',
-     'Natural Language :: Portuguese (Brazilian)',
-    'Natural Language :: Portuguese',
-    'Natural Language :: Russian',
-    'Natural Language :: Slovak',
-    'Natural Language :: Slovenian',
-    'Natural Language :: Spanish',
-    'Natural Language :: Swedish',
-    'Natural Language :: Ukranian',
-    'Natural Language :: Vietnamese',
-    'Operating System :: MacOS',
-    'Operating System :: Microsoft :: Windows',
-    'Operating System :: Other OS',
-    'Operating System :: POSIX :: BSD',
-    'Operating System :: POSIX :: Linux',
-    'Operating System :: POSIX :: SunOS/Solaris',
-    'Operating System :: Unix',
-    'Programming Language :: Python',
-    'Programming Language :: Python :: 2.7',
-    'Topic :: Database',
-    'Topic :: Desktop Environment :: Gnome',
-    'Topic :: Education',
-    'Topic :: Multimedia',
-    'Topic :: Other/Nonlisted Topic',
-    'Topic :: Scientific/Engineering :: Visualization',
-    'Topic :: Sociology :: Genealogy'
-    ])
 
 #------------------------------------------------
-#        Helper functions
+#        Setup/ Command Hooks
 #------------------------------------------------
-def create_gramps_trans():
+def customize_config(metadata):
+    '''
+    Global hook.
+    '''
+    print('GLOBAL')
+
+def build_trans(build_cmd):
     '''
     Translate the language files into gramps.mo
     '''
+    data_files = build_cmd.distribution.data_files
     for po in glob.glob(os.path.join(PO_DIR, '*.po')):
         lang = os.path.basename(po[:-3])
-        mo = os.path.join(MO_DIR, lang, 'gramps.mo')
+        mo = os.path.join(build_cmd.build_base, 'mo', lang, 'gramps.mo')
         directory = os.path.dirname(mo)
         if not(os.path.isdir(directory) or os.path.islink(directory)):
             os.makedirs(directory)
@@ -139,10 +84,14 @@ def create_gramps_trans():
                 sys.exit(1)
             print(('Compiling %s >> %s...' % (po, mo)))
 
-def create_gramps_man():
+        data_files[mo] = '{datadir}/locale/' + lang + '/gramps.mo'            
+
+def build_man(build_cmd):
     '''
-    compresses Gramps manual files
+    Compresses Gramps manual files
     '''
+    data_files = build_cmd.distribution.data_files
+    build_data = build_cmd.build_base + '/data/'
     for dir, dirs, files in os.walk(os.path.join('data', 'man')):
         file = False
         for f in files:
@@ -151,7 +100,7 @@ def create_gramps_man():
                 break
 
         if file:
-            newdir = os.path.join(BUILD_DIR, dir)
+            newdir = os.path.join(build_cmd.build_base, dir)
             if not(os.path.isdir(newdir) or os.path.islink(newdir)):
                 os.makedirs(newdir)
 
@@ -179,11 +128,15 @@ def create_gramps_man():
                 os.remove(newfile)
                 file = False
 
-def create_gramps_intl():
-    '''
-    merge translation files into desktop and mime files
-    '''
+            lang = dir[8:]
+            src = build_data + 'man' + lang + '/gramps.1.gz'
+            target = '{man}' + lang + '/man1'
+            data_files[src] = target
 
+def build_intl(build_cmd):
+    '''
+    Merge translation files into desktop and mime files
+    '''
     for filename, option in [
         (os.path.join('data', 'gramps.desktop'),                   '-d'),
         (os.path.join('data', 'gramps.keys'),                      '-k'),
@@ -191,72 +144,52 @@ def create_gramps_intl():
         (os.path.join('gramps', 'data', 'tips.xml'),               '-x'),
         (os.path.join('gramps', 'plugins', 'lib', 'holidays.xml'), '-x')]:
 
-        newfile = os.path.join(BUILD_DIR, filename)
+        newfile = os.path.join(build_cmd.build_base, filename)
         newdir = os.path.dirname(newfile)
         if not(os.path.isdir(newdir) or os.path.islink(newdir)):
             os.makedirs(newdir)
 
         datafile = filename + '.in'
         if (not os.path.exists(newfile) and os.path.exists(datafile)):
-            if 'holiday' in filename:
-                bash_string = 'LC_ALL=C /usr/bin/intltool-merge %s --no-translations %s %s' % (
-                        option, datafile, newfile)
-            else:
-                bash_string = '/usr/bin/intltool-merge %s po/ %s %s' % (
-                        option, datafile, newfile)
+            bash_string = '/usr/bin/intltool-merge %s po/ %s %s' % (
+                    option, datafile, newfile)
             result = subprocess.call(bash_string, shell=True)
             if result != 0:
-                print('ERROR: %s was not merged into the translation files!\n' % newfile)
+                print('ERROR: %s was not merged into the translation files!\n' 
+                                                                     % newfile)
                 print('ERROR: %s\n' % str(result))
                 sys.exit(1)
 
-#------------------------------------------------
-#        Setup/ Command Hooks
-#------------------------------------------------
-def customize_config(metadata):
-    '''
-    Global hook.
-    '''
-    print('GLOBAL')
-
-def build_trans(build_cmd):
-    '''
-    Pre-Build hook to build all language files for Gramps translations
-    '''
-    print('BUILD')
-
-    crete_gramps_trans()
-
-def build_man(build_cmd):
-    '''
-    Pre-build hook to compress man files into gzipped format
-    '''
-    if os.name == 'posix':
-        create_gramps_man()
-
-def build_intl(build_cmd):
-    '''
-    Post-build hook to run internationisation scripts.
-    '''
-    if os.name == 'posix':
-        create_gramps_intl()
+    data_files = build_cmd.distribution.data_files
+    build_data = build_cmd.build_base + '/data/'
+    data_files[build_data + 'gramps.desktop'] = '{datadir}/applications'
+    data_files[build_data + 'gramps.xml'] = '{datadir}/mime/packages'
+    data_files[build_data + 'gramps.keys'] = '{datadir}/mime-info'
 
 def install_template(install_cmd):
     '''
     Pre-install hook to populate template files.
     '''
-    print(('INSTALL', install_cmd.install_dir))
-
-def update_mime(install_cmd):
-    '''
-    Post-install hook to Update the XDG Mime-Info Database Cache
-    '''
-    if os.name == 'posix':
-        print('Updating the Shared MIME-Info database cache...\n')
-        subprocess.call(["update-mime-database", os.path.join(sys.prefix, 'share', 'mime')])
+    write_gramps_sh(install_cmd.install_lib, 
+                    install_cmd.distribution.metadata['name'])
+    write_const_py()
 
 def manifest_builder(distribution, manifest):
     '''
     Manifest builder.
     '''
-    print(("manifest_builder", manifest.files))
+    print('MANIFEST BUILDER')
+    
+def write_gramps_sh(install_lib, package):
+    f = open('gramps.sh', 'w')
+    f.write('#! /bin/sh\n')
+    package = 'gramps'
+    f.write('export GRAMPSDIR=%s%s\n' % (install_lib, package))
+    f.write('exec %s -O $GRAMPSDIR/gramps.py "$@"\n' % sys.executable)
+    f.close()
+
+def write_const_py():
+    const_py_in    = os.path.join('gramps', 'const.py.in')
+    const_py_data  = os.path.join('gramps', 'const.py')
+    if not os.path.exists(const_py_data):
+        shutil.copy(const_py_in, const_py_data)
