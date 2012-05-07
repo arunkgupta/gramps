@@ -42,9 +42,9 @@ except ImportError:
             from distutils import log as _LOG
             from distutils.util import convert_path, newer
         except ImportError:
-           # no Distutils, Distutils2, packaging is NOT installed!
-           sys.exit('Distutils2, Packaging, or Distutils is Required!\n',
-                    'You need to have one of these installed.')
+            # no Distutils, Distutils2, packaging is NOT installed!
+            sys.exit('Distutils2, Packaging, or Distutils is Required!\n',
+                     'You need to have one of these installed.')
 
 #------------------------------------------------
 #        Constants
@@ -174,12 +174,6 @@ def install_template(install_cmd):
                     install_cmd.distribution.metadata['name'])
     write_const_py()
 
-def manifest_builder(distribution, manifest):
-    '''
-    Manifest builder.
-    '''
-    print('MANIFEST BUILDER')
-    
 def write_gramps_sh(install_lib, package):
     f = open('gramps.sh', 'w')
     f.write('#! /bin/sh\n')
@@ -193,3 +187,16 @@ def write_const_py():
     const_py_data  = os.path.join('gramps', 'const.py')
     if not os.path.exists(const_py_data):
         shutil.copy(const_py_in, const_py_data)
+
+def manifest_builder(distribution, manifest):
+    '''
+    Manifest builder.
+    '''
+    manifest.clear()
+    for dirpath, dirnames, filenames in os.walk(os.curdir):
+        svn_path = os.path.join(dirpath, '.svn', 'text-base', '*.svn-base')
+        files = [os.path.join(dirpath, os.path.basename(x)[:-9]) 
+                 for x in glob.glob(svn_path)]
+        manifest.extend(files)
+        if '.svn' in dirnames:
+            dirnames.remove('.svn')
