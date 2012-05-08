@@ -29,6 +29,11 @@ import os
 import codecs
 
 #------------------------------------------------
+#        gramps modules
+#------------------------------------------------
+from xx_distutils import *
+
+#------------------------------------------------
 #        Distutils2, Packaging, Distutils modules
 #------------------------------------------------
 try:
@@ -69,16 +74,16 @@ def find_child_dir(top, root=''):
 '''
 config_file = codecs.open('setup.cfg', 'w', encoding='utf-8')
 config_file.write('''[metadata]
-name = gramps
-version = 3.5.0
+name = %s
+version = %s
 summary = Gramps (Genealogical Research and Analysis Management Programming System)
 description = Gramps (Genealogical Research and Analysis Management Programming System) is a GNOME based genealogy program supporting a Python based plugin system.
 Home-page = http://gramps-project.org
 download-url = http://gramps-project.org/download/
-author = Donald N. Allingham
-author-email = don@gramps-project.org
-maintainer = Gramps Development Team
-maintainer-email = benny.malengier@gmail.com
+author = %s
+author-email = %s
+maintainer = %s
+maintainer-email = %s
 license = GPL v2 or greater
 classifiers =
     Development Status :: 5 - Production/Stable
@@ -170,7 +175,7 @@ project-url:
 
 [files]
 packages =
-''')
+''' % (PACKAGENAME, VERSION, AUTHOR, AUTHOR_EMAIL, MAINTAINER, MAINTAINER_EMAIL))
 
 exclude_list = ['gramps.guiQML', 
                 'gramps.guiQML.*', 
@@ -220,6 +225,26 @@ resources =
 
 [global]
 setup_hooks = setup_custom.customize_config
+
+[bdist]
+requires = python >= 2.6
+        exiv2-devel >= 0.22
+        pyexiv2 >= 0.3
+        gtk2 >= 2.24
+        pygtk2 >= 2.24
+        librsvg2 >= 2.34
+        osm-gps-map >= 0.7
+        python-osmgpsmap >= 0.7
+packager = Gramps Development Team <benny.malengier@gmail.com>
+doc_files = AUTHORS
+        COPYING
+        FAQ
+        INSTALL
+        LICENSE
+        NEWS
+        README
+        RELEASE_NOTES
+        TODO
 
 [sdist]
 manifest-builders = setup_custom.manifest_builder

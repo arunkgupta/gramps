@@ -27,6 +27,11 @@
 #------------------------------------------------
 import os, sys, glob, shutil, subprocess
 
+#------------------------------------------------
+#        gramps modules
+#------------------------------------------------
+from xx_distutils import *
+
 #-------------------------------------------
 #        Distutils2, Packaging, Distutils modules
 #-------------------------------------------
@@ -67,35 +72,32 @@ def build_trans(build_cmd):
     data_files = build_cmd.distribution.data_files
     for po in glob.glob(os.path.join(PO_DIR, '*.po')):
         lang = os.path.basename(po[:-3])
-        mo = os.path.join(build_cmd.build_base, 'mo', lang, 'gramps.mo')
+        mo = os.path.join(build_cmd.build_base, 'mo', lang, '%s.mo' % PACKAGENAME)
+
         directory = os.path.dirname(mo)
         if not(os.path.isdir(directory) or os.path.islink(directory)):
             os.makedirs(directory)
 
         if newer(po, mo):
-            try:
-                bash_string = 'msgfmt %s/%s.po -o %s' % (PO_DIR, lang, mo)
-                result = subprocess.call(bash_string, shell=True)
-                if result != 0:
-                    print(('msgfmt returned %d' % result))
-            except Exception, e:
-                print('Building language translation files failed.')
-                print(('Error: %s' % str(e)))
-                sys.exit(1)
+            cmd = 'msgfmt %s/%s.po -o %s' % (PO_DIR, lang, mo)
+            if os.system(cmd) != 0:
+                raise SystemExit('Error while compiling translation files.')
             print(('Compiling %s >> %s...' % (po, mo)))
 
-        data_files[mo] = '{datadir}/locale/' + lang + '/gramps.mo'            
+            dest = os.path.join('{datadir}', 'locale', lang, 'LC_MESSAGES', '%s.mo' % PACKAGENAME)
+            data_files[mo] = dest            
 
 def build_man(build_cmd):
     '''
     Compresses Gramps manual files
     '''
     data_files = build_cmd.distribution.data_files
-    build_data = build_cmd.build_base + '/data/'
+    build_data = os.path.join(build_cmd.build_base, 'data')
     for dir, dirs, files in os.walk(os.path.join('data', 'man')):
         file = False
         for f in files:
-            if f == 'gramps.1.in':
+            searchfile = '%s.1.in' % PACKAGENAME
+            if f == searchfile:
                 file = os.path.join(dir, f)
                 break
 
@@ -104,11 +106,11 @@ def build_man(build_cmd):
             if not(os.path.isdir(newdir) or os.path.islink(newdir)):
                 os.makedirs(newdir)
 
-            newfile = os.path.join(newdir, 'gramps.1')
+            newfile = os.path.join(newdir, '%s.1' % PACKAGENAME)
             shutil.copy(file, newfile)
 
             import gzip
-            man_file_gz = os.path.join(newdir, 'gramps.1.gz')
+            man_file_gz = os.path.join(newdir, '%s.1.gz'% PACKAGENAME)
             if os.path.exists(man_file_gz):
                 if newer(newfile, man_file_gz):
                     os.remove(man_file_gz)
@@ -129,8 +131,8 @@ def build_man(build_cmd):
                 file = False
 
             lang = dir[8:]
-            src = build_data + 'man' + lang + '/gramps.1.gz'
-            target = '{man}' + lang + '/man1'
+            src = os.path.join(build_data, 'man', lang, '%s.1.gz' % PACKAGENAME)
+            target = os.path.join('{man}', lang, 'man1')
             data_files[src] = target
 
 def build_intl(build_cmd):
@@ -138,11 +140,11 @@ def build_intl(build_cmd):
     Merge translation files into desktop and mime files
     '''
     for filename, option in [
-        (os.path.join('data', 'gramps.desktop'),                   '-d'),
-        (os.path.join('data', 'gramps.keys'),                      '-k'),
-        (os.path.join('data', 'gramps.xml'),                       '-x'),
-        (os.path.join('gramps', 'data', 'tips.xml'),               '-x'),
-        (os.path.join('gramps', 'plugins', 'lib', 'holidays.xml'), '-x')]:
+        (os.path.join('data', '%s.desktop' % PACKAGENAME),                   '-d'),
+        (os.path.join('data', '%s.keys' % PACKAGENAME),                      '-k'),
+        (os.path.join('data', '%s.xml' % PACKAGENAME),                       '-x'),
+        (os.path.join('%s', 'data', 'tips.xml' % PACKAGENAME),               '-x'),
+        (os.path.join('%s', 'plugins', 'lib', 'holidays.xml' $ PACKAGENAME), '-x')]:
 
         newfile = os.path.join(build_cmd.build_base, filename)
         newdir = os.path.dirname(newfile)
@@ -151,20 +153,16 @@ def build_intl(build_cmd):
 
         datafile = filename + '.in'
         if (not os.path.exists(newfile) and os.path.exists(datafile)):
-            bash_string = '/usr/bin/intltool-merge %s po/ %s %s' % (
+            cmd = '/usr/bin/intltool-merge %s po/ %s %s' % (
                     option, datafile, newfile)
-            result = subprocess.call(bash_string, shell=True)
-            if result != 0:
-                print('ERROR: %s was not merged into the translation files!\n' 
-                                                                     % newfile)
-                print('ERROR: %s\n' % str(result))
-                sys.exit(1)
+            if os.system(cmd) != 0:
+                raise SystemExit('ERROR: while building XDG files.')
 
     data_files = build_cmd.distribution.data_files
-    build_data = build_cmd.build_base + '/data/'
-    data_files[build_data + 'gramps.desktop'] = '{datadir}/applications'
-    data_files[build_data + 'gramps.xml'] = '{datadir}/mime/packages'
-    data_files[build_data + 'gramps.keys'] = '{datadir}/mime-info'
+    build_data = os.path.join(build_cmd.build_base, 'data')
+    data_files[os.path.join(build_data, '%s.desktop' % PACKAGENAME)] = os.path.join('{datadir}', 'applications')
+    data_files[os.path.join(build_data, '%s.xml' % PACKAGENAME)]     = os.path.join('{datadir}', 'mime', 'packages')
+    data_files[os.path.join(build_data, '%s.keys' % PACKAGENAME)]    = os.path.join('{datadir}', 'mime-info')
 
 def install_template(install_cmd):
     '''
@@ -175,16 +173,15 @@ def install_template(install_cmd):
     write_const_py()
 
 def write_gramps_sh(install_lib, package):
-    f = open('gramps.sh', 'w')
+    f = open('%s.sh', 'w' % PACKAGENAME)
     f.write('#! /bin/sh\n')
-    package = 'gramps'
-    f.write('export GRAMPSDIR=%s%s\n' % (install_lib, package))
-    f.write('exec %s -O $GRAMPSDIR/gramps.py "$@"\n' % sys.executable)
+    f.write('export GRAMPSDIR=%s%s\n' % (install_lib, PACKAGENAME))
+    f.write('exec %s -O $GRAMPSDIR/%s.py "$@"\n' % (sys.executable, PACKAGENAME))
     f.close()
 
 def write_const_py():
-    const_py_in    = os.path.join('gramps', 'const.py.in')
-    const_py_data  = os.path.join('gramps', 'const.py')
+    const_py_in    = os.path.join(PACKAGENAME, 'const.py.in')
+    const_py_data  = os.path.join(PACKAGENAME, 'const.py')
     if not os.path.exists(const_py_data):
         shutil.copy(const_py_in, const_py_data)
 
