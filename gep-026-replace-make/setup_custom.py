@@ -25,7 +25,7 @@
 #------------------------------------------------
 #        Python modules
 #------------------------------------------------
-import os, sys, glob, shutil, subprocess
+import os, sys, glob, shutil, subprocess, codecs
 
 #-------------------------------------------
 #        Distutils2, Packaging, Distutils modules
@@ -120,7 +120,8 @@ def build_man(build_cmd):
                 os.makedirs(newdir)
 
             newfile = os.path.join(newdir, 'gramps.1')
-            shutil.copy(file, newfile)
+            version = build_cmd.distribution.metadata['version']
+            substitute_version(file, newfile, version)
 
             import gzip
             man_file_gz = os.path.join(newdir, 'gramps.1.gz')
@@ -147,6 +148,15 @@ def build_man(build_cmd):
             src = build_data + 'man' + lang + '/gramps.1.gz'
             target = '{man}' + lang + '/man1'
             data_files[src] = target
+
+def substitute_version(filename_in, filename_out, version):
+    f_in = codecs.open(filename_in, encoding='utf-8')
+    f_out = codecs.open(filename_out, encoding='utf-8', mode='w')
+    for line in f_in:
+        line = line.replace(u'@VERSION@', version)
+        f_out.write(line)
+    f_in.close()
+    f_out.close()
 
 def build_intl(build_cmd):
     '''
