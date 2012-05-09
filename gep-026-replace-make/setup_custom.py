@@ -25,7 +25,7 @@
 #------------------------------------------------
 #        Python modules
 #------------------------------------------------
-import os, sys, glob, shutil, subprocess, codecs
+import os, sys, glob, shutil, codecs
 
 #-------------------------------------------
 #        Distutils2, Packaging, Distutils modules
@@ -43,8 +43,8 @@ except ImportError:
             from distutils.util import convert_path, newer
         except ImportError:
             # no Distutils, Distutils2, packaging is NOT installed!
-            sys.exit('Distutils2, Packaging, or Distutils is Required!\n',
-                     'You need to have one of these installed.')
+            raise SystemExit('Distutils2, Packaging, or Distutils is Required!\n',
+                             'You need to have one of these installed.')
 
 #------------------------------------------------
 #        Constants
@@ -88,18 +88,12 @@ def build_trans(build_cmd):
             os.makedirs(directory)
 
         if newer(po, mo):
-            try:
-                bash_string = 'msgfmt %s/%s.po -o %s' % (PO_DIR, lang, mo)
-                result = subprocess.call(bash_string, shell=True)
-                if result != 0:
-                    print(('msgfmt returned %d' % result))
-            except Exception, e:
-                print('Building language translation files failed.')
-                print(('Error: %s' % str(e)))
-                sys.exit(1)
+            cmd = 'msgfmt %s/%s.po -o %s' % (PO_DIR, lang, mo)
+            if os.system(cmd) != 0:
+                raise SystemExit('ERROR: Building language translation files failed.')
             print(('Compiling %s >> %s...' % (po, mo)))
 
-        data_files[mo] = '{datadir}/locale/' + lang + '/gramps.mo'            
+        data_files[mo] = '{datadir}/locale/' + lang + '/LC_MESSAGES/gramps.mo'            
 
 def build_man(build_cmd):
     '''
@@ -171,14 +165,11 @@ def merge(build_base, filename, option):
 
     datafile = filename + '.in'
     if (not os.path.exists(newfile) and os.path.exists(datafile)):
-        bash_string = '/usr/bin/intltool-merge %s po/ %s %s' % (
-                option, datafile, newfile)
-        result = subprocess.call(bash_string, shell=True)
-        if result != 0:
-            print('ERROR: %s was not merged into the translation files!\n' 
+        cmd = ('/usr/bin/intltool-merge %(opt)s po/ %(in_file)s %(out_file)s') % {
+                'opt' : option, 'in_file' : datafile, 'out_file' : newfile}
+        if os.system(cmd) != 0:
+            raise SystemExit('ERROR: %s was not merged into the translation files!\n' 
                                                                  % newfile)
-            print('ERROR: %s\n' % str(result))
-            sys.exit(1)
 
 def install_template(install_cmd):
     '''
