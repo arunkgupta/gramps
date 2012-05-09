@@ -121,7 +121,8 @@ def build_man(build_cmd):
 
             newfile = os.path.join(newdir, 'gramps.1')
             version = build_cmd.distribution.metadata['version']
-            substitute_version(file, newfile, version)
+            subst_vars = ((u'@VERSION@', version), )
+            substitute_variables(file, newfile, subst_vars)
 
             import gzip
             man_file_gz = os.path.join(newdir, 'gramps.1.gz')
@@ -148,15 +149,6 @@ def build_man(build_cmd):
             src = build_data + 'man' + lang + '/gramps.1.gz'
             target = '{man}' + lang + '/man1'
             data_files[src] = target
-
-def substitute_version(filename_in, filename_out, version):
-    f_in = codecs.open(filename_in, encoding='utf-8')
-    f_out = codecs.open(filename_out, encoding='utf-8', mode='w')
-    for line in f_in:
-        line = line.replace(u'@VERSION@', version)
-        f_out.write(line)
-    f_in.close()
-    f_out.close()
 
 def build_intl(build_cmd):
     '''
@@ -192,23 +184,40 @@ def install_template(install_cmd):
     '''
     Pre-install hook to populate template files.
     '''
-    write_gramps_sh(install_cmd.install_lib, 
-                    install_cmd.distribution.metadata['name'])
-    write_const_py()
+    write_gramps_sh(install_cmd)
+    write_const_py(install_cmd)
 
-def write_gramps_sh(install_lib, package):
+def write_gramps_sh(install_cmd):
     f = open('gramps.sh', 'w')
     f.write('#! /bin/sh\n')
     package = 'gramps'
-    f.write('export GRAMPSDIR=%s%s\n' % (install_lib, package))
+    f.write('export GRAMPSDIR=%sgramps\n' % install_cmd.install_lib)
     f.write('exec %s -O $GRAMPSDIR/gramps.py "$@"\n' % sys.executable)
     f.close()
 
-def write_const_py():
-    const_py_in    = os.path.join('gramps', 'const.py.in')
-    const_py_data  = os.path.join('gramps', 'const.py')
-    if not os.path.exists(const_py_data):
-        shutil.copy(const_py_in, const_py_data)
+def write_const_py(install_cmd):
+    const_py_in = os.path.join('gramps', 'const.py.in')
+    const_py = os.path.join('gramps', 'const.py')
+
+    version = install_cmd.distribution.metadata['version']
+    prefix = install_cmd.install_base
+    sysconfdir = os.path.join(prefix, 'etc') # Is this correct?
+    
+    subst_vars = ((u'@VERSIONSTRING@', version), 
+                  (u'@prefix@', prefix),
+                  (u'@sysconfdir@', sysconfdir))
+                  
+    substitute_variables(const_py_in, const_py, subst_vars)
+
+def substitute_variables(filename_in, filename_out, subst_vars):
+    f_in = codecs.open(filename_in, encoding='utf-8')
+    f_out = codecs.open(filename_out, encoding='utf-8', mode='w')
+    for line in f_in:
+        for variable, substitution in subst_vars:
+            line = line.replace(variable, substitution)
+        f_out.write(line)
+    f_in.close()
+    f_out.close()
 
 def manifest_builder(distribution, manifest):
     '''
