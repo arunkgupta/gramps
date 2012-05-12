@@ -72,6 +72,30 @@ def determine_po_status(po_file):
         raise SystemExi('ERROR: Processing of translations files failed.')
     return False
 
+def x_merge_x_cmd(t_in, f_out):
+    '''
+    based on version of intltool installed, return command...
+
+    in_file can either be holidays.xml.in or tips.xml.in
+    '''
+    retcode, version = commands.getstatusoutput('intltool-update --version | head -1 | cut -d" " -f3')
+    if retcode != 0:
+        raise SystemExit('ERROR:  you do not have intltool installed.')
+
+    major, minor, point = version.split('.')
+    version = tuple((int(major), int(minor), int(point)))
+    try:
+        assert version >= (0, 25, 0)
+    except AssertionError:
+        raise SystemExit('ERROR: your version of intltool must be >= (0, 25, 0)')
+
+    if version >= (0, 50, 0):
+        return ('intltool-merge -x --no-translations %(in_file)s %(out_file)s') % {
+                'in_file' : f_in, 'out_file' : f_out}
+    else:
+        return ('intltool-merge -x /tmp %(in_file)s %(out_file)s') % {
+                'in_file' : f_in, 'out_file' : f_out}
+
 #------------------------------------------------
 #        Setup/ Command Hooks
 #------------------------------------------------
