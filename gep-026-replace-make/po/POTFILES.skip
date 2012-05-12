@@ -4,359 +4,359 @@
 #
 
 #src
-src/AutoComp.py
-src/Date.py
-src/DdTargets.py
-src/Errors.py
-src/glade.py
-src/GrampsDisplay.py
-src/ImgManip.py
-src/ListModel.py
-src/ManagedWindow.py
-src/RecentFiles.py
-src/Sort.py
-src/soundex.py
-src/ThumbNails.py
-src/TreeTips.py
+gramps/AutoComp.py
+gramps/Date.py
+gramps/DdTargets.py
+gramps/Errors.py
+gramps/glade.py
+gramps/GrampsDisplay.py
+gramps/ImgManip.py
+gramps/ListModel.py
+gramps/ManagedWindow.py
+gramps/RecentFiles.py
+gramps/Sort.py
+gramps/soundex.py
+gramps/ThumbNails.py
+gramps/TreeTips.py
 
 # cli
-src/cli/__init__.py
-src/cli/user.py
+gramps/cli/__init__.py
+gramps/cli/user.py
 
 # DateHandler package
-src/DateHandler/_Date_bg.py
-src/DateHandler/_Date_cs.py
-src/DateHandler/_Date_de.py
-src/DateHandler/_DateDisplay.py
-src/DateHandler/_Date_es.py
-src/DateHandler/_Date_fi.py
-src/DateHandler/_Date_fr.py
-src/DateHandler/_DateHandler.py
-src/DateHandler/_Date_lt.py
-src/DateHandler/_Date_nb.py
-src/DateHandler/_Date_nl.py
-src/DateHandler/_Date_pl.py
-src/DateHandler/_Date_pt.py
-src/DateHandler/_DateParser.py
-src/DateHandler/_Date_ru.py
-src/DateHandler/_Date_sk.py
-src/DateHandler/_Date_sv.py
-src/DateHandler/_Date_zh.py
-src/DateHandler/__init__.py
+gramps/DateHandler/_Date_bg.py
+gramps/DateHandler/_Date_cs.py
+gramps/DateHandler/_Date_de.py
+gramps/DateHandler/_DateDisplay.py
+gramps/DateHandler/_Date_es.py
+gramps/DateHandler/_Date_fi.py
+gramps/DateHandler/_Date_fr.py
+gramps/DateHandler/_DateHandler.py
+gramps/DateHandler/_Date_lt.py
+gramps/DateHandler/_Date_nb.py
+gramps/DateHandler/_Date_nl.py
+gramps/DateHandler/_Date_pl.py
+gramps/DateHandler/_Date_pt.py
+gramps/DateHandler/_DateParser.py
+gramps/DateHandler/_Date_ru.py
+gramps/DateHandler/_Date_sk.py
+gramps/DateHandler/_Date_sv.py
+gramps/DateHandler/_Date_zh.py
+gramps/DateHandler/__init__.py
 
 # Filters package
-src/Filters/_FilterComboBox.py
-src/Filters/_FilterList.py
-src/Filters/_FilterMenu.py
-src/Filters/_GenericFilter.py
-src/Filters/_ParamFilter.py
-src/Filters/_SearchFilter.py
+gramps/Filters/_FilterComboBox.py
+gramps/Filters/_FilterList.py
+gramps/Filters/_FilterMenu.py
+gramps/Filters/_GenericFilter.py
+gramps/Filters/_ParamFilter.py
+gramps/Filters/_SearchFilter.py
 
 # Filters _init_ package
-src/Filters/__init__.py
-src/Filters/Rules/Person/__init__.py
-src/Filters/Rules/Family/__init__.py
-src/Filters/Rules/Event/__init__.py
-src/Filters/Rules/Place/__init__.py
-src/Filters/Rules/Source/__init__.py
-src/Filters/Rules/MediaObject/__init__.py
-src/Filters/Rules/Repository/__init__.py
-src/Filters/Rules/Note/__init__.py
+gramps/Filters/__init__.py
+gramps/Filters/Rules/Person/__init__.py
+gramps/Filters/Rules/Family/__init__.py
+gramps/Filters/Rules/Event/__init__.py
+gramps/Filters/Rules/Place/__init__.py
+gramps/Filters/Rules/Source/__init__.py
+gramps/Filters/Rules/MediaObject/__init__.py
+gramps/Filters/Rules/Repository/__init__.py
+gramps/Filters/Rules/Note/__init__.py
 
 # Filters.Rules package
-src/Filters/Rules/_ChangedSinceBase.py
-src/Filters/Rules/_HasAttributeBase.py
-src/Filters/Rules/_HasCitationBase.py
-src/Filters/Rules/_HasEventBase.py
-src/Filters/Rules/_HasGalleryBase.py
-src/Filters/Rules/_HasLDSBase.py
-src/Filters/Rules/_HasNoteBase.py
-src/Filters/Rules/_HasNoteRegexBase.py
-src/Filters/Rules/_HasNoteSubstrBase.py
-src/Filters/Rules/_HasReferenceCountBase.py
-src/Filters/Rules/_HasSourceBase.py
-src/Filters/Rules/_HasSourceCountBase.py
-src/Filters/Rules/_HasTagBase.py
-src/Filters/Rules/_HasTextMatchingRegexpOf.py
-src/Filters/Rules/__init__.py
-src/Filters/Rules/_IsPublic.py
-src/Filters/Rules/_MatchesEventFilterBase.py
-src/Filters/Rules/_MatchesFilterBase.py
-src/Filters/Rules/_MatchesSourceConfidenceBase.py
-src/Filters/Rules/_MatchesSourceFilterBase.py
-src/Filters/Rules/_RegExpIdBase.py
-src/Filters/Rules/Person/_HasTextMatchingRegexpOf.py
-src/Filters/Rules/Family/_MemberBase.py
+gramps/Filters/Rules/_ChangedSinceBase.py
+gramps/Filters/Rules/_HasAttributeBase.py
+gramps/Filters/Rules/_HasCitationBase.py
+gramps/Filters/Rules/_HasEventBase.py
+gramps/Filters/Rules/_HasGalleryBase.py
+gramps/Filters/Rules/_HasLDSBase.py
+gramps/Filters/Rules/_HasNoteBase.py
+gramps/Filters/Rules/_HasNoteRegexBase.py
+gramps/Filters/Rules/_HasNoteSubstrBase.py
+gramps/Filters/Rules/_HasReferenceCountBase.py
+gramps/Filters/Rules/_HasSourceBase.py
+gramps/Filters/Rules/_HasSourceCountBase.py
+gramps/Filters/Rules/_HasTagBase.py
+gramps/Filters/Rules/_HasTextMatchingRegexpOf.py
+gramps/Filters/Rules/__init__.py
+gramps/Filters/Rules/_IsPublic.py
+gramps/Filters/Rules/_MatchesEventFilterBase.py
+gramps/Filters/Rules/_MatchesFilterBase.py
+gramps/Filters/Rules/_MatchesSourceConfidenceBase.py
+gramps/Filters/Rules/_MatchesSourceFilterBase.py
+gramps/Filters/Rules/_RegExpIdBase.py
+gramps/Filters/Rules/Person/_HasTextMatchingRegexpOf.py
+gramps/Filters/Rules/Family/_MemberBase.py
 
 # gen
-src/gen/user.py
+gramps/gen/user.py
 
 # gen API
-src/gen/__init__.py
-src/gen/updatecallback.py
+gramps/gen/__init__.py
+gramps/gen/updatecallback.py
 
 # gen db API
-src/gen/db/__init__.py
-src/gen/db/backup.py
-src/gen/db/cursor.py
-src/gen/db/dbconst.py
-src/gen/db/read.py
-src/gen/db/write.py
-src/gen/ggettext.py
+gramps/gen/db/__init__.py
+gramps/gen/db/backup.py
+gramps/gen/db/cursor.py
+gramps/gen/db/dbconst.py
+gramps/gen/db/read.py
+gramps/gen/db/write.py
+gramps/gen/ggettext.py
 
 # gen lib API
-src/gen/lib/__init__.py
-src/gen/lib/address.py
-src/gen/lib/addressbase.py
-src/gen/lib/attrbase.py
-src/gen/lib/attribute.py
-src/gen/lib/baseobj.py
-src/gen/lib/calendar.py
-src/gen/lib/childref.py
-src/gen/lib/datebase.py
-src/gen/lib/event.py
-src/gen/lib/eventref.py
-src/gen/lib/family.py
-src/gen/lib/genderstats.py
-src/gen/lib/ldsordbase.py
-src/gen/lib/location.py
-src/gen/lib/locationbase.py
-src/gen/lib/mediaobj.py
-src/gen/lib/mediabase.py
-src/gen/lib/mediaref.py
-src/gen/lib/name.py
-src/gen/lib/note.py
-src/gen/lib/notebase.py
-src/gen/lib/personref.py
-src/gen/lib/place.py
-src/gen/lib/placebase.py
-src/gen/lib/primaryobj.py
-src/gen/lib/privacybase.py
-src/gen/lib/privsrcnote.py
-src/gen/lib/refbase.py
-src/gen/lib/repo.py
-src/gen/lib/reporef.py
-src/gen/lib/researcher.py
-src/gen/lib/secondaryobj.py
-src/gen/lib/src.py
-src/gen/lib/srcbase.py
-src/gen/lib/srcnote.py
-src/gen/lib/srcref.py
-src/gen/lib/styledtext.py
-src/gen/lib/styledtexttagtype.py
-src/gen/lib/surname.py
-src/gen/lib/test/date_test.py
-src/gen/lib/url.py
-src/gen/lib/urlbase.py
-src/gen/lib/witness.py
+gramps/gen/lib/__init__.py
+gramps/gen/lib/address.py
+gramps/gen/lib/addressbase.py
+gramps/gen/lib/attrbase.py
+gramps/gen/lib/attribute.py
+gramps/gen/lib/baseobj.py
+gramps/gen/lib/calendar.py
+gramps/gen/lib/childref.py
+gramps/gen/lib/datebase.py
+gramps/gen/lib/event.py
+gramps/gen/lib/eventref.py
+gramps/gen/lib/family.py
+gramps/gen/lib/genderstats.py
+gramps/gen/lib/ldsordbase.py
+gramps/gen/lib/location.py
+gramps/gen/lib/locationbase.py
+gramps/gen/lib/mediaobj.py
+gramps/gen/lib/mediabase.py
+gramps/gen/lib/mediaref.py
+gramps/gen/lib/name.py
+gramps/gen/lib/note.py
+gramps/gen/lib/notebase.py
+gramps/gen/lib/personref.py
+gramps/gen/lib/place.py
+gramps/gen/lib/placebase.py
+gramps/gen/lib/primaryobj.py
+gramps/gen/lib/privacybase.py
+gramps/gen/lib/privsrcnote.py
+gramps/gen/lib/refbase.py
+gramps/gen/lib/repo.py
+gramps/gen/lib/reporef.py
+gramps/gen/lib/researcher.py
+gramps/gen/lib/secondaryobj.py
+gramps/gen/lib/src.py
+gramps/gen/lib/srcbase.py
+gramps/gen/lib/srcnote.py
+gramps/gen/lib/srcref.py
+gramps/gen/lib/styledtext.py
+gramps/gen/lib/styledtexttagtype.py
+gramps/gen/lib/surname.py
+gramps/gen/lib/test/date_test.py
+gramps/gen/lib/url.py
+gramps/gen/lib/urlbase.py
+gramps/gen/lib/witness.py
 
 # gen mime API
-src/gen/mime/__init__.py
-src/gen/mime/_winmime.py
+gramps/gen/mime/__init__.py
+gramps/gen/mime/_winmime.py
 
 # gen plugin API
-src/gen/plug/__init__.py
-src/gen/plug/_docgenplugin.py
-src/gen/plug/_export.py
-src/gen/plug/_import.py
-src/gen/plug/_plugin.py
-src/gen/plug/menu/_boolean.py
-src/gen/plug/menu/_color.py
-src/gen/plug/menu/_destination.py
-src/gen/plug/menu/_enumeratedlist.py
-src/gen/plug/menu/_family.py
-src/gen/plug/menu/_filter.py
-src/gen/plug/menu/__init__.py
-src/gen/plug/menu/_media.py
-src/gen/plug/menu/_menu.py
-src/gen/plug/menu/_note.py
-src/gen/plug/menu/_number.py
-src/gen/plug/menu/_option.py
-src/gen/plug/menu/_personlist.py
-src/gen/plug/menu/_person.py
-src/gen/plug/menu/_placelist.py
-src/gen/plug/menu/_string.py
-src/gen/plug/menu/_style.py
-src/gen/plug/menu/_surnamecolor.py
-src/gen/plug/menu/_text.py
-src/gen/plug/docgen/__init__.py
-src/gen/plug/docgen/basedoc.py
-src/gen/plug/docgen/drawdoc.py
-src/gen/plug/docgen/fontscale.py
-src/gen/plug/docgen/fontstyle.py
-src/gen/plug/docgen/graphdoc.py
-src/gen/plug/docgen/graphicstyle.py
-src/gen/plug/docgen/paperstyle.py
-src/gen/plug/docgen/paragraphstyle.py
-src/gen/plug/docgen/stylesheet.py
-src/gen/plug/docgen/tablestyle.py
-src/gen/plug/docgen/textdoc.py
-src/gen/plug/docbackend/__init__.py
-src/gen/plug/docbackend/cairobackend.py
+gramps/gen/plug/__init__.py
+gramps/gen/plug/_docgenplugin.py
+gramps/gen/plug/_export.py
+gramps/gen/plug/_import.py
+gramps/gen/plug/_plugin.py
+gramps/gen/plug/menu/_boolean.py
+gramps/gen/plug/menu/_color.py
+gramps/gen/plug/menu/_destination.py
+gramps/gen/plug/menu/_enumeratedlist.py
+gramps/gen/plug/menu/_family.py
+gramps/gen/plug/menu/_filter.py
+gramps/gen/plug/menu/__init__.py
+gramps/gen/plug/menu/_media.py
+gramps/gen/plug/menu/_menu.py
+gramps/gen/plug/menu/_note.py
+gramps/gen/plug/menu/_number.py
+gramps/gen/plug/menu/_option.py
+gramps/gen/plug/menu/_personlist.py
+gramps/gen/plug/menu/_person.py
+gramps/gen/plug/menu/_placelist.py
+gramps/gen/plug/menu/_string.py
+gramps/gen/plug/menu/_style.py
+gramps/gen/plug/menu/_surnamecolor.py
+gramps/gen/plug/menu/_text.py
+gramps/gen/plug/docgen/__init__.py
+gramps/gen/plug/docgen/basedoc.py
+gramps/gen/plug/docgen/drawdoc.py
+gramps/gen/plug/docgen/fontscale.py
+gramps/gen/plug/docgen/fontstyle.py
+gramps/gen/plug/docgen/graphdoc.py
+gramps/gen/plug/docgen/graphicstyle.py
+gramps/gen/plug/docgen/paperstyle.py
+gramps/gen/plug/docgen/paragraphstyle.py
+gramps/gen/plug/docgen/stylesheet.py
+gramps/gen/plug/docgen/tablestyle.py
+gramps/gen/plug/docgen/textdoc.py
+gramps/gen/plug/docbackend/__init__.py
+gramps/gen/plug/docbackend/cairobackend.py
 
 # gen proxy API
-src/gen/proxy/__init__.py
-src/gen/proxy/filter.py
-src/gen/proxy/living.py
-src/gen/proxy/proxybase.py
+gramps/gen/proxy/__init__.py
+gramps/gen/proxy/filter.py
+gramps/gen/proxy/living.py
+gramps/gen/proxy/proxybase.py
 
 # gen utils API
-src/gen/utils/__init__.py
-src/gen/utils/callback.py
-src/gen/utils/callman.py
+gramps/gen/utils/__init__.py
+gramps/gen/utils/callback.py
+gramps/gen/utils/callman.py
 
 # GrampsLocale package
-src/GrampsLocale/_GrampsLocale.py
+gramps/GrampsLocale/_GrampsLocale.py
 
 # GrampsLogger package
-src/GrampsLogger/__init__.py
-src/GrampsLogger/_GtkHandler.py
-src/GrampsLogger/_RotateHandler.py
+gramps/GrampsLogger/__init__.py
+gramps/GrampsLogger/_GtkHandler.py
+gramps/GrampsLogger/_RotateHandler.py
 
 # gui - GUI code
-src/gui/__init__.py
-src/gui/dbguielement.py
-src/gui/navigator.py
-src/gui/pluginmanager.py
-src/gui/user.py
+gramps/gui/__init__.py
+gramps/gui/dbguielement.py
+gramps/gui/navigator.py
+gramps/gui/pluginmanager.py
+gramps/gui/user.py
 
 # gui/editors - the GUI editors package
-src/gui/editors/__init__.py
-src/gui/editors/editreference.py
-src/gui/editors/editsecondary.py
+gramps/gui/editors/__init__.py
+gramps/gui/editors/editreference.py
+gramps/gui/editors/editsecondary.py
 
 # gui/editors/displaytabs - the GUI display tabs package
-src/gui/editors/displaytabs/__init__.py
-src/gui/editors/displaytabs/addressmodel.py
-src/gui/editors/displaytabs/attrmodel.py
-src/gui/editors/displaytabs/childmodel.py
-src/gui/editors/displaytabs/datamodel.py
-src/gui/editors/displaytabs/eventbackreflist.py
-src/gui/editors/displaytabs/familyattrembedlist.py
-src/gui/editors/displaytabs/grampstab.py
-src/gui/editors/displaytabs/groupembeddedlist.py
-src/gui/editors/displaytabs/ldsmodel.py
-src/gui/editors/displaytabs/locationmodel.py
-src/gui/editors/displaytabs/mediabackreflist.py
-src/gui/editors/displaytabs/notebackreflist.py
-src/gui/editors/displaytabs/personrefmodel.py
-src/gui/editors/displaytabs/placebackreflist.py
-src/gui/editors/displaytabs/reporefmodel.py
-src/gui/editors/displaytabs/sourcebackreflist.py
-src/gui/editors/displaytabs/sourcerefmodel.py
-src/gui/editors/displaytabs/surnamemodel.py
-src/gui/editors/displaytabs/webmodel.py
+gramps/gui/editors/displaytabs/__init__.py
+gramps/gui/editors/displaytabs/addressmodel.py
+gramps/gui/editors/displaytabs/attrmodel.py
+gramps/gui/editors/displaytabs/childmodel.py
+gramps/gui/editors/displaytabs/datamodel.py
+gramps/gui/editors/displaytabs/eventbackreflist.py
+gramps/gui/editors/displaytabs/familyattrembedlist.py
+gramps/gui/editors/displaytabs/grampstab.py
+gramps/gui/editors/displaytabs/groupembeddedlist.py
+gramps/gui/editors/displaytabs/ldsmodel.py
+gramps/gui/editors/displaytabs/locationmodel.py
+gramps/gui/editors/displaytabs/mediabackreflist.py
+gramps/gui/editors/displaytabs/notebackreflist.py
+gramps/gui/editors/displaytabs/personrefmodel.py
+gramps/gui/editors/displaytabs/placebackreflist.py
+gramps/gui/editors/displaytabs/reporefmodel.py
+gramps/gui/editors/displaytabs/sourcebackreflist.py
+gramps/gui/editors/displaytabs/sourcerefmodel.py
+gramps/gui/editors/displaytabs/surnamemodel.py
+gramps/gui/editors/displaytabs/webmodel.py
 
 # gui/selectors - the GUI selectors package
-src/gui/selectors/__init__.py
-src/gui/selectors/baseselector.py
-src/gui/selectors/selectorexceptions.py
-src/gui/selectors/selectorfactory.py
+gramps/gui/selectors/__init__.py
+gramps/gui/selectors/baseselector.py
+gramps/gui/selectors/selectorexceptions.py
+gramps/gui/selectors/selectorfactory.py
 
 # gui/views - the GUI views package
-src/gui/views/__init__.py
+gramps/gui/views/__init__.py
 
 # gui/views/treemodels - the GUI views package
-src/gui/views/treemodels/__init__.py
-src/gui/views/treemodels/eventmodel.py
-src/gui/views/treemodels/familymodel.py
-src/gui/views/treemodels/flatbasemodel.py
-src/gui/views/treemodels/repomodel.py
-src/gui/views/treemodels/sourcemodel.py
+gramps/gui/views/treemodels/__init__.py
+gramps/gui/views/treemodels/eventmodel.py
+gramps/gui/views/treemodels/familymodel.py
+gramps/gui/views/treemodels/flatbasemodel.py
+gramps/gui/views/treemodels/repomodel.py
+gramps/gui/views/treemodels/sourcemodel.py
 
 # gui/widgets - the GUI widgets package
-src/gui/widgets/basicentry.py
-src/gui/widgets/menutoolbuttonaction.py
-src/gui/widgets/styledtextbuffer.py
-src/gui/widgets/undoablestyledbuffer.py
+gramps/gui/widgets/basicentry.py
+gramps/gui/widgets/menutoolbuttonaction.py
+gramps/gui/widgets/styledtextbuffer.py
+gramps/gui/widgets/undoablestyledbuffer.py
 
 # gui qt
-src/guiQML/grampsqml.py
-src/guiQML/viewmanager.py
-src/guiQML/views/centralview.py
-src/guiQML/views/personview.py
-src/guiQML/views/dbman.py
+gramps/guiQML/grampsqml.py
+gramps/guiQML/viewmanager.py
+gramps/guiQML/views/centralview.py
+gramps/guiQML/views/personview.py
+gramps/guiQML/views/dbman.py
 
 # Merge package
-src/Merge/__init__.py
-src/Merge/test/merge_ref_test.py
+gramps/Merge/__init__.py
+gramps/Merge/test/merge_ref_test.py
 
 # plugins gpr directory
-src/plugins/sidebar/sidebar.gpr.py
+gramps/plugins/sidebar/sidebar.gpr.py
 
 # plugins/docgen directory
-src/plugins/docgen/PdfDoc.py
+gramps/plugins/docgen/PdfDoc.py
 
 # plugins/lib directory
-src/plugins/lib/libformatting.py
-src/plugins/lib/libgrampsxml.py
-src/plugins/lib/libhtml.py
-src/plugins/lib/libhtmlbackend.py
-src/plugins/lib/libmapservice.py
-src/plugins/lib/libodfbackend.py
-src/plugins/lib/libsubstkeyword.py
+gramps/plugins/lib/libformatting.py
+gramps/plugins/lib/libgrampsxml.py
+gramps/plugins/lib/libhtml.py
+gramps/plugins/lib/libhtmlbackend.py
+gramps/plugins/lib/libmapservice.py
+gramps/plugins/lib/libodfbackend.py
+gramps/plugins/lib/libsubstkeyword.py
 
 # plugins/import directory
-src/plugins/import/ImportSql.py
+gramps/plugins/import/ImportSql.py
 
 # plugins/tool directory
-src/plugins/tool/CalculateEstimatedDates.py
-src/plugins/tool/DateParserDisplayTest.py
-src/plugins/tool/DumpGenderStats.py
-src/plugins/tool/PHPGedViewConnector.py
-src/plugins/tool/TestcaseGenerator.py
-src/plugins/tool/phpgedview.glade
-src/plugins/tool/toolsdebug.gpr.py
+gramps/plugins/tool/CalculateEstimatedDates.py
+gramps/plugins/tool/DateParserDisplayTest.py
+gramps/plugins/tool/DumpGenderStats.py
+gramps/plugins/tool/PHPGedViewConnector.py
+gramps/plugins/tool/TestcaseGenerator.py
+gramps/plugins/tool/phpgedview.glade
+gramps/plugins/tool/toolsdebug.gpr.py
 
 # plugins/gramplet directory
-src/plugins/gramplet/DeepConnections.py
-src/plugins/gramplet/Gallery.py
-src/plugins/gramplet/HeadlineNewsGramplet.py
-src/plugins/gramplet/MediaPreview.py
-src/plugins/gramplet/MetadataViewer.py
-src/plugins/gramplet/NoteGramplet.py
-src/plugins/gramplet/PluginManagerGramplet.py
-src/plugins/gramplet/PopulateGramplet.py
-src/plugins/gramplet/PopulateGramplet.gpr.py
-src/plugins/gramplet/PythonGramplet.py
+gramps/plugins/gramplet/DeepConnections.py
+gramps/plugins/gramplet/Gallery.py
+gramps/plugins/gramplet/HeadlineNewsGramplet.py
+gramps/plugins/gramplet/MediaPreview.py
+gramps/plugins/gramplet/MetadataViewer.py
+gramps/plugins/gramplet/NoteGramplet.py
+gramps/plugins/gramplet/PluginManagerGramplet.py
+gramps/plugins/gramplet/PopulateGramplet.py
+gramps/plugins/gramplet/PopulateGramplet.gpr.py
+gramps/plugins/gramplet/PythonGramplet.py
 
 # plugins/quickview directory
-src/plugins/quickview/AllNames.py
-src/plugins/quickview/Query.py
+gramps/plugins/quickview/AllNames.py
+gramps/plugins/quickview/Query.py
 
 # plugins/rel directory
-src/plugins/rel/rel_cs.py
-src/plugins/rel/rel_da.py
-src/plugins/rel/rel_de.py
-src/plugins/rel/rel_es.py
-src/plugins/rel/rel_fi.py
-src/plugins/rel/rel_fr.py
-src/plugins/rel/rel_hu.py
-src/plugins/rel/rel_it.py
-src/plugins/rel/rel_nl.py
-src/plugins/rel/rel_no.py
-src/plugins/rel/rel_pl.py
-src/plugins/rel/rel_pt.py
-src/plugins/rel/rel_ru.py
-src/plugins/rel/rel_sk.py
-src/plugins/rel/rel_sv.py
+gramps/plugins/rel/rel_cs.py
+gramps/plugins/rel/rel_da.py
+gramps/plugins/rel/rel_de.py
+gramps/plugins/rel/rel_es.py
+gramps/plugins/rel/rel_fi.py
+gramps/plugins/rel/rel_fr.py
+gramps/plugins/rel/rel_hu.py
+gramps/plugins/rel/rel_it.py
+gramps/plugins/rel/rel_nl.py
+gramps/plugins/rel/rel_no.py
+gramps/plugins/rel/rel_pl.py
+gramps/plugins/rel/rel_pt.py
+gramps/plugins/rel/rel_ru.py
+gramps/plugins/rel/rel_sk.py
+gramps/plugins/rel/rel_sv.py
 
 # Simple API
-src/Simple/_SimpleDoc.py
+gramps/Simple/_SimpleDoc.py
 
 #
 #   web
 #
-src/webapp/grampsdb/views.py
-src/webapp/utils.py
+gramps/webapp/grampsdb/views.py
+gramps/webapp/utils.py
 
 #
 #   Glade files
 #
-src/glade/gramps.glade
-src/plugins/export/exportcsv.glade
-src/plugins/export/exportftree.glade
-src/plugins/export/exportgeneweb.glade
-src/plugins/export/exportvcalendar.glade
-src/plugins/export/exportvcard.glade
-src/plugins/tool/check.glade
+gramps/glade/gramps.glade
+gramps/plugins/export/exportcsv.glade
+gramps/plugins/export/exportftree.glade
+gramps/plugins/export/exportgeneweb.glade
+gramps/plugins/export/exportvcalendar.glade
+gramps/plugins/export/exportvcard.glade
+gramps/plugins/tool/check.glade
