@@ -31,15 +31,12 @@ import os, sys, glob, shutil, codecs
 #        Distutils2, Packaging, Distutils modules
 #-------------------------------------------
 try:
-    from distutils2 import logger as _LOG
     from distutils2.util import convert_path, newer
 except ImportError:
     try:
-        from packaging import logger as _LOG
         from packaging.util import convert_path, newer
     except ImportError:
         try:
-            from distutils import log as _LOG
             from distutils.util import convert_path, newer
         except ImportError:
             # no Distutils, Distutils2, packaging is NOT installed!
