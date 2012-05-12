@@ -26,6 +26,9 @@
 #        Python modules
 #------------------------------------------------
 import os, sys, glob, shutil, codecs
+import commands
+
+from fractions import Fraction
 
 #-------------------------------------------
 #        Distutils2, Packaging, Distutils modules
@@ -47,6 +50,27 @@ except ImportError:
 #        Constants
 #------------------------------------------------
 PO_DIR = 'po'
+
+#------------------------------------------------
+#        helper function
+#------------------------------------------------
+def determine_po_status(po_file):
+    '''
+    determines if a po file is to be compiled or not?
+    '''
+    retcode, answer = commands.getstatusoutput('./check_po -s %s | grep "Localized at: "' % po_file)
+    if retcode != 0:
+        raise SystemExi('ERROR: Processing of translations files failed.')
+
+    pos = answer.find('%')
+    if pos != -1:
+        answer = answer[pos-6:pos]
+        percent = int(Fraction(answer))
+        if percent >= 48:
+            return True
+    else:
+        raise SystemExi('ERROR: Processing of translations files failed.')
+    return False
 
 #------------------------------------------------
 #        Setup/ Command Hooks
@@ -77,9 +101,10 @@ def build_trans(build_cmd):
     Translate the language files into gramps.mo
     '''
     data_files = build_cmd.distribution.data_files
-    for po in glob.glob(os.path.join(PO_DIR, '*.po')):
+    for po in sorted(glob.glob(os.path.join(PO_DIR, '*.po'))):
         lang = os.path.basename(po[:-3])
         mo = os.path.join(build_cmd.build_base, 'mo', lang, 'gramps.mo')
+
         directory = os.path.dirname(mo)
         if not(os.path.isdir(directory) or os.path.islink(directory)):
             os.makedirs(directory)
