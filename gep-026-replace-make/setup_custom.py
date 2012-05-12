@@ -54,24 +54,6 @@ PO_DIR = 'po'
 #------------------------------------------------
 #        helper function
 #------------------------------------------------
-def determine_po_status(po_file):
-    '''
-    determines if a po file is to be compiled or not?
-    '''
-    retcode, answer = commands.getstatusoutput('./check_po -s %s | grep "Localized at: "' % po_file)
-    if retcode != 0:
-        raise SystemExi('ERROR: Processing of translations files failed.')
-
-    pos = answer.find('%')
-    if pos != -1:
-        answer = answer[pos-6:pos]
-        percent = int(Fraction(answer))
-        if percent >= 48:
-            return True
-    else:
-        raise SystemExi('ERROR: Processing of translations files failed.')
-    return False
-
 def x_merge_x_cmd(t_in, f_out):
     '''
     based on version of intltool installed, return command...
