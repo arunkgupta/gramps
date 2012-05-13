@@ -25,13 +25,13 @@
 #------------------------------------------------
 #        Python modules
 #------------------------------------------------
-import os, sys, glob, shutil, codecs
+import os, sys, glob, codecs
 import commands
 
 from fractions import Fraction
 
 #-------------------------------------------
-#        Distutils2, Packaging, Distutils modules
+#        Distutils2, Packaging modules
 #-------------------------------------------
 try:
     from distutils2.util import convert_path, newer
@@ -39,12 +39,9 @@ except ImportError:
     try:
         from packaging.util import convert_path, newer
     except ImportError:
-        try:
-            from distutils.util import convert_path, newer
-        except ImportError:
-            # no Distutils, Distutils2, packaging is NOT installed!
-            raise SystemExit('Distutils2, Packaging, or Distutils is Required!\n',
-                             'You need to have one of these installed.')
+        # no Distutils, Distutils2, packaging is NOT installed!
+        raise SystemExit('Distutils2, Packaging, or Distutils is Required!\n',
+                         'You need to have one of these installed.')
 
 #------------------------------------------------
 #        Constants
@@ -54,43 +51,28 @@ PO_DIR = 'po'
 #------------------------------------------------
 #        helper function
 #------------------------------------------------
-def x_merge_x_cmd(t_in, f_out):
+def intltool_version():
     '''
-    based on version of intltool installed, return command...
-
-    in_file can either be holidays.xml.in or tips.xml.in
+    Return the version of intltool as a tuple.
     '''
-    retcode, version = commands.getstatusoutput('intltool-update --version | head -1 | cut -d" " -f3')
+    cmd = 'intltool-update --version | head -1 | cut -d" " -f3'
+    retcode, version_str = commands.getstatusoutput(cmd)
     if retcode != 0:
-        raise SystemExit('ERROR:  you do not have intltool installed.')
-
-    major, minor, point = version.split('.')
-    version = tuple((int(major), int(minor), int(point)))
-    try:
-        assert version >= (0, 25, 0)
-    except AssertionError:
-        raise SystemExit('ERROR: your version of intltool must be >= (0, 25, 0)')
-
-    if version >= (0, 50, 0):
-        return ('intltool-merge -x --no-translations %(in_file)s %(out_file)s') % {
-                'in_file' : f_in, 'out_file' : f_out}
+        return None
     else:
-        return ('intltool-merge -x /tmp %(in_file)s %(out_file)s') % {
-                'in_file' : f_in, 'out_file' : f_out}
+        return tuple([int(num) for num in version_str.split('.')])
 
 #------------------------------------------------
 #        Setup/ Command Hooks
 #------------------------------------------------
-merge_d = merge_k = merge_x = None
+intltool_merge_files = None
 
 def customize_config(content):
     '''
     Global hook.
     '''
-    global merge_d, merge_k, merge_x
-    merge_d = get_field(content, 'x-merge-d')
-    merge_k = get_field(content, 'x-merge-k')
-    merge_x = get_field(content, 'x-merge-x')
+    global intltool_merge_files
+    intltool_merge_files = get_field(content, 'x-intltool-merge')
 
 def get_field(content, key):
     result = []
@@ -98,7 +80,8 @@ def get_field(content, key):
     if field:
         for entry in field.split('\n'):
             if entry:
-                entry = [item.strip() for item in entry.split('=')]
+                if '=' in entry:
+                    entry = [item.strip() for item in entry.split('=')]
                 result.append(entry)
     return result
 
@@ -176,16 +159,33 @@ def build_intl(build_cmd):
     '''
     Merge translation files into desktop and mime files
     '''
+    if intltool_version() < (0, 25, 0):
+        return
+    
     metadata = build_cmd.distribution.metadata
     data_files = build_cmd.distribution.data_files
     base = build_cmd.build_base
 
-    for field, option in ((merge_d, '-d'), (merge_k, '-k'), (merge_x, '-x')):
-        for contents in field:
-            merge(base, contents[0], option)
-            data_files[base + '/' + contents[0]] = contents[1]
+    merge_files = (('data/gramps.desktop',
+                    '{datadir}/applications/gramps.desktop',
+                    '-d'),
+                    ('data/gramps.keys',
+                    '{datadir}/mime-info/gramps.keys',
+                    '-k'),
+                    ('data/gramps.xml',
+                    '{datadir}/mime/packages/gramps.xml',
+                    '-x'))
 
-def merge(build_base, filename, option):
+    for in_file, target, option in merge_files:
+        merge(base, in_file, option)
+        data_files[base + '/' + in_file] = target
+
+    for in_file in intltool_merge_files:
+        merge(base, in_file, '-x', po_dir='/tmp')
+        data_files[base + '/' + in_file] = '{purelib}/' + in_file
+
+def merge(build_base, filename, option, po_dir='po'):
+    filename = convert_path(filename)
     newfile = os.path.join(build_base, filename)
     newdir = os.path.dirname(newfile)
     if not(os.path.isdir(newdir) or os.path.islink(newdir)):
@@ -193,8 +193,11 @@ def merge(build_base, filename, option):
 
     datafile = filename + '.in'
     if (not os.path.exists(newfile) and os.path.exists(datafile)):
-        cmd = ('/usr/bin/intltool-merge %(opt)s po/ %(in_file)s %(out_file)s') % {
-                'opt' : option, 'in_file' : datafile, 'out_file' : newfile}
+        cmd = ('intltool-merge %(opt)s %(po_dir)s %(in_file)s %(out_file)s') % {
+                'opt' : option, 
+                'po_dir' : po_dir,
+                'in_file' : datafile, 
+                'out_file' : newfile}
         if os.system(cmd) != 0:
             raise SystemExit('ERROR: %s was not merged into the translation files!\n' 
                                                                  % newfile)
