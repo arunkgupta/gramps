@@ -66,13 +66,15 @@ def intltool_version():
 #        Setup/ Command Hooks
 #------------------------------------------------
 intltool_merge_files = None
+all_linguas = None
 
 def customize_config(content):
     '''
     Global hook.
     '''
-    global intltool_merge_files
+    global intltool_merge_files, all_linguas
     intltool_merge_files = get_field(content, 'x-intltool-merge')
+    all_linguas = get_field(content, 'x-locales')
 
 def get_field(content, key):
     result = []
@@ -90,8 +92,8 @@ def build_trans(build_cmd):
     Translate the language files into gramps.mo
     '''
     data_files = build_cmd.distribution.data_files
-    for po in sorted(glob.glob(os.path.join(PO_DIR, '*.po'))):
-        lang = os.path.basename(po[:-3])
+    for lang in all_linguas:
+        po = os.path.join(PO_DIR, lang + '.po')
         mo = os.path.join(build_cmd.build_base, 'mo', lang, 'gramps.mo')
 
         directory = os.path.dirname(mo)
