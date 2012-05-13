@@ -208,8 +208,11 @@ def install_template(install_cmd):
     '''
     Pre-install hook to populate template files.
     '''
+    data_files = install_cmd.distribution.data_files
     write_gramps_sh(install_cmd)
+    data_files['gramps.sh'] = '{scripts}/gramps.sh'
     write_const_py(install_cmd)
+    data_files['gramps/const.py'] = '{purelib}/gramps/const.py'
 
 def write_gramps_sh(install_cmd):
     f = open('gramps.sh', 'w')
@@ -224,7 +227,7 @@ def write_const_py(install_cmd):
     const_py = os.path.join('gramps', 'const.py')
 
     version = install_cmd.distribution.metadata['version']
-    prefix = install_cmd.install_base
+    prefix = install_cmd.install_data
     sysconfdir = os.path.join(prefix, 'etc') # Is this correct?
     
     subst_vars = ((u'@VERSIONSTRING@', version), 
