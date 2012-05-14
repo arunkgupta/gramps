@@ -183,15 +183,20 @@ def build_intl(build_cmd):
         data_files[base + '/' + in_file] = target
 
     for in_file in intltool_merge_files:
-        merge(base, in_file, '-x', po_dir='/tmp')
+        merge(base, in_file, '-x', po_dir='/tmp', cache=False)
         data_files[base + '/' + in_file] = '{purelib}/' + in_file
 
-def merge(build_base, filename, option, po_dir='po'):
+def merge(build_base, filename, option, po_dir='po', cache=True):
     filename = convert_path(filename)
     newfile = os.path.join(build_base, filename)
     newdir = os.path.dirname(newfile)
     if not(os.path.isdir(newdir) or os.path.islink(newdir)):
         os.makedirs(newdir)
+
+    option += ' -u'
+    if cache:
+        cache_file = os.path.join('po', '.intltool-merge-cache')
+        option += ' -c ' + cache_file
 
     datafile = filename + '.in'
     if (not os.path.exists(newfile) and os.path.exists(datafile)):
