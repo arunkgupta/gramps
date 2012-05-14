@@ -42,7 +42,8 @@ except ImportError:
     try:
         from packaging.util import convert_path, newer
     except ImportError:
-        # no Distutils, Distutils2, packaging is NOT installed!
+        # no DistUtils2 or Packaging is NOT installed!
+        # Python-2.6, Python-2.7/ Distutils2, or Python-3.3/ Packaging
         raise SystemExit('Distutils2, Packaging, or Distutils is Required!\n',
                          'You need to have one of these installed.')
 
@@ -200,7 +201,7 @@ def merge(build_base, filename, option, po_dir='po', cache=True):
 
     datafile = filename + '.in'
     if (not os.path.exists(newfile) and os.path.exists(datafile)):
-        cmd = ('intltool-merge %(opt)s %(po_dir)s %(in_file)s %(out_file)s' % 
+        cmd = ('LC_ALL=C intltool-merge %(opt)s %(po_dir)s %(in_file)s %(out_file)s' % 
               {'opt' : option, 
                'po_dir' : po_dir,
                'in_file' : datafile, 
