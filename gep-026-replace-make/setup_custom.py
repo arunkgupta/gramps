@@ -22,17 +22,20 @@
 #
 # $Id$
 
+'''
+Gramps customisation hooks for distutils2/packaging module.
+'''
+
 #------------------------------------------------
 #        Python modules
 #------------------------------------------------
 import os, sys, glob, codecs
 import commands
 
-from fractions import Fraction
-
 #-------------------------------------------
 #        Distutils2, Packaging modules
 #-------------------------------------------
+#pylint: disable=F0401
 try:
     from distutils2.util import convert_path, newer
 except ImportError:
@@ -42,11 +45,6 @@ except ImportError:
         # no Distutils, Distutils2, packaging is NOT installed!
         raise SystemExit('Distutils2, Packaging, or Distutils is Required!\n',
                          'You need to have one of these installed.')
-
-#------------------------------------------------
-#        Constants
-#------------------------------------------------
-PO_DIR = 'po'
 
 #------------------------------------------------
 #        helper function
@@ -65,18 +63,21 @@ def intltool_version():
 #------------------------------------------------
 #        Setup/ Command Hooks
 #------------------------------------------------
-intltool_merge_files = None
-all_linguas = None
+INTLTOOL_FILES = None
+ALL_LINGUAS = None
 
 def customize_config(content):
     '''
     Global hook.
     '''
-    global intltool_merge_files, all_linguas
-    intltool_merge_files = get_field(content, 'x-intltool-merge')
-    all_linguas = get_field(content, 'x-locales')
+    global INTLTOOL_FILES, ALL_LINGUAS
+    INTLTOOL_FILES = get_field(content, 'x-intltool-merge')
+    ALL_LINGUAS = get_field(content, 'x-locales')
 
 def get_field(content, key):
+    '''
+    Retrieve a custom field from the configuration file.
+    '''
     result = []
     field = content['files'].get(key)
     if field:
@@ -92,21 +93,23 @@ def build_trans(build_cmd):
     Translate the language files into gramps.mo
     '''
     data_files = build_cmd.distribution.data_files
-    for lang in all_linguas:
-        po = os.path.join(PO_DIR, lang + '.po')
-        mo = os.path.join(build_cmd.build_base, 'mo', lang, 'gramps.mo')
+    for lang in ALL_LINGUAS:
+        po_file = os.path.join('po', lang + '.po')
+        mo_file = os.path.join(build_cmd.build_base, 'mo', lang, 'gramps.mo')
 
-        directory = os.path.dirname(mo)
-        if not(os.path.isdir(directory) or os.path.islink(directory)):
-            os.makedirs(directory)
+        mo_dir = os.path.dirname(mo_file)
+        if not(os.path.isdir(mo_dir) or os.path.islink(mo_dir)):
+            os.makedirs(mo_dir)
 
-        if newer(po, mo):
-            cmd = 'msgfmt %s/%s.po -o %s' % (PO_DIR, lang, mo)
+        if newer(po_file, mo_file):
+            cmd = 'msgfmt %s -o %s' % (po_file, mo_file)
             if os.system(cmd) != 0:
-                raise SystemExit('ERROR: Building language translation files failed.')
-            print(('Compiling %s >> %s...' % (po, mo)))
+                msg = 'ERROR: Building language translation files failed.'
+                raise SystemExit(msg)
+            print(('Compiling %s >> %s...' % (po_file, mo_file)))
 
-        data_files[mo] = '{datadir}/locale/' + lang + '/LC_MESSAGES/gramps.mo'            
+        target = '{datadir}/locale/' + lang + '/LC_MESSAGES/gramps.mo'
+        data_files[mo_file] = target
 
 def build_man(build_cmd):
     '''
@@ -114,22 +117,17 @@ def build_man(build_cmd):
     '''
     data_files = build_cmd.distribution.data_files
     build_data = build_cmd.build_base + '/data/'
-    for dir, dirs, files in os.walk(os.path.join('data', 'man')):
-        file = False
-        for f in files:
-            if f == 'gramps.1.in':
-                file = os.path.join(dir, f)
-                break
-
-        if file:
-            newdir = os.path.join(build_cmd.build_base, dir)
+    for man_dir, dirs, files in os.walk(os.path.join('data', 'man')):
+        if 'gramps.1.in' in files:
+            filename = os.path.join(man_dir, 'gramps.1.in')
+            newdir = os.path.join(build_cmd.build_base, man_dir)
             if not(os.path.isdir(newdir) or os.path.islink(newdir)):
                 os.makedirs(newdir)
 
             newfile = os.path.join(newdir, 'gramps.1')
             version = build_cmd.distribution.metadata['version']
             subst_vars = ((u'@VERSION@', version), )
-            substitute_variables(file, newfile, subst_vars)
+            substitute_variables(filename, newfile, subst_vars)
 
             import gzip
             man_file_gz = os.path.join(newdir, 'gramps.1.gz')
@@ -137,10 +135,10 @@ def build_man(build_cmd):
                 if newer(newfile, man_file_gz):
                     os.remove(man_file_gz)
                 else:
-                    file = False
+                    filename = False
                     os.remove(newfile)
 
-            while file:
+            while filename:
                 f_in = open(newfile, 'rb')
                 f_out = gzip.open(man_file_gz, 'wb')
                 f_out.writelines(f_in)
@@ -150,9 +148,9 @@ def build_man(build_cmd):
                 print('Compiling manual file, %s...' % man_file_gz)
 
                 os.remove(newfile)
-                file = False
+                filename = False
 
-            lang = dir[8:]
+            lang = man_dir[8:]
             src = build_data + 'man' + lang + '/gramps.1.gz'
             target = '{man}' + lang + '/man1'
             data_files[src] = target
@@ -164,7 +162,6 @@ def build_intl(build_cmd):
     if intltool_version() < (0, 25, 0):
         return
     
-    metadata = build_cmd.distribution.metadata
     data_files = build_cmd.distribution.data_files
     base = build_cmd.build_base
 
@@ -182,11 +179,14 @@ def build_intl(build_cmd):
         merge(base, in_file, option)
         data_files[base + '/' + in_file] = target
 
-    for in_file in intltool_merge_files:
+    for in_file in INTLTOOL_FILES:
         merge(base, in_file, '-x', po_dir='/tmp', cache=False)
         data_files[base + '/' + in_file] = '{purelib}/' + in_file
 
 def merge(build_base, filename, option, po_dir='po', cache=True):
+    '''
+    Run the intltool-merge command.
+    '''
     filename = convert_path(filename)
     newfile = os.path.join(build_base, filename)
     newdir = os.path.dirname(newfile)
@@ -200,14 +200,15 @@ def merge(build_base, filename, option, po_dir='po', cache=True):
 
     datafile = filename + '.in'
     if (not os.path.exists(newfile) and os.path.exists(datafile)):
-        cmd = ('intltool-merge %(opt)s %(po_dir)s %(in_file)s %(out_file)s') % {
-                'opt' : option, 
-                'po_dir' : po_dir,
-                'in_file' : datafile, 
-                'out_file' : newfile}
+        cmd = ('intltool-merge %(opt)s %(po_dir)s %(in_file)s %(out_file)s' % 
+              {'opt' : option, 
+               'po_dir' : po_dir,
+               'in_file' : datafile, 
+               'out_file' : newfile})
         if os.system(cmd) != 0:
-            raise SystemExit('ERROR: %s was not merged into the translation files!\n' 
-                                                                 % newfile)
+            msg = ('ERROR: %s was not merged into the translation files!\n' % 
+                    newfile)
+            raise SystemExit(msg)
 
 def install_template(install_cmd):
     '''
@@ -220,14 +221,19 @@ def install_template(install_cmd):
     data_files['gramps/const.py'] = '{purelib}/gramps/const.py'
 
 def write_gramps_sh(install_cmd):
-    f = open('gramps.sh', 'w')
-    f.write('#! /bin/sh\n')
-    package = 'gramps'
-    f.write('export GRAMPSDIR=%sgramps\n' % install_cmd.install_lib)
-    f.write('exec %s -O $GRAMPSDIR/gramps.py "$@"\n' % sys.executable)
-    f.close()
+    '''
+    Write the gramps.sh file.
+    '''
+    f_out = open('gramps.sh', 'w')
+    f_out.write('#! /bin/sh\n')
+    f_out.write('export GRAMPSDIR=%sgramps\n' % install_cmd.install_lib)
+    f_out.write('exec %s -O $GRAMPSDIR/gramps.py "$@"\n' % sys.executable)
+    f_out.close()
 
 def write_const_py(install_cmd):
+    '''
+    Write the const.py file.
+    '''
     const_py_in = os.path.join('gramps', 'const.py.in')
     const_py = os.path.join('gramps', 'const.py')
 
@@ -242,6 +248,9 @@ def write_const_py(install_cmd):
     substitute_variables(const_py_in, const_py, subst_vars)
 
 def substitute_variables(filename_in, filename_out, subst_vars):
+    '''
+    Substitute variables in a file.
+    '''
     f_in = codecs.open(filename_in, encoding='utf-8')
     f_out = codecs.open(filename_out, encoding='utf-8', mode='w')
     for line in f_in:
@@ -255,6 +264,8 @@ def manifest_builder(distribution, manifest):
     '''
     Manifest builder.
     '''
+    # This doesn't work for svn version 1.7.x which has a different file
+    # structure.
     manifest.clear()
     for dirpath, dirnames, filenames in os.walk(os.curdir):
         svn_path = os.path.join(dirpath, '.svn', 'text-base', '*.svn-base')
