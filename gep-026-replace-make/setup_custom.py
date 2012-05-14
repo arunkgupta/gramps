@@ -168,16 +168,15 @@ def build_intl(build_cmd):
     data_files = build_cmd.distribution.data_files
     base = build_cmd.build_base
 
-    merge_files = (
-            ('data/gramps.desktop',
-                '{datadir}/applications/gramps.desktop',
-                '-d -u -c po/.iintltool-merge-cache'),
-            ('data/gramps.keys',
-                '{datadir}/mime-info/gramps.keys',
-                '-k -u -c po/.iintltool-merge-cache'),
-            ('data/gramps.xml',
-                '{datadir}/mime/packages/gramps.xml',
-                '-x -u -c po/.iintltool-merge-cache'))
+    merge_files = (('data/gramps.desktop',
+                    '{datadir}/applications/gramps.desktop',
+                    '-d'),
+                    ('data/gramps.keys',
+                    '{datadir}/mime-info/gramps.keys',
+                    '-k'),
+                    ('data/gramps.xml',
+                    '{datadir}/mime/packages/gramps.xml',
+                    '-x'))
 
     for in_file, target, option in merge_files:
         merge(base, in_file, option)
@@ -196,7 +195,7 @@ def merge(build_base, filename, option, po_dir='po'):
 
     datafile = filename + '.in'
     if (not os.path.exists(newfile) and os.path.exists(datafile)):
-        cmd = ('LC_ALL=C /usr/bin/intltool-merge %(opt)s %(po_dir)s %(in_file)s %(out_file)s') % {
+        cmd = ('intltool-merge %(opt)s %(po_dir)s %(in_file)s %(out_file)s') % {
                 'opt' : option, 
                 'po_dir' : po_dir,
                 'in_file' : datafile, 
