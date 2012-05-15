@@ -261,6 +261,18 @@ def substitute_variables(filename_in, filename_out, subst_vars):
     f_in.close()
     f_out.close()
 
+def change_files(install_cmd):
+    '''
+    post-hook to change the file permissions of the local build directory after install
+    '''
+    if not hasattr(os, 'chmod'):
+        return
+    cmd = 'chmod -R --quiet 777 ./build'
+    if os.system(cmd) != 0:
+        msg = 'You will need to be administrator to delete the build directory.'
+        raise SystemExit(msg)
+    print('Chnging permissions of the local build directory...')
+
 def manifest_builder(distribution, manifest):
     '''
     Manifest builder.
