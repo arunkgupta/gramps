@@ -201,7 +201,8 @@ def merge(build_base, filename, option, po_dir='po', cache=True):
 
     datafile = filename + '.in'
     if (not os.path.exists(newfile) and os.path.exists(datafile)):
-        cmd = ('LC_ALL=C intltool-merge %(opt)s %(po_dir)s %(in_file)s %(out_file)s' % 
+        cmd = (('LC_ALL=C intltool-merge %(opt)s %(po_dir)s %(in_file)s '
+                '%(out_file)s') % 
               {'opt' : option, 
                'po_dir' : po_dir,
                'in_file' : datafile, 
@@ -263,7 +264,7 @@ def substitute_variables(filename_in, filename_out, subst_vars):
 
 def change_files(install_cmd):
     '''
-    post-hook to change the file permissions of the local build directory after install
+    Change the file permissions of the local build directory after build
     '''
     if not hasattr(os, 'chmod'):
         return
@@ -288,9 +289,9 @@ def update_posix(install_cmd):
         sys_cmd = ('%(command)s %(opts)s') % {
                     'command' : cmd, 'opts' : options}
         if os.system(sys_cmd) != 0:
-            raise SystemExit('This command, %(command)s, was not allowed to execute.\n'
-                             'You might need to restart this computer before '
-                             'using this software.' % cmd)
+            raise SystemExit('This command, %(command)s, was not allowed to '
+                             'execute.\nYou might need to restart this '
+                             'computer before using this software.' % cmd)
 
 def manifest_builder(distribution, manifest):
     '''
