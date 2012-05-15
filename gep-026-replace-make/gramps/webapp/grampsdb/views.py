@@ -165,6 +165,39 @@ def set_date(obj):
     obj.day1, obj.month1, obj.year1, obj.slash1 = 0, 0, 0, 0
     obj.day2, obj.month2, obj.year2, obj.slash2 = 0, 0, 0, 0
 
+def view_surname_detail(request, handle, order, sorder, action="view"):
+    # /sdjhgsdjhdhgsd/name/1/surname/1  (view)
+    # /sdjhgsdjhdhgsd/name/1/surname/add
+    # /sdjhgsdjhdhgsd/name/1/surname/2/[edit|view|add|delete]
+    if sorder == "add":
+        sorder = 0
+        action = "add"
+    if request.POST.has_key("action"):
+        print "override!"
+        action = request.POST.get("action")
+
+    person = Person.objects.get(handle=handle)
+    name = person.name_set.filter(order=order)[0]
+    surname = name.surname_set.filter()[int(sorder) - 1] # sorder is 1-based
+    form = NameForm(instance=name)
+    form.model = name
+
+    if action == "save":
+        active = "view"
+
+    context = RequestContext(request)
+    context["action"] = action
+    context["tview"] = _("Surname")
+    context["handle"] = handle
+    context["id"] = id
+    context["person"] = person
+    context["object"] = person
+    context["form"] = form
+    context["order"] = name.order
+    context["sorder"] = sorder
+    view_template = 'view_surname_detail.html'
+    return render_to_response(view_template, context)
+
 def view_name_detail(request, handle, order, action="view"):
     if order == "add":
         order = 0
@@ -221,7 +254,7 @@ def view_name_detail(request, handle, order, action="view"):
         form.model = name
         if form.is_valid():
             # now it is preferred:
-            if name.preferred: # was preferred, stil must be
+            if name.preferred: # was preferred, still must be
                 form.cleaned_data["preferred"] = True
             elif form.cleaned_data["preferred"]: # now is
                 # set all of the other names to be 
@@ -467,10 +500,13 @@ def view_person_detail(request, view, handle, action="view"):
                 name = person.name_set.get(preferred=True)
             except:
                 name = Name(person=person, preferred=True)
-            primary_surname = name.surname_set.get(primary=True)
+            try:
+                primary_surname = name.surname_set.get(primary=True)
+            except:
+                primary_surname = Surname(name=name, primary=True)
             default_data = {"surname": primary_surname.surname, 
-                            "prefix": primary_surname.prefix or "prefix",
-                            "suffix": name.suffix or "suffix",
+                            "prefix": primary_surname.prefix or " prefix ",
+                            "suffix": name.suffix or " suffix ",
                             "first_name": name.first_name,
                             "name_type": name.name_type,
                             "title": name.title,
@@ -499,37 +535,58 @@ def view_person_detail(request, view, handle, action="view"):
             except:
                 person = Person(handle=create_id())
             if person.id: # editing
-                name = person.name_set.get(preferred=True)
+                try:
+                    name = person.name_set.get(preferred=True)
+                except:
+                    name = Name(person=person, preferred=True)
+                    name.save()
+                try:
+                    surname = name.surname_set.get(primary=True)
+                except:
+                    surname = Surname(name=name, primary=True)
+                    name.surname_set = [surname]
             else: # adding a new person with new name
                 name = Name(person=person, preferred=True)
+                surname = Surname(name=name, primary=True)
+                name.surname_set = [surname]
             pf = PersonForm(request.POST, instance=person)
             pf.model = person
             nf = NameFormFromPerson(request.POST, instance=name)
             nf.model = name
             if nf.is_valid() and pf.is_valid():
+                surname.surname = nf.cleaned_data["surname"]
+                surname.prefix = nf.cleaned_data["prefix"] if nf.cleaned_data["prefix"] != " prefix " else ""
+                name.suffix = nf.cleaned_data["suffix"] if nf.cleaned_data["suffix"] != " suffix " else ""
                 person = pf.save()
                 name = nf.save(commit=False)
                 name.person = person
+                surname.save()
                 name.save()
             else:
                 action = "edit"
         else: # view
+            # get all of the data:
             person = Person.objects.get(handle=handle)
             try:
                 name = person.name_set.get(preferred=True)
             except:
-                return fix_person(request, person)
+                name = Name(person=person, preferred=True)
+            try:
+                primary_surname = name.surname_set.get(primary=True)
+            except:
+                primary_surname = Surname(name=name, primary=True)
+            default_data = {"surname": primary_surname.surname, 
+                            "prefix": primary_surname.prefix or " prefix ",
+                            "suffix": name.suffix or " suffix ",
+                            "first_name": name.first_name,
+                            "name_type": name.name_type,
+                            "title": name.title,
+                            "nick": name.nick,
+                            "call": name.call,
+                            }
             pf = PersonForm(instance=person)
             pf.model = person
-            nf = NameForm(instance=name)
-            try:
-                primary = name.surname_set.get(primary=True)
-            except:
-                primary = Surname()
-                primary.name = name
-            nf.prefix=primary.prefix
-            nf.surname=primary.surname
-            nf.origin=primary.name_origin_type
+            nf = NameForm(default_data, instance=name)
             nf.model = name
     else: # view person detail
         # BEGIN NON-AUTHENTICATED ACCESS

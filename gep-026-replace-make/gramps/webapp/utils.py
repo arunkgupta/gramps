@@ -75,6 +75,7 @@ util_tags = [
     "get_person_from_handle", 
     "event_table",
     "name_table",
+    "surname_table",
     "citation_table",
     "source_table",
     "note_table",
@@ -213,7 +214,8 @@ _ = lambda text: text
 
 def make_button(text, url, *args):
     url = url % args
-    return """[ <a href="%s">%s</a> ] """ % (url, text)
+    #return """[ <a href="%s">%s</a> ] """ % (url, text)
+    return """<input type="button" value="%s" onclick="document.location.href='%s'"/>""" % (text, url)
 
 def event_table(obj, user, action, url=None, *args):
     retval = ""
@@ -279,6 +281,30 @@ def name_table(obj, user, action, url=None, *args):
     retval += table.get_html()
     if user.is_authenticated() and url and action == "view":
         retval += make_button(_("Add name"), (url + "/add") % args)
+    else:
+        retval += nbsp("") # to keep tabs same height
+    return retval
+
+def surname_table(obj, user, action, url=None, *args):
+    person_handle = args[0]
+    order = args[1]
+    retval = ""
+    table = Table()
+    table.columns(_("Surname"),)
+    if user.is_authenticated():
+        links = []
+        count = 1
+        name = obj.name_set.filter(order=order)[0]
+        for surname in name.surname_set.all():
+            table.row(surname.surname)
+            links.append(('URL', 
+                          # url is "/person/%s/name/%s/surname"
+                          (url % args) + ("/%s" % count)))
+            count += 1
+        table.links(links)
+    retval += table.get_html()
+    if user.is_authenticated() and url and action == "view":
+        retval += make_button(_("Add surname"), (url + "/add") % args)
     else:
         retval += nbsp("") # to keep tabs same height
     return retval
@@ -573,7 +599,8 @@ def display_date(obj):
     else:
         return ""
 
-def render(formfield, user, action, test=False, truetext=""):
+def render(formfield, user, action, test=False, truetext="", id=None):
+    #import pdb; pdb.set_trace()
     if not user.is_authenticated():
         action = "view"
     if action == "view":
@@ -584,13 +611,16 @@ def render(formfield, user, action, test=False, truetext=""):
             except:
                 # name, "prefix"
                 try:
-                    retval = str(getattr(formfield.form, fieldname)) # formfield._data()
+                    retval = str(formfield.form.data[fieldname]) # formfield._data()
                 except:
                     retval = "XXX"
         else:
             retval = truetext
     else:
-        retval = formfield.as_widget()
+        if id != None:
+            retval = formfield.as_widget(attrs={"id": id})
+        else:
+            retval = formfield.as_widget()
     return retval
 
 def render_name(name, user):

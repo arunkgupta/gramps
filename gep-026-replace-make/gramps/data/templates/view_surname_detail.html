@@ -32,7 +32,7 @@
 <form method="post">{% csrf_token %}
 <tr>
  <td class="ColumnAttribute">{{form.surname.label}}:</td>
- <td class="ColumnValue" id="data">{% render form.surname user action False "" "get_focus" %}</td>
+ <td class="ColumnValue" id="data">{% render form.surname user action %}</td>
  <td class="ColumnAttribute">{{form.prefix.label}}:</td>
  <td class="ColumnValue" id="data">{% render form.prefix user action %}</td>
 </tr>
@@ -71,8 +71,6 @@
 <div class="ui-tabs ui-widget ui-widget-content ui-corner-all" id="tabs">
   <ul class="ui-tabs-nav ui-helper-reset ui-helper-clearfix ui-widget-header ui-corner-all">
     <li class="ui-state-default ui-corner-top ui-tabs-selected ui-state-active"><a href="#tab-general">General</a></li>
-    <li class="ui-corner-top ui-state-default"><a href="#tab-surnames">Surnames</a></li>
-    <li class="ui-corner-top ui-state-default"><a href="#tab-names">Other Names</a></li>
     <li class="ui-corner-top ui-state-default"><a href="#tab-sources">Sources</a></li>
     <li class="ui-corner-top ui-state-default"><a href="#tab-notes">Notes</a></li>
   </ul>
@@ -97,12 +95,6 @@
     </div>
     &nbsp;
   </div>
-  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tab-surnames">
-    {% surname_table person user action "/person/%s/name/%s/surname" person.handle form.model.order %}
-  </div>
-  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tab-names">
-    {% name_table person user action "/person/%s/name" person.handle %}
-  </div>
   <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tab-sources">
     {% source_table form.model user action "/person/%s/name/%s/source" person.handle form.model.order %}
   </div>
@@ -112,25 +104,31 @@
   </div>
 </div>
 
-<input type="button" 
-       value="Back to Person"
-       onclick="document.location.href='/person/{{person.handle}}'"/>
 {% if user.is_authenticated %}
   {% ifequal action "edit" %}
     <input type="hidden" name="action" value="save"/>
-    <input type="submit" value="Save"/>
+    <input type="submit" value="Save">
+    <input type="button" 
+	   value="Cancel" 
+	   onclick="document.location.href='/person/{{person.handle}}/name/{{order}}/surname/{{sorder}}'"/>
   {% else %}
     <input type="button" 
-	   value="Edit Name"
-	   onclick="document.location.href='/person/{{person.handle}}/name/{{order}}/edit'"/>
-    <input type="button" 
-	   value="Add Name"
-	   onclick="document.location.href='/person/{{person.handle}}/name/add'"/>
-    <input type="button" 
-	   value="Delete Name"
-	   onclick="document.location.href='/person/{{person.handle}}/name/{{order}}/delete'"/>
+	   value="Edit Surname" 
+	   onclick="document.location.href='/person/{{person.handle}}/name/{{order}}/surname/{{sorder}}/edit'"/>
+    <input type="button"
+	   value="Back to Person" 
+	   onclick="document.location.href='/person/{{person.handle}}'"/>
+    <input type="button"
+	   value="Back to Name" 
+	   onclick="document.location.href='/person/{{person.handle}}/name/order'"/>
   {% endifequal %}
 {% else %}
+    <input type="button"
+	   value="Back to Person" 
+	   onclick="document.location.href='/person/{{person.handle}}'"/>
+    <input type="button"
+	   value="Back to Name" 
+	   onclick="document.location.href='/person/{{person.handle}}/name/order'"/>
 {% endif %}
 </form>
 {% endblock %}

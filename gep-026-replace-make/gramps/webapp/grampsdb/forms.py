@@ -47,37 +47,47 @@ class NameForm(forms.ModelForm):
                    "sortval", "newyear", "person"]
     # Add these because they are TextFields, which render as
     # Textareas:
-    surname = forms.CharField(required=False, 
+    surname = forms.CharField(label="Surname", 
+                              required=False, 
                               widget=TextInput(attrs={'size':'30'}))
     first_name = forms.CharField(label="Given", 
                                  required=False, 
                                  widget=TextInput(attrs={'size':'60'}))
     title = forms.CharField(required=False, 
                             widget=TextInput(attrs={'size':'15'}))
-    prefix = forms.CharField(required=False, 
-                             initial='prefix',
+    prefix = forms.CharField(label="Prefix",
+                             required=False, 
+                             initial=' prefix ',
                              widget=TextInput(attrs={'size':'15',
                                                      'style': 'font-style: italic; color: gray; ',
-                                                     'onFocus': """if (this.value == 'prefix') {this.value = ''; 
-                                                                                                this.style.color = "black"; 
-                                                                                                this.style.fontStyle = 'normal';
-                                                                                               }""",
-                                                     'onBlur': """if (this.value == '') {this.value = 'prefix'; 
-                                                                                         this.style.color = "gray"; 
-                                                                                         this.style.fontStyle = 'italic';
-                                                                                         }"""}))
+                                                     'onFocus': """if (this.value == ' prefix ') {
+                                                                      this.value = ''; 
+                                                                   }
+                                                                   this.style.color = "black"; 
+                                                                   this.style.fontStyle = 'normal';
+                                                                """,
+                                                     'onBlur': """if (this.value == '') {
+                                                                     this.value = ' prefix '; 
+                                                                     this.style.color = "gray"; 
+                                                                     this.style.fontStyle = 'italic';
+                                                                   }
+                                                                """}))
     suffix = forms.CharField(required=False, 
-                             initial='suffix',
+                             initial=' suffix ',
                              widget=TextInput(attrs={'size':'15',
                                                      'style': 'font-style: italic; color: gray; ',
-                                                     'onFocus': """if (this.value == 'suffix') {this.value = ''; 
-                                                                                                this.style.color = "black"; 
-                                                                                                this.style.fontStyle = 'normal';
-                                                                                               }""",
-                                                     'onBlur': """if (this.value == '') {this.value = 'suffix'; 
-                                                                                         this.style.color = "gray"; 
-                                                                                         this.style.fontStyle = 'italic';
-                                                                                         }"""}))
+                                                     'onFocus': """if (this.value == ' suffix ') {
+                                                                      this.value = ''; 
+                                                                   }
+                                                                   this.style.color = "black"; 
+                                                                   this.style.fontStyle = 'normal';
+                                                                """,
+                                                     'onBlur': """if (this.value == '') {
+                                                                     this.value = ' suffix '; 
+                                                                     this.style.color = "gray"; 
+                                                                     this.style.fontStyle = 'italic';
+                                                                  }
+                                                               """}))
     call = forms.CharField(label="Call", 
                            required=False, 
                            widget=TextInput(attrs={'size':'15'}))
@@ -85,7 +95,7 @@ class NameForm(forms.ModelForm):
                            required=False, 
                            widget=TextInput(attrs={'size':'15'}))
     origin = forms.CharField(required=False, 
-                               widget=TextInput(attrs={'size':'15'}))
+                             widget=TextInput(attrs={'size':'15'}))
 
 class NameFormFromPerson(NameForm):
     class Meta:
@@ -96,5 +106,5 @@ class NameFormFromPerson(NameForm):
                    #"quality_estimated", "quality_calculated", 
                    #"quality_interpreted", 
                    "year1", "day1", "month1",
-                   "sortval", "newyear", "person", 
+                   "sortval", "newyear", "person",
                    "sort_as", "display_as"]
