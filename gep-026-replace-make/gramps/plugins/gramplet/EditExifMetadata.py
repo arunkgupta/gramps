@@ -27,14 +27,11 @@
 # *****************************************************************************
 import os
 import datetime
-import calendar
 import time
 from PIL import Image
 
 # abilty to escape certain characters from output
 from xml.sax.saxutils import escape as _html_escape
-
-from itertools import chain
 
 from decimal import Decimal, getcontext
 getcontext().prec = 6
@@ -72,8 +69,7 @@ from PlaceUtils import conv_lat_lon
 
 from gen.db import DbTxn
 
-from ListModel import ListModel
-
+# validate that pyexiv2 is installed and its version...
 import pyexiv2
 
 # v0.1 has a different API to v0.2 and above
@@ -83,12 +79,15 @@ else:
     # version_info attribute does not exist prior to v0.2.0
     OLD_API = True
 
-# define the Exiv2 command
+# validate the exiv2 is installed and its executable
 system_platform = os.sys.platform
 if system_platform == "win32":
     EXIV2_FOUND = "exiv2.exe" if Utils.search_for("exiv2.exe") else False
 else:
     EXIV2_FOUND = "exiv2" if Utils.search_for("exiv2") else False
+if not EXIV2_FOUND:
+    msg = 'You must have exiv2 and its development file installed.'
+    raise SystemExit(msg)
 
 #------------------------------------------------
 # support functions
