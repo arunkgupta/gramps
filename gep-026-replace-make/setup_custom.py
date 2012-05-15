@@ -273,6 +273,25 @@ def change_files(install_cmd):
         raise SystemExit(msg)
     print('Chnging permissions of the local build directory...')
 
+def update_posix(install_cmd):
+    '''
+    post-hook to update Linux systems after install
+    '''
+    if os.name != 'posix':
+        return
+    # these commands will be ran on a Unix/ Linux system after install only...
+    for cmd, options in (
+            ('ldconfig',                ''),
+            ('update-desktop-database', '&> /dev/null'),
+            ('update-mime-database',    '/usr/share/mime &> /dev/null'),
+            ('gtk-update-icon-cache',   '--quiet /usr/share/icons/hicolor')):
+        sys_cmd = ('%(command)s %(opts)s') % {
+                    'command' : cmd, 'opts' : options}
+        if os.system(sys_cmd) != 0:
+            raise SystemExit('This command, %(command)s, was not allowed to execute.\n'
+                             'You might need to restart this computer before '
+                             'using this software.' % cmd)
+
 def manifest_builder(distribution, manifest):
     '''
     Manifest builder.
