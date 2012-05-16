@@ -94,13 +94,14 @@ class NameForm(forms.ModelForm):
     nick = forms.CharField(label="Nick", 
                            required=False, 
                            widget=TextInput(attrs={'size':'15'}))
-    origin = forms.CharField(required=False, 
-                             widget=TextInput(attrs={'size':'15'}))
+
+    name_origin_type = forms.ChoiceField()
 
 class NameFormFromPerson(NameForm):
     class Meta:
         model = Name
         # Exclude these, so they don't get checked:
+        # Excludes sort_as and display_as
         exclude = ["order", "calendar", "modifier", 
                    "quality",
                    #"quality_estimated", "quality_calculated", 
@@ -108,3 +109,4 @@ class NameFormFromPerson(NameForm):
                    "year1", "day1", "month1",
                    "sortval", "newyear", "person",
                    "sort_as", "display_as"]
+
