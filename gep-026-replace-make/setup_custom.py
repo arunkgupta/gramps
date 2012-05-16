@@ -264,19 +264,24 @@ def substitute_variables(filename_in, filename_out, subst_vars):
 
 def change_files(install_cmd):
     '''
-    Change the file permissions of the local build directory after build
+    post-hook to Change the file permissions of the local build directory
+        after install
     '''
     if not hasattr(os, 'chmod'):
         return
     cmd = 'chmod -R --quiet 777 ./build'
     if os.system(cmd) != 0:
-        msg = 'You will need to be administrator to delete the build directory.'
+        msg = 'You will need to be administrator to delete the build '
+            directory.'
         raise SystemExit(msg)
     print('Chnging permissions of the local build directory...')
 
 def update_posix(install_cmd):
     '''
     post-hook to update Linux systems after install
+
+    these commands are not system stoppers, so there is no reason for
+            system exit on failure to run.
     '''
     if os.name != 'posix':
         return
@@ -288,10 +293,7 @@ def update_posix(install_cmd):
             ('gtk-update-icon-cache',   '--quiet /usr/share/icons/hicolor')):
         sys_cmd = ('%(command)s %(opts)s') % {
                     'command' : cmd, 'opts' : options}
-        if os.system(sys_cmd) != 0:
-            raise SystemExit('This command, %(command)s, was not allowed to '
-                             'execute.\nYou might need to restart this '
-                             'computer before using this software.' % cmd)
+        os.system(sys_cmd)
 
 def manifest_builder(distribution, manifest):
     '''
