@@ -38,13 +38,15 @@ import commands
 #pylint: disable=F0401
 try:
     from distutils2.util import convert_path, newer
+    from distutils2 import logger
 except ImportError:
     try:
         from packaging.util import convert_path, newer
+        from packaging import logger
     except ImportError:
         # no DistUtils2 or Packaging is NOT installed!
         # Python-2.6, Python-2.7/ Distutils2, or Python-3.3/ Packaging
-        raise SystemExit('Distutils2, Packaging, or Distutils is Required!\n',
+        raise SystemExit('Distutils2 or Packaging is Required!\n',
                          'You need to have one of these installed.')
 
 #------------------------------------------------
@@ -111,7 +113,7 @@ def build_trans(build_cmd):
         target = '{datadir}/locale/' + lang + '/LC_MESSAGES/gramps.mo'
         data_files[mo_file] = target
 
-        print(('Compiling %s >> %s.' % (po_file, target)))
+        logger.info('Compiling %s >> %s.' % (po_file, target))
 
 def build_man(build_cmd):
     '''
@@ -155,7 +157,7 @@ def build_man(build_cmd):
             target = '{man}' + lang + '/man1'
             data_files[src] = target
 
-            print('Compiling %s >> %s.' % (src, target))
+            logger.info('Compiling %s >> %s.' % (src, target))
 
 def build_intl(build_cmd):
     '''
@@ -280,9 +282,9 @@ def change_files(install_cmd):
         msg = ('You will need to be administrator to delete the build '
                 'directory.')
         raise SystemExit(msg)
-    print('Chnging permissions of the local build directory...')
+    logger.info('Changing permissions of the local build directory...')
 
-    print('Changing permissions of gramps script from 644 to 775...')
+    logger.info('Changing permissions of gramps script from 644 to 775...')
     os.system('chmod 775 /usr/bin/gramps')
 
 def update_posix(install_cmd):
