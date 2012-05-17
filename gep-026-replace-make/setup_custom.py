@@ -107,10 +107,11 @@ def build_trans(build_cmd):
             if os.system(cmd) != 0:
                 msg = 'ERROR: Building language translation files failed.'
                 raise SystemExit(msg)
-            print(('Compiling %s >> %s...' % (po_file, mo_file)))
 
         target = '{datadir}/locale/' + lang + '/LC_MESSAGES/gramps.mo'
         data_files[mo_file] = target
+
+        print(('Compiling %s >> %s.' % (po_file, target)))
 
 def build_man(build_cmd):
     '''
@@ -146,8 +147,6 @@ def build_man(build_cmd):
                 f_out.close()
                 f_in.close()
 
-                print('Compiling manual file, %s...' % man_file_gz)
-
                 os.remove(newfile)
                 filename = False
 
@@ -155,6 +154,8 @@ def build_man(build_cmd):
             src = build_data + 'man' + lang + '/gramps.1.gz'
             target = '{man}' + lang + '/man1'
             data_files[src] = target
+
+            print('Compiling %s >> %s.' % (src, target))
 
 def build_intl(build_cmd):
     '''
