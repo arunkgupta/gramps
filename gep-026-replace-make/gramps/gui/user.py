@@ -26,12 +26,20 @@ The User class provides basic interaction with the user.
 
 #-------------------------------------------------------------------------
 #
+# Python modules
+#
+#-------------------------------------------------------------------------
+import sys
+
+#-------------------------------------------------------------------------
+#
 # Gramps modules
 #
 #-------------------------------------------------------------------------
 import gen.user
 from gui.utils import ProgressMeter
-from QuestionDialog import WarningDialog, ErrorDialog
+from QuestionDialog import (WarningDialog, ErrorDialog, DBErrorDialog, 
+                            InfoDialog)
 
 #-------------------------------------------------------------------------
 #
@@ -43,8 +51,9 @@ class User(gen.user.User):
     This class provides a means to interact with the user via GTK.
     It implements the interface in gen.user.User()
     """
-    def __init__(self):
+    def __init__(self, callback=None):
         self.progress = None
+        self.callback_function = callback
     
     def begin_progress(self, title, message, steps):
         """
@@ -72,7 +81,16 @@ class User(gen.user.User):
         """
         if self.progress:
             self.progress.step()
-    
+
+    def callback(self, percentage):
+        """
+        Display the precentage.
+        """
+        if self.callback_function:
+            self.callback_function(percentage)
+        else:
+            sys.stdout.write("\r%02d%%" % percent)
+
     def end_progress(self):
         """
         Stop showing the progress indicator to the user.
@@ -95,7 +113,7 @@ class User(gen.user.User):
         """
         return False
     
-    def warn(self, title, warning):
+    def warn(self, title, warning=""):
         """
         Warn the user.
         
@@ -107,7 +125,7 @@ class User(gen.user.User):
         """
         WarningDialog(title, warning)
     
-    def notify_error(self, title, error):
+    def notify_error(self, title, error=""):
         """
         Notify the user of an error.
         
@@ -117,4 +135,20 @@ class User(gen.user.User):
         @type error: str
         @returns: none
         """
-        ErrorDialog(title, warning)
+        ErrorDialog(title, error)
+
+    def notify_db_error(self, error):
+        """
+        Notify the user of a DB error.
+        
+        @param error: the DB error message
+        @type error: str
+        @returns: none
+        """
+        DBErrorDialog(error)
+
+    def info(self, msg1, infotext, parent=None, monospaced=False):
+        """
+        Calls the GUI InfoDialog
+        """
+        InfoDialog(msg1, infotext, parent, monospaced)
