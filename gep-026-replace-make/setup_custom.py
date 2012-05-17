@@ -271,8 +271,8 @@ def change_files(install_cmd):
         return
     cmd = 'chmod -R --quiet 777 ./build'
     if os.system(cmd) != 0:
-        msg = 'You will need to be administrator to delete the build '
-            directory.'
+        msg = ('You will need to be administrator to delete the build '
+                'directory.')
         raise SystemExit(msg)
     print('Chnging permissions of the local build directory...')
 
