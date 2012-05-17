@@ -217,17 +217,22 @@ def install_template(install_cmd):
     '''
     Pre-install hook to populate template files.
     '''
+
+    build_scripts = 'build' + '/scripts/'
+    if not(os.path.isdir(build_scripts) or os.path.islink(build_scripts)):
+        os.makedirs(build_scripts)
+
     data_files = install_cmd.distribution.data_files
-    write_gramps_sh(install_cmd)
-    data_files['gramps.sh'] = '{scripts}/gramps.sh'
+    write_gramps_script(install_cmd, build_scripts)
+    data_files[build_scripts + 'gramps'] = '{scripts}/gramps'
     write_const_py(install_cmd)
     data_files['gramps/const.py'] = '{purelib}/gramps/const.py'
 
-def write_gramps_sh(install_cmd):
+def write_gramps_script(install_cmd, build_scripts):
     '''
-    Write the gramps.sh file.
+    Write the build/scripts/gramps file.
     '''
-    f_out = open('gramps.sh', 'w')
+    f_out = open(build_scripts + 'gramps', 'w')
     f_out.write('#! /bin/sh\n')
     f_out.write('export GRAMPSDIR=%sgramps\n' % install_cmd.install_lib)
     f_out.write('exec %s -O $GRAMPSDIR/gramps.py "$@"\n' % sys.executable)
@@ -276,6 +281,9 @@ def change_files(install_cmd):
                 'directory.')
         raise SystemExit(msg)
     print('Chnging permissions of the local build directory...')
+
+    print('Changing permissions of gramps script from 644 to 775...')
+    os.system('chmod 775 /usr/bin/gramps')
 
 def update_posix(install_cmd):
     '''
