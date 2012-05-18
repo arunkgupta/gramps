@@ -165,7 +165,6 @@ def build_intl(build_cmd):
     '''
     if intltool_version() < (0, 25, 0):
         return
-    
     data_files = build_cmd.distribution.data_files
     base = build_cmd.build_base
 
@@ -182,7 +181,6 @@ def build_intl(build_cmd):
     for in_file, target, option in merge_files:
         merge(base, in_file, option)
         data_files[base + '/' + in_file] = target
-
     for in_file in INTLTOOL_FILES:
         merge(base, in_file, '-x', po_dir='/tmp', cache=False)
         data_files[base + '/' + in_file] = '{purelib}/' + in_file
@@ -219,11 +217,9 @@ def install_template(install_cmd):
     '''
     Pre-install hook to populate template files.
     '''
-
     build_scripts = 'build' + '/scripts/'
     if not(os.path.isdir(build_scripts) or os.path.islink(build_scripts)):
         os.makedirs(build_scripts)
-
     data_files = install_cmd.distribution.data_files
     write_gramps_script(install_cmd, build_scripts)
     data_files[build_scripts + 'gramps'] = '{scripts}/gramps'
@@ -277,7 +273,7 @@ def change_files(install_cmd):
     '''
     if not hasattr(os, 'chmod'):
         return
-    cmd = 'chmod -R --quiet 777 ./build'
+    cmd = 'chmod -R --quiet 777 %s' % os.path.join(os.curdir, 'build')
     if os.system(cmd) != 0:
         msg = ('You will need to be administrator to delete the build '
                 'directory.')
