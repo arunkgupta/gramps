@@ -281,7 +281,7 @@ def change_files(install_cmd):
     logger.info('Changing permissions of the local build directory...')
 
     logger.info('Changing permissions of gramps script from 644 to 775...')
-    os.system('chmod 775 /usr/bin/gramps')
+    os.chmod('/usr/bin/gramps', 0755)
 
 def update_posix(install_cmd):
     '''
