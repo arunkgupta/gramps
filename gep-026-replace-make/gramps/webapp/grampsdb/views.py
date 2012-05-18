@@ -95,6 +95,7 @@ def context_processor(request):
     context["menu"] = MENU
     context["True"] = True
     context["False"] = False
+    context["sitename"] = "Example Family Tree"
     context["default"] = ""
     return context
 
@@ -351,7 +352,7 @@ def process_action(request, view, handle, action):
                             import threading
                             def background():
                                 try:
-                                    import_file(db, filename, gui.user.User()) # callback
+                                    import_file(db, filename, cli.user.User()) # callback
                                 except:
                                     message = "import_file failed: " + traceback.format_exc()
                                     request.user.message_set.create(message = message)
@@ -360,7 +361,7 @@ def process_action(request, view, handle, action):
                             request.user.message_set.create(message = message)
                             return redirect("/report/")
                         else:
-                            success = import_file(db, filename, gui.user.User()) # callback
+                            success = import_file(db, filename, cli.user.User()) # callback
                             if not success:
                                 message = "Failed to load imported."
                                 request.user.message_set.create(message = message)
