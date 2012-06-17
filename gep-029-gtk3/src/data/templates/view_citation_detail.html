@@ -1,0 +1,164 @@
+{% extends "view_page_detail.html" %}
+{% load my_tags %}
+
+{% block content %} 
+
+   <script type="text/javascript">
+   $(function(){
+     $('#tabs').tabs({
+	'select': function(event, ui){
+			document.location.hash = ui.panel.id;
+		}
+     });
+   });
+   </script>
+
+<div class="content" id="IndividualDetail">
+
+{% include "detail_breadcrumb.html" %}
+
+  {% if citationform.errors or sourceform.errors %}
+    <hr>
+    <p id="error">The following fields have errors. Please correct and try again.</p>
+    <div id="error">{{citationform.errors}}</div>
+    <div id="error">{{sourceform.errors}}</div>
+    <hr>
+  {% endif %}
+<form method="post">{% csrf_token %}
+
+<!-- Tabs -->
+<h2>Citation information</h2>
+
+<div class="ui-tabs ui-widget ui-widget-content ui-corner-all" id="tabs">
+  <ul class="ui-tabs-nav ui-helper-reset ui-helper-clearfix ui-widget-header ui-corner-all">
+    <li class="ui-state-default ui-corner-top ui-tabs-selected ui-state-active"><a href="#tab-general">General</a></li>
+    <li class="ui-corner-top ui-state-default"><a href="#tab-notes">Notes</a></li>
+    <li class="ui-corner-top ui-state-default"><a href="#tab-media">Media</a></li>
+    <li class="ui-corner-top ui-state-default"><a href="#tab-data">Data</a></li>
+    <li class="ui-corner-top ui-state-default"><a href="#tab-references">References</a></li>
+  </ul>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom" id="tab-general"> 
+
+<table class="infolist" style="width:90%;">
+<tr>
+<td class="ColumnAttribute">{{citationform.text.label}}:</td>
+<td class="ColumnValue" id="data" colspan="3"> {% render citationform.text user action %}</td>
+</tr>
+<tr>
+<td class="ColumnAttribute">{{citationform.gramps_id.label}}:</td>
+<td class="ColumnValue" id="data"> {% render citationform.gramps_id user action %}</td>
+<td class="ColumnAttribute">{{citationform.private.label}}:</td>
+<td class="ColumnValue" id="data"> {% render citationform.private user action %}</td>
+</tr>
+<tr>
+<td class="ColumnAttribute">{{citationform.page.label}}:</td>
+<td class="ColumnValue" id="data" colspan="3"> {% render citationform.page user action %}</td>
+</tr>
+<tr>
+<td class="ColumnAttribute">{{citationform.confidence.label}}:</td>
+<td class="ColumnValue" id="data" colspan="3"> {% render citationform.confidence user action %}</td>
+</tr>
+</table>
+
+  </div>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tab-notes">
+    {% note_table citation user action "/note/$act/citation/%s" citation.handle %}
+  </div>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tab-media">
+    {% media_table citation user action "/media/$act/citation/%s" citation.handle %}
+  </div>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tab-data">
+    {% data_table citation user action "/data/$act/citation/%s" citation.handle %}
+  </div>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tab-references">
+    {% citation_reference_table citation user action %}
+  </div>
+</div>
+
+  <p>Note: Any changes in the shared citation information will be reflected
+    in the citation itself, for all items that reference the citation.
+  </p>
+
+<hr>
+
+<h2>Shared source information</h2>
+<div class="ui-tabs ui-widget ui-widget-content ui-corner-all" id="general-tabs">
+  <ul class="ui-tabs-nav ui-helper-reset ui-helper-clearfix ui-widget-header ui-corner-all">
+    <li class="ui-state-default ui-corner-top ui-tabs-selected ui-state-active"><a href="#tab-shared-general">General</a></li>
+    <li class="ui-corner-top ui-state-default"><a href="#tab-shared-notes">Notes</a></li>
+    <li class="ui-corner-top ui-state-default"><a href="#tab-shared-media">Media</a></li>
+    <li class="ui-corner-top ui-state-default"><a href="#tab-shared-repositories">Repositories</a></li>
+    <li class="ui-corner-top ui-state-default"><a href="#tab-shared-references">References</a></li>
+  </ul>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom" id="tab-shared-general"> 
+
+<table class="infolist" style="width:90%;">
+<tr>
+<td class="ColumnAttribute">{{sourceform.title.label}}:</td>
+<td class="ColumnValue" id="data" colspan="3"> {% render sourceform.title user action %}</td>
+</tr>
+<tr>
+<td class="ColumnAttribute">{{sourceform.author.label}}:</td>
+<td class="ColumnValue" id="data" colspan="3"> {% render sourceform.author user action %}</td>
+</tr>
+<tr>
+<td class="ColumnAttribute">{{sourceform.gramps_id.label}}:</td>
+<td class="ColumnValue" id="data"> {% render sourceform.gramps_id user action %}</td>
+<td class="ColumnAttribute">{{sourceform.private.label}}:</td>
+<td class="ColumnValue" id="data"> {% render sourceform.private user action %}</td>
+</tr>
+<tr>
+<td class="ColumnAttribute">{{sourceform.abbrev.label}}:</td>
+<td class="ColumnValue" id="data" colspan="3"> {% render sourceform.abbrev user action %}</td>
+</tr>
+<tr>
+<td class="ColumnAttribute">{{sourceform.pubinfo.label}}:</td>
+<td class="ColumnValue" id="data" colspan="3"> {% render sourceform.pubinfo user action %}</td>
+</tr>
+</table>
+
+  </div>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tab-shared-notes">
+    {% note_table source user action "/note/$act/source/%s" source.handle %}
+  </div>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tab-shared-media">
+    {% media_table source user action "/media/$act/source/%s" source.handle %}
+  </div>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tab-shared-repositories">
+    {% repository_table source user action "/repository/$act/source/%s" source.handle %}
+  </div>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tab-shared-references">
+    {% citation_reference_table source user action %}
+  </div>
+</div>
+
+  <p>Note: Any changes in the shared source information will be reflected
+    in the source itself, for all items that reference the source.
+  </p>
+
+<hr>
+
+{% if user.is_superuser %}
+  {% if action == "edit" %}
+    {% make_button "Cancel" "/citation/%s" citation.handle args %}
+    <input type="hidden" name="action" value="save"/>
+    <input type="hidden" name="search" value="{{search}}"/>
+    <input type="hidden" name="page" value="{{page}}"/>
+    <input type="submit" value="Save"/>
+  {% else %}
+    {% ifequal action "add" %}
+      {% make_button "Cancel" "/citation/" args %}
+      <input type="hidden" name="action" value="create"/>
+      <input type="hidden" name="search" value="{{search}}"/>
+      <input type="hidden" name="page" value="{{page}}"/>
+      <input type="submit" value="Create"/>
+    {% else %}
+      {% make_button "Add Citation" "/citation/add" args %}
+      {% make_button "Edit Citation" "/citation/%s/edit" citation.handle args %}
+      {% make_button "Delete Citation" "/citation/%s/delete" citation.handle args %}
+    {% endifequal %}
+  {% endif %}
+{% else %}
+{% endif %}
+</form>
+{% endblock %}

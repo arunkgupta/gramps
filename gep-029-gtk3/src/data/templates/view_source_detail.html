@@ -1,0 +1,102 @@
+{% extends "view_page_detail.html" %}
+{% load my_tags %}
+
+{% block content %} 
+
+   <script type="text/javascript">
+   $(function(){
+     $('#tabs').tabs({
+	'select': function(event, ui){
+			document.location.hash = ui.panel.id;
+		}
+     });
+   });
+   </script>
+
+<div class="content" id="IndividualDetail">
+
+{% include "detail_breadcrumb.html" %}
+
+<h3>{{source.title|escape}}</h3>
+<div id="summaryarea">
+<table class="infolist" style="width:90%;"> {% comment %} 2 cols {% endcomment %}
+<tbody>
+  {% if sourceform.errors %}
+    <hr>
+    <p id="error">The following fields have errors. Please correct and try again.</p>
+    <div id="error">{{sourceform.errors}}</div>
+    <hr>
+  {% endif %}
+<form method="post">{% csrf_token %}
+<tr>
+<td class="ColumnAttribute">{{sourceform.title.label}}:</td>
+<td class="ColumnValue" id="data">{% render sourceform.title user action %}</td>
+</tr>
+<tr>
+<td class="ColumnAttribute">{{sourceform.gramps_id.label}}:</td>
+<td class="ColumnValue" id="data">{% render sourceform.gramps_id user action %}</td>
+</tr>
+<tr>
+<td class="ColumnAttribute">{{sourceform.abbrev.label}}:</td>
+<td class="ColumnValue" id="data">{% render sourceform.abbrev user action %}</td>
+</tr>
+<tr>
+<td class="ColumnAttribute">{{sourceform.pubinfo.label}}:</td>
+<td class="ColumnValue" id="data">{% render sourceform.pubinfo user action %}</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<!-- Tabs -->
+
+<div class="ui-tabs ui-widget ui-widget-content ui-corner-all" id="tabs">
+  <ul class="ui-tabs-nav ui-helper-reset ui-helper-clearfix ui-widget-header ui-corner-all">
+    <li class="ui-state-default ui-corner-top ui-tabs-selected ui-state-active"><a href="#tab-notes">Notes</a></li>
+    <li class="ui-corner-top ui-state-default"><a href="#tab-media">Media</a></li>
+    <li class="ui-corner-top ui-state-default"><a href="#tab-data">Data</a></li>
+    <li class="ui-corner-top ui-state-default"><a href="#tab-repositories">Repositories</a></li>
+    <li class="ui-corner-top ui-state-default"><a href="#tab-references">References</a></li>
+  </ul>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom" id="tab-notes"> 
+    {% note_table source user action "/note/$act/source/%s" source.handle %}
+  </div>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tab-media">
+    {% media_table source user action "/media/$act/source/%s" source.handle %}
+  </div>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tab-data">
+    {% data_table source user action "/data/add/source/%s" source.handle %}
+  </div>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tab-repositories">
+    {% repository_table source user action "/repository/$act/source/%s" source.handle %}
+  </div>
+  <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tab-references">
+    {% source_reference_table source user action %}
+  </div>
+</div>
+
+{% if user.is_superuser %}
+  {% if action == "edit" %}
+    {% make_button "Cancel" "/source/%s" source.handle args %}
+    <input type="hidden" name="action" value="save"/>
+    <input type="hidden" name="search" value="{{search}}"/>
+    <input type="hidden" name="page" value="{{page}}"/>
+    <input type="submit" value="Save"/>
+  {% else %}
+    {% ifequal action "add" %}
+      {% make_button "Cancel" "/source/" args %}
+      <input type="hidden" name="action" value="create"/>
+      <input type="hidden" name="search" value="{{search}}"/>
+      <input type="hidden" name="page" value="{{page}}"/>
+      <input type="submit" value="Create"/>
+    {% else %}
+      {% make_button "Add Source" "/source/add" args %}
+      {% make_button "Edit Source" "/source/%s/edit" source.handle args %}
+      {% make_button "Delete Source" "/source/%s/delete" source.handle args %}
+    {% endifequal %}
+  {% endif %}
+{% else %}
+{% endif %}
+</form>
+{% endblock %}

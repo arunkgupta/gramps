@@ -1,0 +1,94 @@
+{% extends "view_page_detail.html" %}
+{% load my_tags %}
+
+{% block content %} 
+
+   <script type="text/javascript">
+   $(function(){
+     $('#tabs').tabs({
+	'select': function(event, ui){
+			document.location.hash = ui.panel.id;
+		}
+     });
+   });
+   </script>
+
+<div class="content" id="IndividualDetail">
+
+{% include "detail_breadcrumb.html" %}
+
+<div id="summaryarea">
+
+<table class="infolist" style="width:90%;">
+<trbody>
+  {% if repositoryform.errors %}
+    <hr>
+    <p id="error">The following fields have errors. Please correct and try again.</p>
+    <div id="error">{{repositoryform.errors}}</div>
+    <hr>
+  {% endif %}
+<form method="post">{% csrf_token %}
+<tr>
+<td class="ColumnAttribute">{{repositoryform.name.label}}:</td>
+<td class="ColumnValue" id="data" colspan="5">{% render repositoryform.name user action %} </td>
+</tr>
+<tr>
+<td class="ColumnAttribute">{{repositoryform.repository_type.label}}:</td>
+<td class="ColumnValue" id="data" colspan="3">{% render repositoryform.repository_type user action %}</td>
+</tr>
+<tr>
+<td class="ColumnAttribute">{{repositoryform.gramps_id.label}}:</td>
+<td class="ColumnValue" id="data">{% render repositoryform.gramps_id user action %}</td>
+<td class="ColumnAttribute" >{{repositoryform.private.label}}:</td>
+<td class="ColumnValue" id="data">{% render repositoryform.private user action %}</td>
+</tr>
+</table>
+
+<!-- Tabs -->
+
+<div class="ui-tab ui-widget ui-widget-content ui-corner-all" id="tabs">
+  <ul class="ui-tab-nav ui-helper-reset ui-helper-clearfix ui-widget-header ui-corner-all">
+    <li class="ui-state-default ui-corner-top ui-tab-selected ui-state-active"><a href="#tab-addresses">Addresses</a></li>
+    <li class="ui-corner-top ui-state-default"><a href="#tab-internet">Internet</a></li>
+    <li class="ui-corner-top ui-state-default"><a href="#tab-notes">Notes</a></li>
+    <li class="ui-corner-top ui-state-default"><a href="#tab-references">References</a></li>
+  </ul>
+  <div class="ui-tab-panel ui-widget-content ui-corner-bottom" id="tab-addresses">
+    {% address_table repository user action "/address/add/repository/%s" repository.handle %}
+  </div>
+  <div class="ui-tab-panel ui-widget-content ui-corner-bottom ui-tab-hide" id="tab-internet">
+    {% internet_table repository user action "/internet/add/repository/%s" repository.handle %}
+  </div>
+  <div class="ui-tab-panel ui-widget-content ui-corner-bottom ui-tab-hide" id="tab-notes">
+    {% note_table repository user action "/note/$act/repository/%s" repository.handle %}
+  </div>
+  <div class="ui-tab-panel ui-widget-content ui-corner-bottom ui-tab-hide" id="tab-references">
+    {% repository_reference_table repository user action %}
+  </div>
+</div>
+
+{% if user.is_superuser %}
+  {% if action == "edit" %}
+    {% make_button "Cancel" "/repository/%s" repository.handle args %}
+    <input type="hidden" name="action" value="save"/>
+    <input type="hidden" name="search" value="{{search}}"/>
+    <input type="hidden" name="page" value="{{page}}"/>
+    <input type="submit" value="Save"/>
+  {% else %}
+    {% ifequal action "add" %}
+      {% make_button "Cancel" "/repository/" args %}
+      <input type="hidden" name="action" value="create"/>
+      <input type="hidden" name="search" value="{{search}}"/>
+      <input type="hidden" name="page" value="{{page}}"/>
+      <input type="submit" value="Create"/>
+    {% else %}
+      {% make_button "Add Repository" "/repository/add" args %}
+      {% make_button "Edit Repository" "/repository/%s/edit" repository.handle args %}
+      {% make_button "Delete Repository" "/repository/%s/delete" repository.handle args %}
+    {% endifequal %}
+  {% endif %}
+{% else %}
+{% endif %}
+</form>
+{% endblock %}
+

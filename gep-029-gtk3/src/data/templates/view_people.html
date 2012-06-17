@@ -1,0 +1,40 @@
+{% extends "view_page.html" %}
+{% load my_tags %}
+
+{% block table_data %} 
+
+<table cellspacing="0" class="infolist surname" width="95%">
+<thead>
+  <tr>
+    <th>#</th>
+    <th>Name</th>
+    <th>ID</th>
+    <th>Gender</th>
+    <th>Birth Date</th>
+    <th>Death Date</th>
+  </tr>
+</thead>
+<tbody>
+  {% for name in page.object_list %}
+  <tr class="{% cycle odd,even %}">
+    {% if name.person %}
+    <td><a href="{{name.person.handle}}/{{args}}" class="noThumb browsecell">{{ forloop.counter|row_count:page }}</a>
+    </td>
+    <td><a href="{{name.person.handle}}/{{args}}" class="noThumb browsecell">{{name|make_name:user}} &nbsp;</a>
+    </td>
+    <td><a href="{{name.person.handle}}/{{args}}" class="grampsid browsecell">[{{name.person.gramps_id}}]</a></td>
+    <td><a href="{{name.person.handle}}/{{args}}" class="noThumb browsecell">{{name.person.gender_type}} &nbsp;</a></td>
+    <td><a href="{{name.person.handle}}/{{args}}" class="noThumb browsecell">{{name.person.birth|date_as_text:user}} &nbsp;</a></td>
+    <td><a href="{{name.person.handle}}/{{args}}" class="noThumb browsecell">{{name.person.death|date_as_text:user}} &nbsp;</a></td>
+    {% endif %}
+  </tr>
+  {% endfor %}
+</tbody>
+</table>
+
+{% if user.is_superuser %}
+   {% make_button "Add Person" "/person/add" args %}
+{% endif %}
+
+{% endblock %}
+
